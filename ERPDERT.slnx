@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="src/Dert.Core/Dert.Core.csproj" />
+  <Project Path="src/Erpdert.Cli/Erpdert.Cli.csproj" />
+  <Project Path="tests/Dert.Tests/Dert.Tests.csproj" />
+</Solution>

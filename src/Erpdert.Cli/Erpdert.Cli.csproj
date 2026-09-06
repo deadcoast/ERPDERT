@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>ERPDERT</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Dert.Core/Dert.Core.csproj" />
+    <PackageReference Include="Spectre.Console" Version="0.49.1" />
+  </ItemGroup>
+</Project>
