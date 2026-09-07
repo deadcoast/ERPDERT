@@ -19,14 +19,19 @@ internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain,
         Line("ERPDERT inspect RERDMERR.DERT --expand", SemanticRole.Sinker);
         Line("    Inspect every source line, preserving the written syntax.", SemanticRole.ContextNote);
         Line("ERPDERT lint RERDMERR.DERT", SemanticRole.Sinker);
-        Line("    Find supported structural problems with source-cited explanations.", SemanticRole.ContextNote);
+        Line("    Find structural problems with source-cited explanations and copyable supported rehearsals.", SemanticRole.ContextNote);
         Line("ERPDERT repair 'my notes.DERT'", SemanticRole.Sinker);
         Line("    Rehearse an exact title-rule edit. Apply only when you choose; keep an undo copy.", SemanticRole.ContextNote);
+        Line("ERPDERT repair 'my notes.DERT' --at 12", SemanticRole.Sinker);
+        Line("    Choose where an unfinished reasoning block ends. See what stays inside and what changes ownership.", SemanticRole.ContextNote);
+        Line("ERPDERT repair 'my notes.DERT' --at 12 --close-before 16", SemanticRole.Sinker);
+        Line("    Rehearse one offered boundary; use eof only when offered. Selection is not approval.", SemanticRole.ContextNote);
         Line("ERPDERT undo 'my notes.DERT'", SemanticRole.Sinker);
-        Line("    Rehearse restoring the original bytes from the latest title repair.", SemanticRole.ContextNote);
+        Line("    Rehearse restoring the original bytes from the latest title or note-boundary repair.", SemanticRole.ContextNote);
         Line("");
         Line("--plain removes color. inspect and lint never write your source.", SemanticRole.ContextNote);
-        Line("repair and undo wait for confirmation. Redirected output is preview-only unless you supply --apply <revision>.", SemanticRole.ContextNote);
+        Line("Lint's --from-lint commands check the same source bytes and open previews without write prompts. They cannot be combined with --apply.", SemanticRole.ContextNote);
+        Line("repair and undo wait for confirmation. Redirected output is preview-only unless you supply --apply <token> for a selected edit.", SemanticRole.ContextNote);
         Line("Title repair: ASCII width, UTF-8 documents, regular local Windows files. No DERT operations are executed.", SemanticRole.ContextNote);
         Line("Metadata interpretation and package operations are not implemented.", SemanticRole.ContextNote);
         Line("ƒin.", SemanticRole.Boundary);
@@ -77,22 +82,6 @@ internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain,
             Line("Use ERPDERT lint with this file for source-cited explanations.", SemanticRole.ContextNote);
     }
 
-    public void Lint(DertDocument document, string path)
-    {
-        Banner("SERNTERX / LINT");
-        Line(path, SemanticRole.ContextNote);
-        foreach (var diagnostic in document.Diagnostics)
-        {
-            Line("");
-            Line($"{diagnostic.Code} · {diagnostic.Severity.ToString().ToUpperInvariant()} · {path}:{diagnostic.LineNumber}",
-                diagnostic.Severity == DiagnosticSeverity.Error ? SemanticRole.Hook : SemanticRole.Target);
-            Line(diagnostic.Message);
-            SourceLine(document, document.Source.Lines[diagnostic.LineNumber - 1], true);
-        }
-        Line("");
-        Summary(document);
-    }
-
     public void Failure(string message)
     {
         Banner("COULD NOT CONTINUE");
@@ -102,9 +91,7 @@ internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain,
 
     private void SourceLine(DertDocument document, SourceLine line, bool selected)
     {
-        var paragraph = new Paragraph()
-            .Append($"{(selected ? ">" : " ")}{line.Number,6} │ ",
-                Style(selected ? SemanticRole.Hook : SemanticRole.ContextNote));
+        var paragraph = new Paragraph();
         var position = line.Start;
         if (position == 0 && document.Source.Text.StartsWith('\uFEFF')) position++;
         var relevant = document.Highlights.Where(h =>
@@ -118,8 +105,11 @@ internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain,
             paragraph.Append(Safe(document.Source.Text[position..end]), Style(role));
             position = end;
         }
-        console.Write(paragraph);
-        console.WriteLine();
+        var grid = new Grid().AddColumn(new GridColumn().Width(9).NoWrap().PadRight(1))
+            .AddColumn(new GridColumn());
+        grid.AddRow(new Text($"{(selected ? ">" : " ")}{line.Number,6} │",
+            Style(selected ? SemanticRole.Hook : SemanticRole.ContextNote)), paragraph);
+        console.Write(grid);
     }
 
     private void Ownership(DertDocument document, NodeLocation focused)

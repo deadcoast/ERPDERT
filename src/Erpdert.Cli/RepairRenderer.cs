@@ -8,10 +8,16 @@ namespace Erpdert.Cli;
 
 internal sealed partial class DocumentRenderer
 {
-    public void RepairPreview(RepairSnapshot snapshot)
+    public void RepairPreview(RepairSnapshot snapshot, bool fromLint = false)
     {
+        if (snapshot.Plan is NoteClosurePlan note)
+        {
+            NoteRepairPreview(snapshot, note, fromLint);
+            return;
+        }
         Banner(snapshot.IsUndo ? "SERNTERX / UNDO REHEARSAL" : "SERNTERX / REPAIR REHEARSAL");
         Line(snapshot.Path, SemanticRole.ContextNote);
+        if (fromLint) LintSourceMatched();
         Line("");
         if (!snapshot.CanApply)
         {
@@ -21,7 +27,7 @@ internal sealed partial class DocumentRenderer
             return;
         }
 
-        var plan = snapshot.Plan;
+        var plan = (TitleRepairPlan)snapshot.Plan;
         var before = DertParser.Parse(snapshot.Before);
         var after = DertParser.Parse(snapshot.After);
         Line(snapshot.IsUndo ? "RESTORE / EXACT ORIGINAL" : $"DERT2003 / TITLE RULE · LINE {plan.RuleLine}", SemanticRole.Hook);
@@ -54,11 +60,11 @@ internal sealed partial class DocumentRenderer
         Line("");
     }
 
-    public void RepairWaiting(RepairSnapshot snapshot)
+    public void RepairWaiting(RepairSnapshot snapshot, bool fromLint = false)
     {
         Line("PREVIEW ONLY · nothing written", SemanticRole.Hook);
         Line("To approve this exact edit in PowerShell, copy the complete command:");
-        CopyCommand(ApplyCommand(snapshot));
+        CopyCommand(ApplyCommand(snapshot, fromLint && plain));
         Line("Or run the same command without --apply in an interactive terminal to choose there.", SemanticRole.ContextNote);
         Line("ƒin.", SemanticRole.Boundary);
     }
@@ -71,7 +77,8 @@ internal sealed partial class DocumentRenderer
 
     public void RepairCompleted(RepairSnapshot snapshot, RepairResult result)
     {
-        console.Write(new Text(snapshot.IsUndo ? "✓ ORIGINAL RESTORED" : "✓ TITLE ALIGNED", AddedStyle()));
+        console.Write(new Text(snapshot.IsUndo ? "✓ ORIGINAL RESTORED"
+            : snapshot.Plan is NoteClosurePlan ? "✓ NOTE BOUNDARY CLOSED" : "✓ TITLE ALIGNED", AddedStyle()));
         console.WriteLine();
         Line(result.Message);
         Line("Saved original  " + Path.Combine(result.ReceiptDirectory, "before.DERT"), SemanticRole.ContextNote);
@@ -86,8 +93,9 @@ internal sealed partial class DocumentRenderer
         {
             Line("");
             Line(snapshot.IsUndo
-                ? $"{Count(document.Diagnostics.Count, "finding")} in the restored original · undo also restores its previous rule"
-                : $"{Count(document.Diagnostics.Count, "finding")} still present · this action only changed the title rule", SemanticRole.Hook);
+                ? $"{Count(document.Diagnostics.Count, "finding")} in the restored original · undo restores its previous structure too"
+                : $"{Count(document.Diagnostics.Count, "finding")} still present · this action only changed " +
+                    (snapshot.Plan is NoteClosurePlan ? "the selected note boundary" : "the title rule"), SemanticRole.Hook);
             foreach (var diagnostic in document.Diagnostics)
             {
                 Line($"{diagnostic.Code} · LINE {diagnostic.LineNumber} · {diagnostic.Message}");
@@ -142,6 +150,9 @@ internal sealed partial class DocumentRenderer
     }
     private string Invocation() => invocation is { Length: > 0 }
         ? "& " + string.Join(' ', invocation.Select(PowerShellLiteral)) : "ERPDERT";
-    private string ApplyCommand(RepairSnapshot snapshot) =>
-        $"{Invocation()} {(snapshot.IsUndo ? "undo" : "repair")} {PowerShellLiteral(snapshot.Path)} --apply {snapshot.ApprovalToken}";
+    private string ApplyCommand(RepairSnapshot snapshot, bool preservePlain = false) =>
+        (snapshot is { IsUndo: false, Plan: NoteClosurePlan note }
+            ? NoteSelectionCommand(snapshot.Path, note.Analysis.Block.LineNumber, note.Boundary.Key)
+            : $"{Invocation()} {(snapshot.IsUndo ? "undo" : "repair")} {PowerShellLiteral(snapshot.Path)}") +
+        (preservePlain ? " --plain" : "") + $" --apply {snapshot.ApprovalToken}";
 }

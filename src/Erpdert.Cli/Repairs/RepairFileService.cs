@@ -11,11 +11,30 @@ public sealed class RepairFileService
     private readonly IRepairWriter writer;
     public RepairFileService(IRepairWriter? writer = null) => this.writer = writer ?? new FileStreamRepairWriter();
 
-    public RepairSnapshot Preview(string path) => Guard(() =>
+    public NoteRepairInspection InspectNote(string path, int atLine, string? expectedRevision = null) => Guard(() =>
     {
         var fullPath = Path.GetFullPath(path);
         using var file = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
         var bytes = Read(file);
+        CheckLintRevision(expectedRevision, bytes);
+        var identity = WindowsFileGuard.Identity(file);
+        var document = DertParser.Parse(Utf8.GetString(bytes));
+        var analysis = SelectNote(() => NoteClosureRepair.Analyze(document, atLine));
+        return new NoteRepairInspection(fullPath, Hash(bytes), identity, analysis);
+    });
+
+    public RepairSnapshot PreviewNote(NoteRepairInspection inspection, string boundaryKey)
+    {
+        var plan = SelectNote(() => NoteClosureRepair.Plan(inspection.Analysis, boundaryKey));
+        return new(inspection.Path, plan.Source, plan.ProposedText, inspection.Revision, plan, inspection.Identity);
+    }
+
+    public RepairSnapshot Preview(string path, string? expectedRevision = null) => Guard(() =>
+    {
+        var fullPath = Path.GetFullPath(path);
+        using var file = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        var bytes = Read(file);
+        CheckLintRevision(expectedRevision, bytes);
         var identity = WindowsFileGuard.Identity(file);
         var text = Utf8.GetString(bytes);
         var plan = TitleRuleRepair.Plan(DertParser.Parse(text));
@@ -28,13 +47,9 @@ public sealed class RepairFileService
         using var file = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
         var current = Read(file);
         var identity = WindowsFileGuard.Identity(file);
-        var root = ReceiptRoot(fullPath, identity);
-        WindowsFileGuard.CheckPath(root);
-        var directory = Directory.Exists(root)
-            ? Directory.EnumerateDirectories(root).OrderByDescending(Path.GetFileName, StringComparer.Ordinal).FirstOrDefault()
-            : null;
+        var directory = LatestReceipt(fullPath, identity);
         if (directory is null)
-            throw new RepairException("DERT4003", "There is no saved title repair for this document. Nothing was changed.");
+            throw new RepairException("DERT4003", "There is no saved source repair for this document. Nothing was changed.");
         WindowsFileGuard.CheckPath(directory);
         var backupPath = Path.Combine(directory, "before.DERT");
         var receiptPath = Path.Combine(directory, "receipt.json");
@@ -43,12 +58,12 @@ public sealed class RepairFileService
         var receipt = JsonSerializer.Deserialize<RepairReceipt>(File.ReadAllBytes(receiptPath));
         var original = File.ReadAllBytes(backupPath);
         var originalText = Utf8.GetString(original);
-        var plan = TitleRuleRepair.Plan(DertParser.Parse(originalText));
-        if (receipt is null || receipt.Version != 1 ||
-            receipt.FileIdentity != identity ||
-            receipt.BeforeHash != Hash(original) || plan.State != TitleRepairState.Ready ||
+        if (receipt is null || receipt.FileIdentity != identity || receipt.BeforeHash != Hash(original))
+            throw new RepairException("DERT4004", "This recovery record does not match this file and its saved original. The document was left unchanged.", backupPath);
+        var plan = Replay(receipt, originalText, backupPath);
+        if (!plan.IsReady ||
             receipt.AfterHash != Hash(Utf8.GetBytes(plan.ProposedText)))
-            throw new RepairException("DERT4004", "This recovery record does not match a verified title repair. The document was left unchanged.", backupPath);
+            throw new RepairException("DERT4004", "This recovery record does not match a verified source repair. The document was left unchanged.", backupPath);
         var revision = Hash(current);
         if (revision != receipt.AfterHash && revision != receipt.BeforeHash)
             throw new RepairException("DERT4002", "This document changed after the repair. Undo would replace later edits, so it was stopped. The saved original is available for comparison.", backupPath);
@@ -66,6 +81,8 @@ public sealed class RepairFileService
         var proposed = Utf8.GetBytes(snapshot.After);
         if (snapshot.IsUndo)
         {
+            if (!string.Equals(LatestReceipt(snapshot.Path, snapshot.Identity), snapshot.ReceiptDirectory, StringComparison.Ordinal))
+                throw new RepairException("DERT4002", "The latest recovery record changed after this undo preview. Preview undo again; no source bytes were written.");
             var backupPath = Path.Combine(snapshot.ReceiptDirectory!, "before.DERT");
             WindowsFileGuard.CheckPath(backupPath);
             using var backup = new FileStream(backupPath, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -84,13 +101,18 @@ public sealed class RepairFileService
         using var saved = new FileStream(savedPath, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
         new FileStreamRepairWriter().Rewrite(saved, original);
         Verify(saved, original);
-        var receipt = new RepairReceipt(1, snapshot.Path, snapshot.Identity, snapshot.Revision, Hash(proposed), DateTimeOffset.UtcNow);
+        var selection = snapshot.Plan is NoteClosurePlan note
+            ? new RepairSelection(note.Kind, note.Analysis.Block.LineNumber, note.Boundary.Key) : null;
+        var receipt = new RepairReceipt(selection is null ? 1 : 2, snapshot.Path, snapshot.Identity,
+            snapshot.Revision, Hash(proposed), DateTimeOffset.UtcNow, selection);
         using var record = new FileStream(Path.Combine(directory, "receipt.json"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
         var recordBytes = JsonSerializer.SerializeToUtf8Bytes(receipt);
         new FileStreamRepairWriter().Rewrite(record, recordBytes);
         Verify(record, recordBytes);
         Commit(target, original, proposed, savedPath);
-        return new RepairResult("The title rule was aligned and its saved bytes verified.", directory);
+        return new RepairResult(snapshot.Plan is NoteClosurePlan
+            ? "The selected note boundary was added and its saved bytes verified."
+            : "The title rule was aligned and its saved bytes verified.", directory);
     });
 
     private void Commit(FileStream target, byte[] original, byte[] proposed, string recoveryPath)
@@ -117,6 +139,16 @@ public sealed class RepairFileService
 
     private static string ReceiptRoot(string path, string identity) => Path.Combine(Path.GetDirectoryName(path)!, ".erpdert", "repairs",
         Hash(Utf8.GetBytes(identity)));
+    private static string? LatestReceipt(string path, string identity)
+    {
+        var root = ReceiptRoot(path, identity);
+        WindowsFileGuard.CheckPath(root);
+        var directory = Directory.Exists(root)
+            ? Directory.EnumerateDirectories(root).OrderByDescending(Path.GetFileName, StringComparer.Ordinal).FirstOrDefault()
+            : null;
+        if (directory is not null) WindowsFileGuard.CheckPath(directory);
+        return directory;
+    }
     private static long NextSequence(string root)
     {
         long greatest = 0;
@@ -129,6 +161,36 @@ public sealed class RepairFileService
         return greatest + 1;
     }
     private static string Hash(byte[] bytes) => Convert.ToHexString(SHA256.HashData(bytes));
+    private static void CheckLintRevision(string? expected, byte[] bytes)
+    {
+        if (expected is not null && !Hash(bytes).Equals(expected, StringComparison.Ordinal))
+            throw new RepairException("DERT4002", "This document changed since lint. Run lint again to get current source locations and rehearsal commands; nothing was written.");
+    }
+    private static ISourceRepairPlan Replay(RepairReceipt receipt, string source, string backupPath)
+    {
+        try
+        {
+            return receipt switch
+            {
+                { Version: 1, Selection: null } => TitleRuleRepair.Plan(DertParser.Parse(source)),
+                { Version: 2, Selection: { Kind: NoteClosurePlan.RepairKind, AtLine: int at, CloseBefore: string boundary } } =>
+                    NoteClosureRepair.Plan(NoteClosureRepair.Analyze(DertParser.Parse(source), at), boundary),
+                _ => throw new RepairException("DERT4004", "This recovery record names an unsupported repair or is missing its selection. Nothing was written.", backupPath)
+            };
+        }
+        catch (Exception error) when (error is ArgumentException or InvalidOperationException)
+        {
+            throw new RepairException("DERT4004", "The saved repair selection cannot be reconstructed from its original. Nothing was written.", backupPath, error);
+        }
+    }
+    private static T SelectNote<T>(Func<T> action)
+    {
+        try { return action(); }
+        catch (Exception error) when (error is ArgumentException or InvalidOperationException)
+        {
+            throw new RepairException("DERT4005", error.Message, inner: error);
+        }
+    }
     private static byte[] Read(FileStream stream)
     {
         stream.Position = 0;

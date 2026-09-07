@@ -17,7 +17,8 @@ notes is already a complete user. Education is incidental.
 ## Current state
 
 The language workbench works: a source-preserving lexer/parser and a Windows
-CLI for inspecting, linting, and rehearsing a reversible title-rule repair. It recognizes the original example without
+CLI for inspecting, linting, and rehearsing reversible title-rule and note-boundary
+repairs. It recognizes the original example without
 rewriting its syntax, associates each reasoning entry with its own explanation,
 and supplies semantic colors, folds, source locations, and English diagnostics.
 
@@ -50,6 +51,27 @@ for inspection, and `--plain` removes styling. These commands never modify files
 The original corpus currently produces a title-underline warning and an
 unfinished-list notice; it is deliberately left untouched.
 
+### Go from a finding to its rehearsal
+
+Run `lint` on your file. Each finding appears with its source line and either
+a supported action or a specific explanation of what cannot yet be repaired.
+There is no command to reconstruct or rule number to look up:
+
+- **REHEARSE / TITLE RULE** opens the exact underline edit when its width is supported.
+- **CHOOSE / NOTE BOUNDARY** opens the unfinished block's entries and possible endings.
+- **NO REPAIR OFFERED** explains unsupported inline closure, list completion, or title width.
+
+Copy the complete PowerShell command printed under the finding. It uses this
+executable's path, the file's absolute path, and a `--from-lint` source revision.
+You do not need to type that revision. It is **not an approval token**: the link
+checks the linted bytes and only opens a preview, without any write prompt.
+If the file changed, it asks you to lint again instead of using an old line number.
+
+For note boundaries, subsequent copied choices retain the source check and your
+`--plain` preference until the selected preview. Only that exact edit's separate
+approval command can write. The ordinary interactive `repair` commands below
+remain available. Lint never creates a recovery copy or changes source.
+
 ### Rehearse a title repair
 
 Use a note of your own, or a copy of the corpus:
@@ -77,8 +99,39 @@ the file can disconnect automatic undo; the saved originals remain readable.
 
 This increment measures printable ASCII titles in strict UTF-8 documents and
 applies only to regular local Windows files. Unsupported title widths are
-explained, never guessed. It does not correct commas, targets, or note closures.
+explained, never guessed. Title repair does not change commas, targets, or note closures.
 See the [repair contract](docs/superpowers/specs/2026-09-06-title-repair-design.md).
+
+### Choose where an unfinished note ends
+
+Point at the opener or an entry of an unfinished reasoning block:
+
+```powershell
+.\.artifacts\win-x64\ERPDERT.exe repair '.\my notes.DERT' --at 12
+```
+
+The CLI shows the current recovered grouping and offers source-line boundaries.
+Choose one to see the exact `//` insertion, every entry that stays inside, and
+the actual new role and owner of each released entry. Press Enter to leave.
+Selection opens the rehearsal; a separate `y` approves the write.
+
+For a boundary offered by that report, you can go directly to its rehearsal:
+
+```powershell
+.\.artifacts\win-x64\ERPDERT.exe repair '.\my notes.DERT' --at 12 --close-before 16
+```
+
+Use `eof` instead of a line number only when offered. Redirected choice reports
+print selection commands; only a concrete edit preview prints an approval token.
+No boundary is automatically preferred. The same `undo` command restores the
+latest title or note repair, including the original unfinished state.
+
+The edit adds one standalone `//` and its required line ending. Words, commas,
+BOM, existing newlines, and final-newline style are preserved. Ownership changes
+are explicitly shown; this is not described as decoration-only. Unicode note
+text is supported. Inline-note closure and unfinished active lists are not
+repaired by this command, and no parser grammar was changed to implement it.
+See the [note-boundary contract](docs/superpowers/specs/2026-09-06-note-boundary-design.md).
 
 The published `win-x64` folder includes its .NET runtime. Keep the **whole folder**
 together, not just the executable. This workspace build is not a signed installer
@@ -95,6 +148,8 @@ dotnet build ERPDERT.slnx -c Release
 dotnet publish src/Erpdert.Cli -c Release -r win-x64 --self-contained true -o .artifacts/win-x64
 .\tests\Invoke-PublishedSmoke.ps1
 .\tests\Invoke-RepairSmoke.ps1
+.\tests\Invoke-NoteRepairSmoke.ps1
+.\tests\Invoke-LintHandoffSmoke.ps1
 ```
 
 The smoke check runs the executable against the example extracted directly from
@@ -103,6 +158,13 @@ that source hashes did not change. Generated evidence stays in `.artifacts/proof
 The repair smoke suite applies and undoes edits on generated copies, executes the
 printed PowerShell commands, and checks exact reversal and stale-approval refusal.
 Its evidence and recovery copies stay in `.artifacts/repair-proof`.
+The note-boundary suite checks original-example choices, copied selection/apply/
+undo commands, actual released ownership, refusal paths, and Unicode/BOM/EOF
+reversal. Its evidence stays in `.artifacts/note-proof`.
+The lint-handoff suite executes copied links from a different directory, checks
+source-bound note choices and unsupported findings, preserves unusual filenames,
+rejects stale links, and verifies separate approval/undo. Its evidence stays in
+`.artifacts/lint-proof`.
 The [implementation record](docs/IMPLEMENTATION-STATUS.md) separates tested
 behavior, provisional parser decisions, and unfinished product work.
 
@@ -110,7 +172,7 @@ behavior, provisional parser decisions, and unfinished product work.
 
 | Document | Role |
 | --- | --- |
-| [Original language notes](docs/original.md) | Primary semantic source; intentionally scattered and unresolved |
+| [Original language notes](docs/archive/original.md) | Primary semantic source; intentionally scattered and unresolved |
 | [Who we are](docs/WHO-WE-ARE.md) | The user's full product ambition and MIVIM philosophy |
 | [RERDMERR.DERT](RERDMERR.DERT) | Original authoring/syntax corpus; includes conflicting examples |
 | [Critical design review](docs/DESIGN-REVIEW.md) | What the previous summaries lost, what our own proposals invented, and source coverage |
@@ -123,7 +185,7 @@ behavior, provisional parser decisions, and unfinished product work.
 Latest explicit user decisions govern the source material. The current design
 documents distinguish those decisions from development recommendations.
 
-The [old overview](docs/overview.md) and
+The [old overview](docs/archive/overview.md) and
 [previous conversation README](docs/archive/2026-09-06-conversation-readme.md)
 are preserved historical interpretations. Both contain unsupported claims.
 The latter also preserves the user's correction to the educational framing.
@@ -149,11 +211,13 @@ without a compulsory tutorial or an announcement that they are a beginner.
 
 ## The next proof
 
-Recognition, ownership inspection, read-only linting, and title-rule repair
-rehearsal now have working implementations. The next authoring proof is an
-unfinished edit handled in context: show the competing interpretations, keep
-the author's words intact, and offer an exact choice where intent is needed.
-This must not silently settle ambiguous commas, targets, or closure rules.
+Recognition, ownership inspection, read-only linting, title-rule rehearsal, and
+author-selected unfinished-note closure now have working implementations.
+Supported lint findings now link directly to their source-bound rehearsals,
+without write prompts or guessed repairs. The next delivery step is the return
+journey after an approved repair: connect remaining findings in the verified
+result to their own current actions. A successful selected repair must not imply
+that every unrelated finding was fixed. No generic auto-fix or new grammar is implied.
 
 The broader Windows proof still includes an ambiguous edit, supported command
 rehearsal, read-only discovery, and an optional result kept in the document.

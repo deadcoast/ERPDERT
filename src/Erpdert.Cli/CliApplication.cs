@@ -1,4 +1,5 @@
 using System.Text;
+using System.Security.Cryptography;
 using Dert.Core;
 using Spectre.Console;
 
@@ -7,7 +8,7 @@ namespace Erpdert.Cli;
 public static class CliApplication
 {
     public static int Run(string[] args, IAnsiConsole console, Func<string, bool>? confirmRepair = null,
-        string[]? invocation = null)
+        string[]? invocation = null, Func<IReadOnlyList<NoteBoundary>, string?>? chooseBoundary = null)
     {
         var renderer = new DocumentRenderer(console, args.Contains("--plain"), invocation);
         if (args.Length == 0 || args[0] == "help" || args.Any(a => a is "-help" or "--help"))
@@ -21,11 +22,13 @@ public static class CliApplication
             return 2;
         }
         if (options!.Command is "repair" or "undo")
-            return RepairCommand.Run(options, console, renderer, confirmRepair);
+            return RepairCommand.Run(options, console, renderer, confirmRepair, chooseBoundary);
         try
         {
             // Decode strictly and retain a UTF-8 BOM in SourceText. Inspection never writes the file.
-            var text = new UTF8Encoding(false, true).GetString(File.ReadAllBytes(options!.Path));
+            var fullPath = Path.GetFullPath(options!.Path);
+            var bytes = File.ReadAllBytes(fullPath);
+            var text = new UTF8Encoding(false, true).GetString(bytes);
             var document = DertParser.Parse(text);
             if (options.At is int at && at > document.Source.Lines.Count)
             {
@@ -35,7 +38,7 @@ public static class CliApplication
             if (options.Command == "inspect")
                 renderer.Inspect(document, options);
             else
-                renderer.Lint(document, options.Path);
+                renderer.Lint(document, fullPath, Convert.ToHexString(SHA256.HashData(bytes)));
             return document.Diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error) ? 1 : 0;
         }
         catch (DecoderFallbackException)

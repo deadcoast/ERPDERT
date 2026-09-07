@@ -7,25 +7,30 @@ namespace Erpdert.Cli;
 internal static class RepairCommand
 {
     internal static int Run(CliOptions options, IAnsiConsole console, DocumentRenderer renderer,
-        Func<string, bool>? confirm)
+        Func<string, bool>? confirm, Func<IReadOnlyList<NoteBoundary>, string?>? chooseBoundary)
     {
         try
         {
             var service = new RepairFileService();
-            var snapshot = options.Command == "undo" ? service.PreviewUndo(options.Path) : service.Preview(options.Path);
+            var snapshot = options.Command == "undo" ? service.PreviewUndo(options.Path)
+                : options.At is not null ? NoteRepairCommand.Select(options, console, renderer, service, chooseBoundary)
+                : service.Preview(options.Path, options.FromLint);
+            if (snapshot is null) return 0;
             if (options.ApplyToken is not null && options.ApplyToken != snapshot.ApprovalToken)
                 throw new RepairException("DERT4002",
                     "That approval no longer matches this file and proposed edit. Preview it again; nothing was written.");
-            renderer.RepairPreview(snapshot);
+            renderer.RepairPreview(snapshot, options.FromLint is not null);
             if (!snapshot.CanApply)
-                return snapshot.Plan.State == TitleRepairState.Unavailable ? 1 : 0;
+                return snapshot.Plan is TitleRepairPlan { State: TitleRepairState.Unavailable } ? 1 : 0;
 
-            var question = snapshot.IsUndo ? "Restore these original bytes?" : "Apply this title-rule edit and save an undo copy?";
+            var question = snapshot.IsUndo ? "Restore these original bytes?"
+                : snapshot.Plan is NoteClosurePlan ? "Apply this note-boundary edit and save an undo copy?"
+                : "Apply this title-rule edit and save an undo copy?";
             if (options.ApplyToken is null)
             {
-                if (confirm is null && !console.Profile.Capabilities.Interactive)
+                if (options.FromLint is not null || confirm is null && !console.Profile.Capabilities.Interactive)
                 {
-                    renderer.RepairWaiting(snapshot);
+                    renderer.RepairWaiting(snapshot, options.FromLint is not null);
                     return 0;
                 }
                 var prompt = new ConfirmationPrompt(question)

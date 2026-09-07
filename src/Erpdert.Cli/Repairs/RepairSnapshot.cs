@@ -7,7 +7,7 @@ namespace Erpdert.Cli.Repairs;
 public sealed class RepairSnapshot
 {
     internal RepairSnapshot(string path, string before, string after, string revision,
-        TitleRepairPlan plan, string identity, bool isUndo = false, string? receiptDirectory = null)
+        ISourceRepairPlan plan, string identity, bool isUndo = false, string? receiptDirectory = null)
     {
         Path = path; Before = before; After = after; Revision = revision;
         Plan = plan; IsUndo = isUndo; ReceiptDirectory = receiptDirectory;
@@ -15,7 +15,7 @@ public sealed class RepairSnapshot
         // Approval names the whole action, not just input bytes: two undo records can
         // begin with identical repaired source yet restore different originals.
         ApprovalToken = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join('\n',
-            "title-rule-repair-v1", isUndo ? "undo" : "repair", path, identity, revision,
+            plan.Kind, isUndo ? "undo" : "repair", path, identity, revision,
             Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(after))), receiptDirectory ?? ""))));
     }
     public string Path { get; }
@@ -24,7 +24,7 @@ public sealed class RepairSnapshot
     public string Revision { get; }
     public string ApprovalToken { get; }
     public string Identity { get; }
-    public TitleRepairPlan Plan { get; }
+    public ISourceRepairPlan Plan { get; }
     public bool IsUndo { get; }
     public string? ReceiptDirectory { get; }
     public bool CanApply => !string.Equals(Before, After, StringComparison.Ordinal);

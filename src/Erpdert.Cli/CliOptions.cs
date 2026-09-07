@@ -1,6 +1,9 @@
+using System.Globalization;
+
 namespace Erpdert.Cli;
 
-internal sealed record CliOptions(string Command, string Path, bool Expand, int? At, string? ApplyToken = null, bool Plain = false)
+internal sealed record CliOptions(string Command, string Path, bool Expand, int? At, string? ApplyToken = null,
+    bool Plain = false, string? CloseBefore = null, string? FromLint = null)
 {
     public static bool TryRead(string[] args, out CliOptions? options, out string message)
     {
@@ -10,6 +13,8 @@ internal sealed record CliOptions(string Command, string Path, bool Expand, int?
         var expand = false;
         int? at = null;
         string? revision = null;
+        string? closeBefore = null;
+        string? fromLint = null;
         for (var i = 2; i < args.Length; i++)
         {
             switch (args[i])
@@ -19,13 +24,36 @@ internal sealed record CliOptions(string Command, string Path, bool Expand, int?
                 case "--expand" when args[0] == "inspect":
                     expand = true;
                     break;
-                case "--at" when args[0] == "inspect":
-                    if (++i >= args.Length || !int.TryParse(args[i], out var number) || number < 1)
+                case "--at" when args[0] is "inspect" or "repair":
+                    if (at is not null || ++i >= args.Length || !int.TryParse(args[i], NumberStyles.None, CultureInfo.InvariantCulture, out var number) || number < 1)
                     {
                         message = "--at needs a positive line number, for example: ERPDERT inspect notes.DERT --at 12";
                         return false;
                     }
                     at = number;
+                    break;
+                case "--close-before" when args[0] == "repair":
+                    if (closeBefore is not null || ++i >= args.Length)
+                    {
+                        message = "Choose --close-before once, with an offered source line or eof.";
+                        return false;
+                    }
+                    if (args[i].Equals("eof", StringComparison.OrdinalIgnoreCase)) closeBefore = "eof";
+                    else if (int.TryParse(args[i], NumberStyles.None, CultureInfo.InvariantCulture, out var boundary) && boundary > 0)
+                        closeBefore = boundary.ToString(CultureInfo.InvariantCulture);
+                    else
+                    {
+                        message = "--close-before needs an offered positive source line, or eof when offered. Run repair with --at first to see the choices.";
+                        return false;
+                    }
+                    break;
+                case "--from-lint" when args[0] == "repair":
+                    if (fromLint is not null || ++i >= args.Length || args[i].Length != 64 || !args[i].All(char.IsAsciiHexDigit))
+                    {
+                        message = "--from-lint needs the exact 64-character source revision from lint. Copy a complete rehearsal command from that report.";
+                        return false;
+                    }
+                    fromLint = args[i].ToUpperInvariant();
                     break;
                 case "--apply" when args[0] is "repair" or "undo":
                     if (revision is not null || ++i >= args.Length || args[i].Length != 64 ||
@@ -41,7 +69,17 @@ internal sealed record CliOptions(string Command, string Path, bool Expand, int?
                     return false;
             }
         }
-        options = new(args[0], args[1], expand, at, revision, args.Contains("--plain"));
+        if (closeBefore is not null && at is null || args[0] == "repair" && at is not null && revision is not null && closeBefore is null)
+        {
+            message = "A note repair needs --at to identify the unfinished block, and --close-before to select a boundary before --apply can approve it.";
+            return false;
+        }
+        if (fromLint is not null && revision is not null)
+        {
+            message = "A --from-lint handoff opens a preview only. It cannot be combined with --apply. Open the rehearsal first, then choose its separate approval command.";
+            return false;
+        }
+        options = new(args[0], args[1], expand, at, revision, args.Contains("--plain"), closeBefore, fromLint);
         return true;
     }
 }

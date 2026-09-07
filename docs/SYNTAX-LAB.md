@@ -220,6 +220,14 @@ at its source location. The diagnostic and its repair must work with the
 author's existing markers. Missing punctuation does not justify changing
 the nesting model.
 
+Implemented probe: `repair --at <line>` offers a missing block closer at the
+current recovered entries' source starts or recovery stop/EOF. The author
+selects the cut, sees retained entries and actual reparsed ownership outside
+it, and approves separately. This adds one existing standalone `//`; it does
+not define a new nesting rule, adopt indentation, or canonize recovery behavior.
+Inline-note closure and expanded-list completion remain separate unresolved
+repair cases. See [implementation status](IMPLEMENTATION-STATUS.md).
+
 ## Chain closure and compact forms
 
 The original `ƒin.` contributes both visible identity and an explicit boundary.

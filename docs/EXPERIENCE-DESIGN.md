@@ -3,7 +3,8 @@
 Working design, 2026-09-06. The product commitments come from the original
 notes and user corrections. Interactions, internal contracts, and delivery
 choices below are development recommendations. The storyboards describe proposed
-behavior, not a shipped editor. A subsequent CLI ownership/linting increment is
+behavior, not a shipped editor. Subsequent CLI ownership/linting, title-repair,
+and author-selected note-boundary increments are
 recorded in [implementation status](IMPLEMENTATION-STATUS.md); it does not
 establish that the complete interactions below have been built or proven usable.
 
@@ -182,6 +183,25 @@ to the wrong line would break the central promise.
 Acceptance: preview without writing; apply; undo; edit while the preview is
 open; reopen an incomplete list; dismiss a suggestion. No automatic edit may
 fight an intentional edit or claim to resolve missing intent.
+
+Implemented CLI slice: `repair --at <line>` now shows an unfinished reasoning
+block's recovered grouping, asks for an offered source-line/EOF boundary, then
+rehearses its exact insertion and reparsed ownership. Every retained entry and
+each released line's new role/owner are visible before separate approval.
+Both prompts default to leaving. This is an author-selected closure using the
+existing `//`, not the proposed list-completion interaction or an editor feature.
+The [boundary contract](superpowers/specs/2026-09-06-note-boundary-design.md)
+and implementation status record its actual scope and evidence.
+
+Implemented handoff: each supported lint finding now carries its own complete
+PowerShell rehearsal command. Generic help would make the author reconstruct
+the path and context; an unbound line command could outlive the source it cites.
+The selected delivery ties the command to the checked bytes and opens a preview
+without write prompts. Note choices retain that link through selected rehearsal,
+and plain mode follows the copied action. A separate approval is still needed.
+Unsupported findings describe their missing capability rather than offering a
+command that cannot perform the promised repair. The terminal view walks source
+locations in order; semantic diagnostics themselves are not reordered or rewritten.
 
 ## 4. Let a command return to the note that asked for it
 

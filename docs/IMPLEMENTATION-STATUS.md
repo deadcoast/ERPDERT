@@ -13,8 +13,8 @@ and closing boundary. Inspection folds reasoning by default; `--expand` and
 policy. Incomplete folds carry `missing //` on their handles.
 
 The CLI reads UTF-8, including a UTF-8 BOM. Invalid encoding gets an English
-message instead of replacement characters or an automatic conversion. Both
-commands are read-only. Neither dispatches shell commands or package operations.
+message instead of replacement characters or an automatic conversion. `inspect`
+and `lint` are read-only. No command dispatches DERT operations or package actions.
 
 Exit 0 means no errors were found by the implemented checks; warnings/notices
 can remain. Exit 1 means a structural error was found. Exit 2 means the request
@@ -75,7 +75,8 @@ directory. Originals are full **unencrypted local copies**, never automatically
 deleted or uploaded. Keep them private. Copying/replacing a file or moving it away
 from its recovery storage can disconnect automatic undo; readable backups remain.
 Ordering uses a local monotonic sequence, not the wall clock. This is the latest
-title repair's undo, not an arbitrary multi-level edit history.
+source repair's undo, across title and note repairs, not an arbitrary multi-level
+edit history. An already-undone latest record does not expose an older one.
 
 Current limits: strict UTF-8, printable ASCII title width, regular local Windows
 files. Non-ASCII/control title width is explicitly unavailable; no transliteration
@@ -85,6 +86,100 @@ without a new final newline. Links, redirected paths, alternate streams and UNC
 mutation are refused. Writes are recoverable, not power-loss atomic. Active
 hostile filesystem races are outside the guarantee. Timestamp restoration is
 not promised. See the [full repair contract](superpowers/specs/2026-09-06-title-repair-design.md).
+
+## Note-boundary repair: show the ownership decision
+
+`repair <file> --at <line>` selects an unfinished multiline reasoning block
+through its opener, entry, or spacing inside the recovered block. It displays
+that current grouping explicitly as recovery, not as confirmed author intent.
+Choices are before each entry's original source line and at the recovery stop,
+or `eof` when the block reaches EOF. There is no automatically preferred ending,
+arbitrary cut, separate blank-line cut, or duplicate EOF choice.
+
+The interactive choice defaults to `leave`. Choosing a boundary opens a second
+rehearsal showing:
+
+- The existing opener and local insertion context, with a single added `//`.
+- Every retained entry, including its original comma and annotation.
+- Each released entry's original/result line, actual new role, actual owner,
+  and resulting semantic highlight. A released opener can own later entries;
+  those lines are not indiscriminately labeled ordinary notes.
+- Findings from the reparsed proposal, without claiming complete validity.
+- Local newline/EOF behavior, the local original-copy location, and a separate
+  default-no confirmation. Ownership changes are not called presentation-only.
+
+`--close-before <line|eof>` directly selects one offered boundary and opens the
+same rehearsal. It requires `--at`. Redirected choice output prints complete
+PowerShell selection commands without approval tokens; a concrete rehearsal
+can print its action-bound `--apply <token>`. That token also requires the cut.
+Selection uses the originally captured source and physical identity. Changed
+source while choosing or confirming withdraws the edit; it is not silently
+refreshed to a different plan.
+
+The core inserts one standalone marker plus its required line ending. It
+reuses the nearest preceding newline, or discloses Windows CRLF when none exists.
+Existing characters, UTF-8 BOM, mixed newlines and final-newline presence remain
+intact. The reparse verifies the selected block's closer and every retained
+entry's value, annotation, comma and source location. Unicode note prose is
+supported independently of title-width limitations. Parser recognition/recovery
+was not changed in this increment.
+
+`undo` dispatches the correct diff for either repair kind. Version-1 title JSON
+receipts remain unchanged; version-2 note receipts store the kind, opener line
+and selected cut. Recovery reconstructs only a supported selection against
+the saved original. Invalid latest receipts cannot fall back to an older one.
+Apply rechecks the latest undo receipt directory under exclusive target access,
+so an old preview cannot revive after a later repair/undo returns identical text.
+Undo restores the unfinished note and its prior diagnostic, not an invented
+clean original. Shared file guards, backup verification and rollback still apply.
+
+Inline reasoning notes (DERT1002), completed blocks, unoffered cuts and active
+lists are not eligible for this repair. No commas, targets, operational meaning,
+indentation or additional grammar are automatically changed. Source rows now
+separate wrapping from the line-number gutter across inspect, lint and repair.
+See the [note-boundary contract](superpowers/specs/2026-09-06-note-boundary-design.md).
+
+## Lint-to-rehearsal handoff: the finding carries its next action
+
+`lint` now displays findings in source order, each with its own explanation,
+source row and capability-aware next step. DERT2003 offers a title rehearsal only
+when the actual title planner is ready: a missing underline on a non-ASCII title
+can produce that warning while repair remains unavailable. DERT1001 resolves its
+exact unfinished-block opener and offers its boundary-choice view without choosing
+a cut. DERT1002, DERT3003 and DERT3004 explain the unsupported repair capability.
+The parser, diagnostic list, severities and lint exit meanings are unchanged.
+
+The command under a supported finding is `repair <absolute-file>` with `--at`
+only for a note opener, plus `--from-lint <SHA256-of-linted-bytes>`. It uses the
+launched executable (including the assembly when hosted by dotnet) and existing
+literal-safe PowerShell handling. Commands remain complete logical lines at a
+32-column output width. Plain mode is carried as an option, not assumed from
+the terminal environment. The file is resolved before lint reads it, so copying
+the command from a different working directory still refers to that file.
+
+`--from-lint` is repair-only, requires one exact 64-character source revision,
+and cannot combine with `--apply`. The file service checks the captured raw bytes
+before parsing/locating the title or note. Changed bytes receive DERT4002 and a
+request to lint again; the old location cannot silently select a different block.
+The source revision is not a physical-file identity, authorization or approval.
+A byte-identical replacement can open the same read-only rehearsal; any eventual
+approval is separately bound to the repair snapshot's physical file identity.
+No write-access guarantee is made by displaying a rehearsal link; existing
+platform/path guards still govern mutation.
+
+Initial handoff and copied note-boundary choices always return previews without
+selection/confirmation prompts, including interactive terminals. A banner confirms
+the matched source and preview-only state. The choice commands retain the same
+revision and plain mode through the selected preview. That preview emits the
+existing separate `--apply` token, without `--from-lint`, and retains plain mode.
+Ordinary direct `repair`/`undo` behavior is unchanged. Lint and all handoff previews
+create no recovery history and write no source bytes.
+
+This is a bounded extension of the existing diagnostic/repair flow. Generic help,
+unbound path/line commands and source-bound previews were compared. The selected
+approach carries the context for the author and refuses stale locations without
+turning missing intent into an automatic repair. No new grammar or repair type,
+operational adapter, runtime dependency or installation step was introduced.
 
 ## Original example acceptance
 
@@ -170,6 +265,7 @@ Repair-specific codes are separate from grammar diagnostics:
 | DERT4002 | Source, file identity, approval or undo eligibility changed; refuse the edit. |
 | DERT4003 | No saved repair is available for this file identity. |
 | DERT4004 | Recovery validation failed, backup changed, or recovery sequence cannot be extended. |
+| DERT4005 | No eligible unfinished reasoning block at the selected line, or the selected cut is not supported. |
 | DERT4100 | File/encoding/recovery storage could not be used safely, including locks and malformed receipt JSON. |
 | DERT4101 | Mutation targets a linked, redirected, stream, nonlocal or unsupported platform path. |
 | DERT4102 | Write failed; the prior bytes were restored and verified. |
@@ -219,7 +315,7 @@ supplementary hidden Unicode characters escaping the display policy. Each receiv
 a failing regression before correction; the focused re-review found no remaining
 important issue in those fixes.
 
-- 108 tests pass in the release suite, including 300 deterministic random input
+- 200 tests pass in the release suite, including 300 deterministic random input
   fragments checked for lexical preservation and in-bounds highlight spans.
 - The original example's ownership assertions and the full original corpus run
   in the suite. CR, LF, CRLF, BOM, invalid UTF-8, URLs, English commas, quoted
@@ -256,11 +352,54 @@ important issue in those fixes.
   invalid input and approval, styled undo, and exact original restoration. The
   final published build's plain invalid-answer path was checked again after fixing
   a default prompt color leak. No terminal capability/profile changes were persisted.
+- Note-boundary coverage adds 25 core, 18 real-file and 23 CLI cases. These cover
+  exact original-example edits, CR/LF/CRLF and EOF variants, Unicode/BOM, actual
+  released AST ownership despite overlapping statement spans, no-write choices,
+  two-stage permission, stale selections, legacy and typed receipts, mixed
+  latest-history ordering, tamper refusal and injected partial-write rollback.
+- Independent note review produced failing regressions before fixes for stale
+  undo selection after an identical-byte round trip, inaccurate inline-note
+  labeling, and omitted retained entries in direct selected previews. The core
+  EOF regression also preserves semantic fields when the inserted newline extends
+  the last physical entry span. Review was read-only, not a substitute for tests.
+- `tests/Invoke-NoteRepairSmoke.ps1` passes 13 actual-executable checks: original
+  choices, copied selection/application/undo, restored no-op, released ownership,
+  changed-source refusal, unoffered-cut refusal, and quoted Unicode/BOM/EOF
+  reversal. An initial smoke assertion was corrected to allow terminal wrapping
+  within an English refusal; the refusal itself was already working.
+- Real note interaction: styled default-leave selection; plain invalid cut,
+  valid early cut, invalid confirmation and default cancellation; styled early
+  cut approval and undo. Source-row semantic roles visibly change with the
+  proposed ownership. Original/restored interactive fixture SHA256 is
+  `D7788CB17666315F989135311AAEBE191F349A0AB8AEABDD2B29D71AADA4279D`.
+- Lint-handoff coverage adds 26 CLI/real-file cases. The initial 16 behavior
+  cases failed before implementation; seven existing no-action/refusal cases
+  already passed. Two later regressions first failed for source/plain continuity
+  through copied choices/approval, and another for exposing parser check order.
+  Checks use real parser/planner/file behavior, including interactive consoles
+  with callbacks that throw if a handoff asks to choose or write.
+- `tests/Invoke-LintHandoffSmoke.ps1` passes 14 published-executable checks:
+  corpus lint, copied title link from another directory, original missing-closer
+  lint, copied note handoff/selection, unsupported width, unusual filename/BOM
+  lint and copied handoff, two stale-link refusals, fresh rehearsal, separate
+  approval, undo rehearsal and byte-exact undo. Plain output and no-write/no-history
+  handoffs are checked; the approval/undo use owned generated copies only.
+- Real PTY inspection covered styled lint/title handoff and plain note lint,
+  boundary choices and selected early-cut rehearsal. Handoffs exited without
+  prompts; checked fixture hashes remained unchanged. The terminal review led
+  to source-order display, keeping each explanation/action with its own finding.
+- Independent read-only review confirmed the no-prompt/raw-byte-check paths and
+  identified loss of source/plain continuity after the first copied note link.
+  The stronger continuous handoff received failing regressions before correction;
+  focused re-review found no remaining important issue. No commits, branch changes
+  or unrelated `.serena/` edits were made.
 
-Retained final published smoke output from this increment:
+Retained published smoke output from this increment:
 
-- `.artifacts/proof/88ce344e55a047de800f5cf6a64f50f7/terminal-output.txt`
-- `.artifacts/repair-proof/a48e934bb5e346e299f62799edc3ab5c/terminal-output.txt`
+- `.artifacts/proof/fbd9bd5295ab4d7cadaf89e562d009ca/terminal-output.txt`
+- `.artifacts/repair-proof/ff8c1f4e328e4e80b91dcb96f95d2b2c/terminal-output.txt`
+- `.artifacts/note-proof/484f8cc5c89b4cffbf04f93749789873/terminal-output.txt`
+- `.artifacts/lint-proof/89100d59a6dc408bbd2e4a58cac53886/terminal-output.txt`
 
 These generated artifacts are local evidence, not required source files.
 
@@ -273,21 +412,25 @@ dotnet test ERPDERT.slnx -c Release --no-build --no-restore
 dotnet publish src/Erpdert.Cli -c Release -r win-x64 --self-contained true -o .artifacts/win-x64
 .\tests\Invoke-PublishedSmoke.ps1
 .\tests\Invoke-RepairSmoke.ps1
+.\tests\Invoke-NoteRepairSmoke.ps1
+.\tests\Invoke-LintHandoffSmoke.ps1
 ```
 
 This evidence is not a usability study, screenshot review, clean-machine install
 test, full language conformance test, or verification of package-manager behavior.
-The repair diff separates wrapped content from its gutter. Older inspect/lint
-source rows still use the earlier wrapping behavior and deserve the same treatment.
+The repair diff and inspect/lint source rows separate wrapped content from their gutters.
 Neither automated renderer checks nor inspected terminal output prove human delight
 or accessibility with screen readers; those need direct evaluation.
 
 ## Next complete interaction
 
-Title-rule rehearsal is implemented. Next: an unfinished edit handled in context,
-showing the existing source ownership and the exact choices where author intent
-is required. Do not auto-close a note if that silently changes what it owns.
-Non-ASCII width still needs its own measured policy before automatic correction.
+Title-rule and author-selected unfinished-note rehearsals are implemented.
+Supported lint findings now carry their source-bound preview commands too.
+Next: the return journey after an approved repair. Show remaining findings from
+the verified result with their own current rehearsal actions, keeping selected
+repair success distinct from unrelated problems. Reuse the capability model;
+do not invent an auto-fix or infer another repair's approval. Non-ASCII title
+width still needs its own measured policy before automatic correction.
 
 This work does not authorize speculative comma removal, metadata reinterpretation,
 indentation, or package operations. The eventual adapters, editor integration,

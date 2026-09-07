@@ -1,5 +1,47 @@
 # Changelog
 
+## 2026-09-06 — lint findings carry their own rehearsal
+
+- Added source-adjacent, copyable PowerShell handoffs for supported title-rule
+  and unfinished-note findings. Lint display follows source order, not parser
+  check order; diagnostic meaning, severity and exit codes are unchanged.
+- Check actual title-repair readiness before offering an action. Unicode title
+  warnings cannot incorrectly advertise unsupported width repair. Inline-note
+  and list-completion findings receive explicit capability explanations.
+- Added `repair --from-lint <source-revision>`: compare the exact linted bytes
+  before interpreting a title/block, then open a preview without selection or
+  write prompts, even in an interactive terminal. It cannot combine with `--apply`.
+- Carry absolute file paths, the launched executable, literal-safe quoting and
+  plain-mode preference into copied commands. Note choices retain the source
+  revision through selected preview; approval is a separate action-bound token.
+- Added real-file/CLI regressions and a published-executable handoff suite for
+  changed directories, stale links, unusual filenames, no-write previews and
+  separately approved repair/undo. Original syntax artifacts remain unchanged.
+
+No new repair kind, parser rule, automatic mutation, dependency or installer.
+All work remains uncommitted in the existing checkout.
+
+## 2026-09-06 — author-selected note-boundary rehearsal
+
+- Added `repair --at <line>`: show an unfinished reasoning block and explicit
+  source-line/EOF choices. Leaving is the default; no ending is guessed.
+- Added `--close-before <line|eof>` for an offered boundary. Selection opens a
+  rehearsal, not permission to write. Approval remains a separate decision.
+- Preview the exact standalone `//` insertion, every retained entry, and each
+  released line's actual reparsed role and owner. Show remaining findings.
+- Preserve words, annotations, commas, flush-left source, BOM and newline/EOF
+  style. No parser recognition or recovery grammar changes were introduced.
+- Share guarded apply/undo with title repair. Keep legacy title receipts and
+  replay typed note selections from saved originals. Reject stale undo choices
+  even when a later repair-and-undo returns the source to identical bytes.
+- Separate source gutters from wrapped content throughout inspect/lint/repair.
+- Added core, real-file, CLI and published-executable checks, including copied
+  PowerShell commands and real styled/plain interactive choice/approval/undo.
+
+This supports unfinished multiline reasoning blocks only. Inline-note closure,
+active-list completion, operational execution and installation remain separate.
+Recovery remains latest-repair-only, unencrypted locally and not power-loss atomic.
+
 ## 2026-09-06 — title-rule repair rehearsal
 
 - Added `repair` and `undo`: source-cited explanation, exact colored/sign-marked

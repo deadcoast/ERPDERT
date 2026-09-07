@@ -1,9 +1,8 @@
 namespace Dert.Core;
 
 public enum TitleRepairState { Ready, Aligned, NoTitle, Unavailable }
-public sealed record SourceEdit(TextSpan Span, string Before, string After);
 
-public sealed class TitleRepairPlan
+public sealed class TitleRepairPlan : ISourceRepairPlan
 {
     internal TitleRepairPlan(string source, TitleRepairState state, string explanation,
         int titleLine = 0, int ruleLine = 0, int? width = null, SourceEdit? edit = null)
@@ -18,6 +17,8 @@ public sealed class TitleRepairPlan
     }
 
     public string Source { get; }
+    public string Kind => "title-rule-repair-v1";
+    public bool IsReady => State == TitleRepairState.Ready;
     public TitleRepairState State { get; }
     public string Explanation { get; }
     public int TitleLine { get; }
