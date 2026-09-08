@@ -1,5 +1,55 @@
 # Changelog
 
+## 2026-09-07 — DERT drives the operation
+
+- Added `ERPDERT run <file>`: bind `STERT ; ERPDERT ;; codex` to the existing
+  discovery engine, display the source and contextual notes, and attribute each
+  result to its requesting chain. The one-line form and optional terminator work.
+- Added `--preview` with a complete, literal-safe command to run the request.
+  Preview does not search. Formatting warnings do not stop discovery;
+  unavailable operations and incomplete structure are source-cited before dispatch.
+- Ship `examples/my-tools.DERT` beside the executable as a runnable example.
+  Neither run nor preview changes the file, runs discovered programs, or updates packages.
+- Added end-to-end regressions and a published-executable suite covering source
+  binding, context, multiple chains, copied commands, and unchanged source bytes.
+- Verified all 295 tests and 84 executable checks in a fresh build, plus the
+  rebuilt app's styled terminal output against local Codex installation evidence.
+
+## 2026-09-07 — operational Codex discovery
+
+- Added `ERPDERT codex [--plain]`: read-only Windows PATH discovery with a
+  first-route answer, grouped package launchers, version and dependency evidence,
+  competing routes, and cited English findings for missing or unreadable files.
+- Preserve PowerShell lookup order, including quoted PATH behavior; recognize
+  junction aliases without inventing another installation. Do not infer the
+  installer from package layout or a development `packageManager` field.
+- No discovered programs or package operations execute. Existing DERT commands
+  and the original reference documents remain unchanged by discovery.
+- Added 45 unit/integration cases and 14 published-executable checks, including
+  comparisons with actual PowerShell lookup and unchanged-file/execution traps.
+- Verified all 263 tests and 72 executable checks in a fresh source-only build.
+
+## 2026-09-07 — verified repairs carry the next action
+
+- Added source-cited rehearsal links to remaining findings after title repair,
+  note closure, and undo. The completed edit stays distinct from unrelated issues.
+- Derive the result and revision from verified readback bytes, with current line
+  numbers and rechecked repair capabilities. Later file changes invalidate links.
+- Keep every further repair a separate preview and approval. Unsupported findings
+  remain explained, and a clean result only claims supported structural checks.
+- Preserve plain mode through copied approvals, undo, and subsequent result actions.
+- Added 18 regression cases and 12 actual-executable checks. All 218 tests and
+  58 executable checks passed in a fresh source-only copy without documentation.
+
+## 2026-09-07 — remove documentation dependencies
+
+- Removed reference-document copying, Markdown example extraction, and reference
+  document hash checks from the build, tests, and executable verification scripts.
+- Kept language coverage in standalone DERT test inputs. No parser or CLI behavior
+  changed, and the user's original notes were not edited.
+- Added a source-only check that builds, runs all 200 tests, publishes, and runs
+  all 46 executable checks without the documentation or old build outputs present.
+
 ## 2026-09-06 — lint findings carry their own rehearsal
 
 - Added source-adjacent, copyable PowerShell handoffs for supported title-rule

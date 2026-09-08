@@ -7,18 +7,13 @@ $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
 $appPath = (Resolve-Path -LiteralPath $Executable).Path
 $projectPath = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
-$sourcePath = Join-Path $projectPath 'docs\original.md'
-$corpusPath = Join-Path $projectPath 'RERDMERR.DERT'
-$protectedPaths = @($sourcePath, $corpusPath, (Join-Path $projectPath 'docs\WHO-WE-ARE.md'))
-$beforeHashes = @($protectedPaths | ForEach-Object { (Get-FileHash -LiteralPath $_).Hash })
+$corpusPath = Join-Path $PSScriptRoot 'Fixtures\mixed-structures.DERT'
+$corpusHash = (Get-FileHash -LiteralPath $corpusPath).Hash
 $proofPath = Join-Path $projectPath ('.artifacts\proof\' + [Guid]::NewGuid().ToString('N'))
 [void] (New-Item -ItemType Directory -Path $proofPath)
 
-$original = [IO.File]::ReadAllText($sourcePath)
-$match = [regex]::Match($original, '(?ms)^```DERT\r?\n(.*?)^```')
-if (-not $match.Success) { throw 'The original DERT example could not be found.' }
-$sample = $match.Groups[1].Value
-$samplePath = Join-Path $proofPath 'original example.DERT'
+$sample = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'Fixtures\contextual-notes.DERT'))
+$samplePath = Join-Path $proofPath 'contextual notes.DERT'
 $damagedPath = Join-Path $proofPath 'missing closer.DERT'
 $helpFilePath = Join-Path $proofPath 'help'
 $sampleBytes = [Text.UTF8Encoding]::new($false).GetBytes($sample)
@@ -47,16 +42,16 @@ function Assert-Command {
 }
 
 $helpOutput = Assert-Command -Label 'Help' -ExpectedExit 0 -Arguments @('-help') -Patterns @('inspect', 'lint')
-$originalOutput = Assert-Command -Label 'Original folded source' -ExpectedExit 0 `
+$contextOutput = Assert-Command -Label 'Folded reasoning notes' -ExpectedExit 0 `
     -Arguments @('inspect', $samplePath, '--plain') -Patterns @('support doctoring', '3 entries', '0 errors')
 $fixmeIndex = [Array]::FindIndex([string[]] ($sample -split '\r?\n'), [Predicate[string]] { param($line) $line.StartsWith('// fixme,') })
-if ($fixmeIndex -lt 0) { throw 'The original fixme entry was not found.' }
-$focusedOutput = Assert-Command -Label 'Original entry ownership' -ExpectedExit 0 `
+if ($fixmeIndex -lt 0) { throw 'The fixture fixme entry was not found.' }
+$focusedOutput = Assert-Command -Label 'Entry ownership' -ExpectedExit 0 `
     -Arguments @('inspect', $samplePath, '--at', [string] ($fixmeIndex + 1), '--plain') `
     -Patterns @('Value\s+fixme', 'Context\s+the confirmation command to fix the conflict', 'Belongs to\s+support doctoring')
 $damagedOutput = Assert-Command -Label 'Missing closer recovery' -ExpectedExit 1 `
     -Arguments @('lint', $damagedPath, '--plain') -Patterns @('DERT1001', 'standalone //')
-$corpusOutput = Assert-Command -Label 'Original corpus lint' -ExpectedExit 0 `
+$corpusOutput = Assert-Command -Label 'Mixed structures lint' -ExpectedExit 0 `
     -Arguments @('lint', $corpusPath, '--plain') -Patterns @('DERT2003', 'DERT3003', '0 errors')
 $missingOutput = Assert-Command -Label 'Missing file' -ExpectedExit 2 `
     -Arguments @('inspect', (Join-Path $proofPath 'does not exist.DERT'), '--plain') -Patterns @('could not')
@@ -67,15 +62,14 @@ try {
 }
 finally { Pop-Location }
 
-$afterHashes = @($protectedPaths | ForEach-Object { (Get-FileHash -LiteralPath $_).Hash })
-if (($beforeHashes -join ',') -cne ($afterHashes -join ',')) { throw 'A protected source changed during this check.' }
-if ((Get-FileHash -LiteralPath $samplePath).Hash -cne $sampleHash -or
+if ((Get-FileHash -LiteralPath $corpusPath).Hash -cne $corpusHash -or
+    (Get-FileHash -LiteralPath $samplePath).Hash -cne $sampleHash -or
     (Get-FileHash -LiteralPath $damagedPath).Hash -cne $damagedHash -or
     (Get-FileHash -LiteralPath $helpFilePath).Hash -cne $helpFileHash) {
     throw 'An inspected fixture changed during this check.'
 }
 
-$record = @($helpOutput, $originalOutput, $focusedOutput, $damagedOutput, $corpusOutput, $missingOutput, $helpFileOutput) -join "`n"
+$record = @($helpOutput, $contextOutput, $focusedOutput, $damagedOutput, $corpusOutput, $missingOutput, $helpFileOutput) -join "`n"
 [IO.File]::WriteAllText((Join-Path $proofPath 'terminal-output.txt'), $record, [Text.UTF8Encoding]::new($false))
-Write-Host 'Source preservation : protected documents and generated fixtures unchanged'
+Write-Host 'Source preservation : inspected test inputs unchanged'
 Write-Host "Evidence retained at $proofPath"

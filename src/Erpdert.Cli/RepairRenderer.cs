@@ -60,11 +60,11 @@ internal sealed partial class DocumentRenderer
         Line("");
     }
 
-    public void RepairWaiting(RepairSnapshot snapshot, bool fromLint = false)
+    public void RepairWaiting(RepairSnapshot snapshot)
     {
         Line("PREVIEW ONLY · nothing written", SemanticRole.Hook);
         Line("To approve this exact edit in PowerShell, copy the complete command:");
-        CopyCommand(ApplyCommand(snapshot, fromLint && plain));
+        CopyCommand(ApplyCommand(snapshot, plain));
         Line("Or run the same command without --apply in an interactive terminal to choose there.", SemanticRole.ContextNote);
         Line("ƒin.", SemanticRole.Boundary);
     }
@@ -85,23 +85,27 @@ internal sealed partial class DocumentRenderer
         if (!snapshot.IsUndo)
         {
             Line("Undo rehearsal:", SemanticRole.ContextNote);
-            CopyCommand(Invocation() + " undo " + PowerShellLiteral(snapshot.Path));
+            CopyCommand(Invocation() + " undo " + PowerShellLiteral(snapshot.Path) + (plain ? " --plain" : ""));
             Line("Keep the .erpdert folder with this document to retain undo. It contains a full local copy of the original.", SemanticRole.ContextNote);
         }
-        var document = DertParser.Parse(snapshot.After);
+        var document = DertParser.Parse(result.VerifiedSource);
+        Line("");
+        Line("VERIFIED RESULT / saved bytes", SemanticRole.Reasoning);
         if (document.Diagnostics.Count > 0)
         {
-            Line("");
             Line(snapshot.IsUndo
                 ? $"{Count(document.Diagnostics.Count, "finding")} in the restored original · undo restores its previous structure too"
                 : $"{Count(document.Diagnostics.Count, "finding")} still present · this action only changed " +
                     (snapshot.Plan is NoteClosurePlan ? "the selected note boundary" : "the title rule"), SemanticRole.Hook);
-            foreach (var diagnostic in document.Diagnostics)
+            if (Findings(document, snapshot.Path, result.Revision))
             {
-                Line($"{diagnostic.Code} · LINE {diagnostic.LineNumber} · {diagnostic.Message}");
-                SourceLine(document, document.Source.Lines[diagnostic.LineNumber - 1], true);
+                Line("");
+                RehearsalLinksHint();
             }
         }
+        else
+            Line("No remaining findings in the supported structural checks.", SemanticRole.Reasoning);
+        Line("Command meanings were not validated. No DERT operations were executed.", SemanticRole.ContextNote);
         Line("ƒin.", SemanticRole.Boundary);
     }
 

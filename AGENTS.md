@@ -2,14 +2,18 @@
 
 ## Read and reconcile
 
-Read this file, `README.md`, `docs/WHO-WE-ARE.md`, and `docs/original.md`
+Read this file, `README.md`, `docs/WHO-WE-ARE.md`, and `docs/archive/original.md`
 before substantial work. Read the design documents relevant to the task.
 Inspect current files before trusting paths or state from a previous session.
 
-Latest explicit user decisions govern. `docs/original.md` remains the primary
+Latest explicit user decisions govern. `docs/archive/original.md` remains the primary
 language source, including its scattered definitions. `docs/WHO-WE-ARE.md`
 records the product ambition. Later user corrections govern both.
 `RERDMERR.DERT` is an original syntax corpus. Preserve these source artifacts.
+
+Read documentation to understand the design; do not make it a build, test, or
+smoke-check input. Tests own their examples under `tests/Fixtures`. The user may
+edit, reorganize, or move their notes without maintaining test infrastructure.
 
 `docs/overview.md` and `docs/archive/2026-09-06-conversation-readme.md`
 are historical interpretations containing unsupported assertions. Read them

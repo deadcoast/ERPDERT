@@ -30,7 +30,7 @@ internal static class RepairCommand
             {
                 if (options.FromLint is not null || confirm is null && !console.Profile.Capabilities.Interactive)
                 {
-                    renderer.RepairWaiting(snapshot, options.FromLint is not null);
+                    renderer.RepairWaiting(snapshot);
                     return 0;
                 }
                 var prompt = new ConfirmationPrompt(question)

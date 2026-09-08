@@ -203,6 +203,19 @@ Unsupported findings describe their missing capability rather than offering a
 command that cannot perform the promised repair. The terminal view walks source
 locations in order; semantic diagnostics themselves are not reordered or rewritten.
 
+Implemented return journey: after an approved edit, the completion screen separates
+the confirmed change from `VERIFIED RESULT`. Remaining findings carry their own
+current source lines, explanations, and preview-only actions, using the same
+capability check as lint. Undo reports the restored structure, including problems
+that restoration brings back. A clear supported check is not full-language validation.
+
+The report uses the bytes read back during verification, not a later read of a file
+another application could have changed. Copying a result action checks that revision
+again. This keeps the author at the relevant note without guessing the next repair,
+rerunning the old selection, or treating the previous approval as permission to continue.
+Actual command execution exposed a lost plain-mode preference through undo; copied
+approvals and undo links now retain it throughout this interaction.
+
 ## 4. Let a command return to the note that asked for it
 
 This proposal is where the CLI becomes more than a second application bundled

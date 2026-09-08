@@ -9,7 +9,15 @@ internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain,
 {
     public void Help()
     {
-        Banner("SERNTERX / LANGUAGE WORKBENCH");
+        Banner("TOOLS + NOTES / WORKBENCH");
+        Line("ERPDERT codex", SemanticRole.Sinker);
+        Line("    Discover Windows command routes, package evidence, and competing installations. Read-only.", SemanticRole.ContextNote);
+        Line("ERPDERT run my-tools.DERT", SemanticRole.Sinker);
+        Line("    Let STERT ; ERPDERT ;; codex request discovery from your DERT, with its notes alongside the result.", SemanticRole.ContextNote);
+        Line("ERPDERT run my-tools.DERT --preview", SemanticRole.Sinker);
+        Line("    See what your DERT requests before searching. Your file is not changed.", SemanticRole.ContextNote);
+        Line("The published folder includes examples/my-tools.DERT, ready to preview and run.", SemanticRole.ContextNote);
+        Line("");
         Line("Your notes already have structure. See what belongs where.", SemanticRole.Text);
         Line("");
         Line("ERPDERT inspect RERDMERR.DERT", SemanticRole.Sinker);

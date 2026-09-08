@@ -7,9 +7,6 @@ $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
 $appPath = (Resolve-Path -LiteralPath $Executable).Path
 $projectPath = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
-$protectedPaths = @('docs\original.md', 'docs\WHO-WE-ARE.md', 'RERDMERR.DERT') |
-    ForEach-Object { Join-Path $projectPath $_ }
-$beforeHashes = @($protectedPaths | ForEach-Object { (Get-FileHash -LiteralPath $_).Hash })
 $proofPath = Join-Path $projectPath ('.artifacts\repair-proof\' + [Guid]::NewGuid().ToString('N'))
 [void] (New-Item -ItemType Directory -Path $proofPath)
 $encoding = [Text.UTF8Encoding]::new($false)
@@ -47,10 +44,10 @@ function Get-ApprovalCommand {
 }
 
 try {
-    $fixture = Join-Path $proofPath 'reversible corpus.DERT'
-    [IO.File]::WriteAllBytes($fixture, [IO.File]::ReadAllBytes((Join-Path $projectPath 'RERDMERR.DERT')))
+    $fixture = Join-Path $proofPath 'reversible structures.DERT'
+    [IO.File]::WriteAllBytes($fixture, [IO.File]::ReadAllBytes((Join-Path $PSScriptRoot 'Fixtures\mixed-structures.DERT')))
     $originalHash = (Get-FileHash -LiteralPath $fixture).Hash
-    $preview = Invoke-Check 'Corpus repair rehearsal' 0 { & $appPath repair $fixture --plain } @('DERT2003', 'PREVIEW ONLY', '\+\s+2')
+    $preview = Invoke-Check 'Mixed structures repair rehearsal' 0 { & $appPath repair $fixture --plain } @('DERT2003', 'PREVIEW ONLY', '\+\s+2')
     if ((Get-FileHash -LiteralPath $fixture).Hash -cne $originalHash -or (Test-Path -LiteralPath (Join-Path $proofPath '.erpdert'))) {
         throw 'Preview changed the source or created recovery storage.'
     }
@@ -93,7 +90,5 @@ try {
 }
 finally {
     [IO.File]::WriteAllText((Join-Path $proofPath 'terminal-output.txt'), ($record -join "`n"), $encoding)
-    $afterHashes = @($protectedPaths | ForEach-Object { (Get-FileHash -LiteralPath $_).Hash })
-    if (($beforeHashes -join ',') -cne ($afterHashes -join ',')) { throw 'A protected original source changed.' }
-    Write-Host "Original source hashes unchanged. Evidence retained at $proofPath"
+    Write-Host "Evidence retained at $proofPath"
 }

@@ -5,9 +5,6 @@ $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
 $appPath = (Resolve-Path -LiteralPath $Executable).Path
 $projectPath = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
-$protectedPaths = @('docs\original.md', 'docs\WHO-WE-ARE.md', 'RERDMERR.DERT') |
-    ForEach-Object { Join-Path $projectPath $_ }
-$beforeHashes = @($protectedPaths | ForEach-Object { (Get-FileHash -LiteralPath $_).Hash })
 $proofPath = Join-Path $projectPath ('.artifacts\lint-proof\' + [Guid]::NewGuid().ToString('N'))
 [void] (New-Item -ItemType Directory -Path $proofPath)
 $encoding = [Text.UTF8Encoding]::new($false)
@@ -52,11 +49,11 @@ function Assert-Unchanged {
 }
 
 try {
-    $corpus = Join-Path $proofPath 'corpus copy.DERT'
-    [IO.File]::WriteAllBytes($corpus, [IO.File]::ReadAllBytes((Join-Path $projectPath 'RERDMERR.DERT')))
+    $corpus = Join-Path $proofPath 'mixed structures copy.DERT'
+    [IO.File]::WriteAllBytes($corpus, [IO.File]::ReadAllBytes((Join-Path $PSScriptRoot 'Fixtures\mixed-structures.DERT')))
     $corpusHash = (Get-FileHash -LiteralPath $corpus).Hash
     $relative = [IO.Path]::GetRelativePath((Get-Location).Path, $corpus)
-    $lint = Invoke-Check 'Corpus lint with supported and unsupported findings' 0 { & $appPath lint $relative --plain } @('DERT2003', 'REHEARSE / TITLE RULE', 'DERT3003', 'NO REPAIR OFFERED', '--from-lint')
+    $lint = Invoke-Check 'Mixed supported and unsupported findings' 0 { & $appPath lint $relative --plain } @('DERT2003', 'REHEARSE / TITLE RULE', 'DERT3003', 'NO REPAIR OFFERED', '--from-lint')
     if ($lint -match '--apply') { throw 'Lint offered approval without an edit preview.' }
     $titleHandoff = Get-PrintedCommand $lint ' --from-lint [A-F0-9]{64} --plain'
     Push-Location -LiteralPath $proofPath
@@ -66,17 +63,15 @@ try {
     finally { Pop-Location }
     Assert-Unchanged $corpus $corpusHash
 
-    $original = [IO.File]::ReadAllText((Join-Path $projectPath 'docs\original.md'))
-    $fence = [regex]::Match($original, '(?ms)^```DERT\r?\n(.*?)^```')
-    if (-not $fence.Success) { throw 'Original DERT example was not found.' }
-    $text = [regex]::new('(?m)^//\r?\n').Replace($fence.Groups[1].Value, '', 1)
-    $note = Join-Path $proofPath 'original missing closer.DERT'
+    $source = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'Fixtures\contextual-notes.DERT'))
+    $text = [regex]::new('(?m)^//\r?\n').Replace($source, '', 1)
+    $note = Join-Path $proofPath 'contextual notes missing closer.DERT'
     [IO.File]::WriteAllText($note, $text, $encoding)
     $noteHash = (Get-FileHash -LiteralPath $note).Hash
     $lines = [regex]::Split($text, '\r\n|\n|\r')
     $stop = [Array]::IndexOf($lines, 'commands ; updateme ;;') + 1
-    if ($stop -lt 1) { throw 'Original command boundary was not found.' }
-    $noteLint = Invoke-Check 'Original missing-closer lint link' 1 { & $appPath lint $note --plain } @('CHOOSE / NOTE BOUNDARY', '--at', '--from-lint')
+    if ($stop -lt 1) { throw 'Fixture command boundary was not found.' }
+    $noteLint = Invoke-Check 'Missing-closer lint link' 1 { & $appPath lint $note --plain } @('CHOOSE / NOTE BOUNDARY', '--at', '--from-lint')
     $noteHandoff = Get-PrintedCommand $noteLint ' --from-lint [A-F0-9]{64} --plain'
     $choices = Invoke-Check 'Copied note handoff' 0 $noteHandoff @('FROM LINT', 'CHOICES ONLY', 'support doctoring')
     if ($choices -match '--apply') { throw 'An unselected boundary offered approval.' }
@@ -115,7 +110,5 @@ try {
 }
 finally {
     [IO.File]::WriteAllText((Join-Path $proofPath 'terminal-output.txt'), ($record -join "`n"), $encoding)
-    $afterHashes = @($protectedPaths | ForEach-Object { (Get-FileHash -LiteralPath $_).Hash })
-    if (($beforeHashes -join ',') -cne ($afterHashes -join ',')) { throw 'A protected original source changed.' }
-    Write-Host "Original source hashes unchanged. Evidence retained at $proofPath"
+    Write-Host "Evidence retained at $proofPath"
 }

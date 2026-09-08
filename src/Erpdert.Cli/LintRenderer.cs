@@ -8,6 +8,14 @@ internal sealed partial class DocumentRenderer
     {
         Banner("SERNTERX / LINT");
         Line(path, SemanticRole.ContextNote);
+        var offered = Findings(document, path, revision);
+        Line("");
+        if (offered) RehearsalLinksHint();
+        Summary(document);
+    }
+
+    private bool Findings(DertDocument document, string path, string revision)
+    {
         var offered = false;
         foreach (var diagnostic in document.Diagnostics.OrderBy(d => d.LineNumber).ThenBy(d => d.Span.Start))
         {
@@ -29,13 +37,13 @@ internal sealed partial class DocumentRenderer
             var scope = advice.AtLine is int line ? $" --at {line}" : "";
             CopyCommand($"{Invocation()} repair {PowerShellLiteral(path)}{scope} --from-lint {revision}" + (plain ? " --plain" : ""));
         }
-        Line("");
-        if (offered)
-        {
-            Line("Copy a complete PowerShell command above to open its preview. It will not ask to write your file.", SemanticRole.Reasoning);
-            Line("Each link belongs to the bytes checked here. After an edit, run lint again for current links.", SemanticRole.ContextNote);
-        }
-        Summary(document);
+        return offered;
+    }
+
+    private void RehearsalLinksHint()
+    {
+        Line("Copy a complete PowerShell command above to open its preview. It will not ask to write your file.", SemanticRole.Reasoning);
+        Line("Links check these exact bytes again. If the file has changed, run lint for current links.", SemanticRole.ContextNote);
     }
 
     private void LintSourceMatched() =>

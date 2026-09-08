@@ -181,11 +181,34 @@ approach carries the context for the author and refuses stale locations without
 turning missing intent into an automatic repair. No new grammar or repair type,
 operational adapter, runtime dependency or installation step was introduced.
 
-## Original example acceptance
+## Verified repair follow-through
 
-The tests extract the first DERT fence directly from `original.md`. Its spelling,
-English commas, final annotated-entry comma, flush-left lines, and florin are
-not repaired or normalized to make the tests pass.
+After an approved title repair, note-boundary repair, or undo, `VERIFIED RESULT`
+shows the remaining findings with the same source-adjacent capability explanations
+and `--from-lint` rehearsal links as lint. Insertion-shifted line numbers and newly
+released note structures come from reparsing the verified result, not the old input.
+Unsupported findings do not advertise a repair. No-op, preview, cancellation, and
+failed operations do not receive a verified-success report or follow-up actions.
+
+`RepairFileService` retains its guarded write and exact readback comparison.
+Its result now captures immutable source text and the raw-byte hash from that
+readback while the file is still held. Completion does not reopen the path; later
+edits therefore cannot be misreported as the verified repair. A copied link checks
+those bytes again before selecting a note. No choice or approval is carried over.
+
+The action's successful exit remains separate from unrelated lint errors. Undo
+can restore an unfinished document and reports it as such. A result without findings
+claims only the supported structural checks, never validated command meanings or
+executed DERT operations. Plain mode now follows all copied approval and undo
+commands, not only approvals reached through lint.
+
+## Contextual-note coverage
+
+The tests read the independent `tests/Fixtures/contextual-notes.DERT` input.
+It retains the demonstrated note relationships, English commas, final annotated-entry
+comma, flush-left lines, and florin. No Markdown extraction or dependency on the
+reference documents remains. Those documents are human reference material, not
+executable contracts; changing or moving them does not change the test inputs.
 
 That example produces:
 
@@ -315,9 +338,9 @@ supplementary hidden Unicode characters escaping the display policy. Each receiv
 a failing regression before correction; the focused re-review found no remaining
 important issue in those fixes.
 
-- 200 tests pass in the release suite, including 300 deterministic random input
+- 218 tests pass in the release suite, including 300 deterministic random input
   fragments checked for lexical preservation and in-bounds highlight spans.
-- The original example's ownership assertions and the full original corpus run
+- Contextual-note ownership and a standalone mixed-structure fixture run
   in the suite. CR, LF, CRLF, BOM, invalid UTF-8, URLs, English commas, quoted
   markers, missing closers, expanded values, and no-write behavior have checks.
   A 10,000-entry list also has a generous allocation-bound regression to catch
@@ -325,10 +348,10 @@ important issue in those fixes.
 - The release solution build passed with zero warnings/errors, and format
   verification passed. Compiler warnings are treated as errors.
 - `tests/Invoke-PublishedSmoke.ps1` exercises the actual published executable:
-  help; the original folded example; entry ownership; a removed block closer;
-  original corpus lint; a nonexistent file; and a real file literally named `help`.
-  It checks expected output and
-  exit codes, hashes protected sources and fixtures, and retains terminal output.
+  help; folded reasoning notes; entry ownership; a removed block closer;
+  mixed-structure lint; a nonexistent file; and a real file literally named `help`.
+  It checks expected output, exit codes and unchanged test inputs, and retains
+  terminal output. It does not read or hash reference documents.
 - Self-contained Windows x64 publishing includes the .NET 10.0.8 runtime in
   `.artifacts/win-x64`; the executable has been run directly in this environment.
 - Real terminal output has been inspected in plain mode and in a color-capable
@@ -343,11 +366,11 @@ important issue in those fixes.
   clock-independent ordering, whole-action approval, named streams and smart
   PowerShell quotes before their corrections. Final focused review found no
   further important issue in those changes; it was source review, not a test run.
-- `tests/Invoke-RepairSmoke.ps1` passes 12 actual-executable checks: corpus-copy
+- `tests/Invoke-RepairSmoke.ps1` passes 12 actual-executable checks: mixed-structure
   preview, copied application, aligned no-op, undo preview, copied undo, restored
   no-op, fresh preview, stale refusal, and four quoted-filename/EOF/BOM checks.
   It executes the emitted PowerShell commands using the actual executable path,
-  compares original/restored hashes, and verifies protected originals are unchanged.
+  and compares the generated test file's before/restored hashes.
 - Actual interactive runs exercised styled preview/default cancellation, plain
   invalid input and approval, styled undo, and exact original restoration. The
   final published build's plain invalid-answer path was checked again after fixing
@@ -403,6 +426,24 @@ Retained published smoke output from this increment:
 
 These generated artifacts are local evidence, not required source files.
 
+The verified-result increment adds 18 test cases and 12 executable checks. The
+tests cover shifted lines, BOM/CRLF revisions, newly released blocks, restored
+findings, source order, unsupported repairs, no-op/cancel/stale paths, literal
+paths, plain-mode continuity, and a file changed while success is being printed.
+The last case verifies both snapshot reporting and refusal of the now-stale link.
+New behaviors were exercised as failing regressions before implementation.
+Independent read-only review found no remaining important issue.
+
+All 218 tests and all 58 executable checks across five suites passed in a fresh
+source-only copy, with no documentation or old build output present. The published
+CLI also completed a styled interactive undo and opened its result's note choices
+in a real terminal without requesting selection or write approval.
+
+Current evidence:
+
+- `.artifacts/followthrough-proof/5f900a4237c2417f9383889a3aa979ec/terminal-output.txt`
+- `.artifacts/source-only-proof/64d330f79e3e42ba892d2f8bb532dab4/output.txt`
+
 Reproduce from the workspace root:
 
 ```powershell
@@ -414,6 +455,8 @@ dotnet publish src/Erpdert.Cli -c Release -r win-x64 --self-contained true -o .a
 .\tests\Invoke-RepairSmoke.ps1
 .\tests\Invoke-NoteRepairSmoke.ps1
 .\tests\Invoke-LintHandoffSmoke.ps1
+.\tests\Invoke-RepairFollowthroughSmoke.ps1
+.\tests\Invoke-SourceOnlySmoke.ps1
 ```
 
 This evidence is not a usability study, screenshot review, clean-machine install
@@ -425,12 +468,13 @@ or accessibility with screen readers; those need direct evaluation.
 ## Next complete interaction
 
 Title-rule and author-selected unfinished-note rehearsals are implemented.
-Supported lint findings now carry their source-bound preview commands too.
-Next: the return journey after an approved repair. Show remaining findings from
-the verified result with their own current rehearsal actions, keeping selected
-repair success distinct from unrelated problems. Reuse the capability model;
-do not invent an auto-fix or infer another repair's approval. Non-ASCII title
-width still needs its own measured policy before automatic correction.
+Supported lint findings and verified repair results carry their source-bound
+preview commands. Development has moved to the actual tool-management use case:
+`ERPDERT codex` now performs read-only Windows PATH discovery, groups referenced
+packages, and reports competing routes and local dependency evidence. See the
+README's "Which Codex?" section for boundaries and the executable smoke check.
+Next operational work: establish installation ownership and rehearse an exact
+supported update before adding execution. Non-ASCII title width remains separate.
 
 This work does not authorize speculative comma removal, metadata reinterpretation,
 indentation, or package operations. The eventual adapters, editor integration,

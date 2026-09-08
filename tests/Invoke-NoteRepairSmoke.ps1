@@ -5,9 +5,6 @@ $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
 $appPath = (Resolve-Path -LiteralPath $Executable).Path
 $projectPath = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
-$protectedPaths = @('docs\original.md', 'docs\WHO-WE-ARE.md', 'RERDMERR.DERT') |
-    ForEach-Object { Join-Path $projectPath $_ }
-$beforeHashes = @($protectedPaths | ForEach-Object { (Get-FileHash -LiteralPath $_).Hash })
 $proofPath = Join-Path $projectPath ('.artifacts\note-proof\' + [Guid]::NewGuid().ToString('N'))
 [void] (New-Item -ItemType Directory -Path $proofPath)
 $encoding = [Text.UTF8Encoding]::new($false)
@@ -45,18 +42,16 @@ function Get-PrintedCommand {
 }
 
 try {
-    $original = [IO.File]::ReadAllText((Join-Path $projectPath 'docs\original.md'))
-    $fence = [regex]::Match($original, '(?ms)^```DERT\r?\n(?<source>STERT\r?\n// similarities.+?)^```')
-    if (-not $fence.Success) { throw 'The original example was not found; do not substitute invented corpus data.' }
-    $text = [regex]::Replace($fence.Groups['source'].Value, '(?m)^//\r?\n', '')
+    $source = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'Fixtures\contextual-notes.DERT'))
+    $text = [regex]::Replace($source, '(?m)^//\r?\n', '')
     $lines = [regex]::Split($text, '\r\n|\n|\r')
     $opener = [Array]::IndexOf($lines, '// support doctoring ; conflicts ;;') + 1
     $stop = [Array]::IndexOf($lines, 'commands ; updateme ;;') + 1
-    if ($opener -lt 1 -or $stop -lt 1) { throw 'Required original boundaries were not found.' }
-    $fixture = Join-Path $proofPath 'original example without closer.DERT'
+    if ($opener -lt 1 -or $stop -lt 1) { throw 'Required fixture boundaries were not found.' }
+    $fixture = Join-Path $proofPath 'contextual notes without closer.DERT'
     [IO.File]::WriteAllText($fixture, $text, $encoding)
     $originalHash = (Get-FileHash -LiteralPath $fixture).Hash
-    $choices = Invoke-Check 'Original boundary choices' 0 { & $appPath repair $fixture --at $opener --plain } @('recovered grouping', '3 kept', 'CHOICES ONLY')
+    $choices = Invoke-Check 'Reasoning boundary choices' 0 { & $appPath repair $fixture --at $opener --plain } @('recovered grouping', '3 kept', 'CHOICES ONLY')
     if ($choices -match '--apply' -or (Test-Path -LiteralPath (Join-Path $proofPath '.erpdert'))) {
         throw 'Unselected choice report offered approval or wrote recovery storage.'
     }
@@ -103,7 +98,5 @@ try {
 }
 finally {
     [IO.File]::WriteAllText((Join-Path $proofPath 'terminal-output.txt'), ($record -join "`n"), $encoding)
-    $afterHashes = @($protectedPaths | ForEach-Object { (Get-FileHash -LiteralPath $_).Hash })
-    if (($beforeHashes -join ',') -cne ($afterHashes -join ',')) { throw 'A protected original source changed.' }
-    Write-Host "Original source hashes unchanged. Evidence retained at $proofPath"
+    Write-Host "Evidence retained at $proofPath"
 }

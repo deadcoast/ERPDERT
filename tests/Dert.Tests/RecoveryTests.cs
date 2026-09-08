@@ -119,9 +119,9 @@ public class RecoveryTests
     }
 
     [Fact]
-    public void Full_original_readme_keeps_all_three_explicit_chains_and_trailing_source()
+    public void A_mixed_document_keeps_all_three_explicit_chains_and_trailing_source()
     {
-        var text = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "RERDMERR.DERT"));
+        var text = SyntaxFixtures.Read("mixed-structures.DERT");
         var document = DertParser.Parse(text);
         Assert.Equal(3, document.Nodes.OfType<ChainNode>().Count());
         Assert.All(document.Nodes.OfType<ChainNode>(), c => Assert.NotNull(c.Terminator));

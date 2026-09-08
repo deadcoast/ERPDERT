@@ -30,7 +30,22 @@ public sealed class RepairSnapshot
     public bool CanApply => !string.Equals(Before, After, StringComparison.Ordinal);
 }
 
-public sealed record RepairResult(string Message, string ReceiptDirectory);
+public sealed class RepairResult
+{
+    internal RepairResult(string message, string receiptDirectory, byte[] verifiedBytes)
+    {
+        Message = message;
+        ReceiptDirectory = receiptDirectory;
+        // Capture immutable source and its raw-byte revision while Apply still
+        // holds the verified file. Presentation must not reopen a changing path.
+        VerifiedSource = new UTF8Encoding(false, true).GetString(verifiedBytes);
+        Revision = Convert.ToHexString(SHA256.HashData(verifiedBytes));
+    }
+    public string Message { get; }
+    public string ReceiptDirectory { get; }
+    public string VerifiedSource { get; }
+    public string Revision { get; }
+}
 
 public sealed class RepairException(string code, string message, string? recoveryPath = null,
     Exception? inner = null) : Exception(message, inner)

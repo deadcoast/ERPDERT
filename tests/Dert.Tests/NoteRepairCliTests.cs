@@ -56,7 +56,7 @@ public class NoteRepairCliTests
         Assert.Contains("// first, // its reason", output);
         Assert.Contains("// later", output);
         Assert.Matches(@"\+\s+3 │ //", output);
-        Assert.Contains("--at 1 --close-before 3 --apply", output);
+        Assert.Contains("--at 1 --close-before 3 --plain --apply", output);
         Assert.Equal(Source, File.ReadAllText(file.Path));
     }
 

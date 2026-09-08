@@ -3,14 +3,20 @@ using System.Globalization;
 namespace Erpdert.Cli;
 
 internal sealed record CliOptions(string Command, string Path, bool Expand, int? At, string? ApplyToken = null,
-    bool Plain = false, string? CloseBefore = null, string? FromLint = null)
+    bool Plain = false, string? CloseBefore = null, string? FromLint = null, bool Preview = false)
 {
     public static bool TryRead(string[] args, out CliOptions? options, out string message)
     {
         options = null;
-        message = "Use ERPDERT inspect, lint, repair, or undo with a file. ERPDERT -help shows examples.";
-        if (args.Length < 2 || args[0] is not ("inspect" or "lint" or "repair" or "undo")) return false;
+        message = "Use ERPDERT run, inspect, lint, repair, or undo with a file. ERPDERT -help shows examples.";
+        if (args.Length < 2 || args[0] is not ("run" or "inspect" or "lint" or "repair" or "undo")) return false;
+        if (args[0] == "run" && args[1].StartsWith("--", StringComparison.Ordinal))
+        {
+            message = "Choose a DERT file: ERPDERT run 'my-tools.DERT' [--preview] [--plain].";
+            return false;
+        }
         var expand = false;
+        var preview = false;
         int? at = null;
         string? revision = null;
         string? closeBefore = null;
@@ -20,6 +26,9 @@ internal sealed record CliOptions(string Command, string Path, bool Expand, int?
             switch (args[i])
             {
                 case "--plain":
+                    break;
+                case "--preview" when args[0] == "run":
+                    preview = true;
                     break;
                 case "--expand" when args[0] == "inspect":
                     expand = true;
@@ -79,7 +88,7 @@ internal sealed record CliOptions(string Command, string Path, bool Expand, int?
             message = "A --from-lint handoff opens a preview only. It cannot be combined with --apply. Open the rehearsal first, then choose its separate approval command.";
             return false;
         }
-        options = new(args[0], args[1], expand, at, revision, args.Contains("--plain"), closeBefore, fromLint);
+        options = new(args[0], args[1], expand, at, revision, args.Contains("--plain"), closeBefore, fromLint, preview);
         return true;
     }
 }

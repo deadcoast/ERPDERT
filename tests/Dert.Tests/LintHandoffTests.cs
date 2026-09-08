@@ -38,7 +38,9 @@ public class LintHandoffTests
     public void Title_finding_offers_a_source_bound_rehearsal_not_a_note_selection(string source, int findingLine)
     {
         using var file = new ScratchDocument(source);
-        var result = Run(["lint", file.Path, "--plain"]);
+        // This assertion checks the location, not terminal wrapping. A source-only
+        // build can live under a longer path; narrow rendering is tested separately.
+        var result = Run(["lint", file.Path, "--plain"], width: Math.Max(160, file.Path.Length + 80));
         Assert.Equal(0, result.Exit);
         Assert.Contains($"{file.Path}:{findingLine}", result.Output);
         Assert.Contains("REHEARSE / TITLE RULE", result.Output);

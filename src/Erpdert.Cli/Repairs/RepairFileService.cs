@@ -88,8 +88,8 @@ public sealed class RepairFileService
             using var backup = new FileStream(backupPath, FileMode.Open, FileAccess.Read, FileShare.Read);
             if (!Read(backup).AsSpan().SequenceEqual(proposed))
                 throw new RepairException("DERT4004", "The recovery copy changed after the undo preview. Nothing was written.");
-            Commit(target, original, proposed, backupPath);
-            return new RepairResult("The original document bytes were restored and verified.", snapshot.ReceiptDirectory!);
+            var restored = Commit(target, original, proposed, backupPath);
+            return new RepairResult("The original document bytes were restored and verified.", snapshot.ReceiptDirectory!, restored);
         }
 
         var root = ReceiptRoot(snapshot.Path, snapshot.Identity);
@@ -109,18 +109,18 @@ public sealed class RepairFileService
         var recordBytes = JsonSerializer.SerializeToUtf8Bytes(receipt);
         new FileStreamRepairWriter().Rewrite(record, recordBytes);
         Verify(record, recordBytes);
-        Commit(target, original, proposed, savedPath);
+        var verified = Commit(target, original, proposed, savedPath);
         return new RepairResult(snapshot.Plan is NoteClosurePlan
             ? "The selected note boundary was added and its saved bytes verified."
-            : "The title rule was aligned and its saved bytes verified.", directory);
+            : "The title rule was aligned and its saved bytes verified.", directory, verified);
     });
 
-    private void Commit(FileStream target, byte[] original, byte[] proposed, string recoveryPath)
+    private byte[] Commit(FileStream target, byte[] original, byte[] proposed, string recoveryPath)
     {
         try
         {
             writer.Rewrite(target, proposed);
-            Verify(target, proposed);
+            return Verify(target, proposed);
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException)
         {
@@ -198,10 +198,12 @@ public sealed class RepairFileService
         stream.CopyTo(buffer);
         return buffer.ToArray();
     }
-    private static void Verify(FileStream stream, byte[] expected)
+    private static byte[] Verify(FileStream stream, byte[] expected)
     {
-        if (!Read(stream).AsSpan().SequenceEqual(expected))
+        var actual = Read(stream);
+        if (!actual.AsSpan().SequenceEqual(expected))
             throw new IOException("The bytes read back did not match the intended document.");
+        return actual;
     }
     private static T Guard<T>(Func<T> action)
     {

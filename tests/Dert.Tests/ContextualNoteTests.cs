@@ -1,21 +1,14 @@
-using System.Text.RegularExpressions;
 using Dert.Core;
 using Xunit;
 
 namespace Dert.Tests;
 
-public class OriginalSyntaxTests
+public class ContextualNoteTests
 {
-    internal static string OriginalExample()
-    {
-        var source = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "original.md"));
-        return Regex.Match(source, @"(?ms)^```DERT\r?\n(.*?)^```").Groups[1].Value;
-    }
-
     [Fact]
-    public void Original_block_preserves_its_three_entries_and_their_individual_notes()
+    public void Reasoning_block_preserves_its_three_entries_and_their_individual_notes()
     {
-        var document = DertParser.Parse(OriginalExample());
+        var document = DertParser.Parse(SyntaxFixtures.Read("contextual-notes.DERT"));
         var chain = Assert.IsType<ChainNode>(Assert.Single(document.Nodes));
         var block = Assert.Single(chain.Children.OfType<ReasoningBlockNode>());
         Assert.Equal("support doctoring", block.Header.Head.Text);
@@ -32,7 +25,7 @@ public class OriginalSyntaxTests
     [Fact]
     public void Closed_reasoning_retains_English_commas_and_multiple_named_targets()
     {
-        var document = DertParser.Parse(OriginalExample());
+        var document = DertParser.Parse(SyntaxFixtures.Read("contextual-notes.DERT"));
         var chain = Assert.IsType<ChainNode>(Assert.Single(document.Nodes));
         var notes = chain.Children.OfType<ReasoningNoteNode>().ToArray();
         Assert.Equal(2, notes.Length);
@@ -48,7 +41,7 @@ public class OriginalSyntaxTests
     [Fact]
     public void Closing_slashes_return_to_the_chain_and_keep_the_command_outside_the_note()
     {
-        var chain = Assert.IsType<ChainNode>(Assert.Single(DertParser.Parse(OriginalExample()).Nodes));
+        var chain = Assert.IsType<ChainNode>(Assert.Single(DertParser.Parse(SyntaxFixtures.Read("contextual-notes.DERT")).Nodes));
         Assert.Equal(2, chain.Children.OfType<NoteNode>().Count());
         var command = Assert.Single(chain.Children.OfType<StatementNode>());
         Assert.Equal("commands", command.Header.Head.Text);
@@ -58,9 +51,9 @@ public class OriginalSyntaxTests
     }
 
     [Fact]
-    public void Every_original_character_is_available_through_the_lexical_stream()
+    public void Every_input_character_is_available_through_the_lexical_stream()
     {
-        var text = OriginalExample();
+        var text = SyntaxFixtures.Read("contextual-notes.DERT");
         var document = DertParser.Parse(text);
         Assert.Equal(text, string.Concat(document.Tokens.Select(t => document.Source.Slice(t.Span))));
         Assert.Equal("fixme", document.Source.Slice(

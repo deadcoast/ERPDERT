@@ -115,9 +115,9 @@ public class NoteClosureRepairTests
     }
 
     [Fact]
-    public void The_original_missing_closer_case_keeps_every_entry_and_its_English()
+    public void Closing_a_reasoning_block_keeps_every_entry_and_its_English()
     {
-        var original = OriginalSyntaxTests.OriginalExample();
+        var original = SyntaxFixtures.Read("contextual-notes.DERT");
         var document = DertParser.Parse(original);
         var chain = Assert.IsType<ChainNode>(Assert.Single(document.Nodes));
         var block = Assert.Single(chain.Children.OfType<ReasoningBlockNode>());

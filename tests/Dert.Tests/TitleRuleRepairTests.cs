@@ -62,9 +62,9 @@ public class TitleRuleRepairTests
     }
 
     [Fact]
-    public void Original_reasoning_is_untouched_when_a_title_rule_is_inserted_above_it()
+    public void Reasoning_is_untouched_when_a_title_rule_is_inserted_above_it()
     {
-        var original = OriginalSyntaxTests.OriginalExample();
+        var original = SyntaxFixtures.Read("contextual-notes.DERT");
         var plan = TitleRuleRepair.Plan(DertParser.Parse("// TITLE\n" + original));
         Assert.Equal("// TITLE\n// -----\n" + original, plan.ProposedText);
     }

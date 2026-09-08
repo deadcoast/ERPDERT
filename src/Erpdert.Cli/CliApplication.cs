@@ -1,6 +1,8 @@
 using System.Text;
 using System.Security.Cryptography;
 using Dert.Core;
+using Erpdert.Cli.Discovery;
+using Erpdert.Cli.Operations;
 using Spectre.Console;
 
 namespace Erpdert.Cli;
@@ -8,13 +10,31 @@ namespace Erpdert.Cli;
 public static class CliApplication
 {
     public static int Run(string[] args, IAnsiConsole console, Func<string, bool>? confirmRepair = null,
-        string[]? invocation = null, Func<IReadOnlyList<NoteBoundary>, string?>? chooseBoundary = null)
+        string[]? invocation = null, Func<IReadOnlyList<NoteBoundary>, string?>? chooseBoundary = null,
+        DiscoveryEnvironment? discoveryEnvironment = null)
     {
         var renderer = new DocumentRenderer(console, args.Contains("--plain"), invocation);
         if (args.Length == 0 || args[0] == "help" || args.Any(a => a is "-help" or "--help"))
         {
             renderer.Help();
             return 0;
+        }
+        if (args[0].Equals("codex", StringComparison.OrdinalIgnoreCase))
+        {
+            var invalid = args.Skip(1).FirstOrDefault(arg => arg != "--plain");
+            if (invalid is not null)
+            {
+                renderer.Failure($"'{invalid}' is not available for codex discovery. Use ERPDERT codex [--plain] for a read-only search. No operation was executed.");
+                return 2;
+            }
+            if (!OperatingSystem.IsWindows())
+            {
+                renderer.Failure("Codex discovery currently follows Windows PowerShell PATH rules. Discovery on this operating system is not implemented.");
+                return 2;
+            }
+            var report = CodexDiscovery.Scan(discoveryEnvironment ?? DiscoveryEnvironment.Capture());
+            renderer.Discovery(report);
+            return report.NeedsAttention ? 1 : 0;
         }
         if (!CliOptions.TryRead(args, out var options, out var message))
         {
@@ -30,6 +50,8 @@ public static class CliApplication
             var bytes = File.ReadAllBytes(fullPath);
             var text = new UTF8Encoding(false, true).GetString(bytes);
             var document = DertParser.Parse(text);
+            if (options.Command == "run")
+                return DertRunCommand.Run(document, fullPath, options.Preview, renderer, discoveryEnvironment);
             if (options.At is int at && at > document.Source.Lines.Count)
             {
                 renderer.Failure($"This document has {document.Source.Lines.Count} lines. Choose a line in that range.");

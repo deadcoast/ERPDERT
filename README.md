@@ -22,8 +22,17 @@ repairs. It recognizes the original example without
 rewriting its syntax, associates each reasoning entry with its own explanation,
 and supplies semantic colors, folds, source locations, and English diagnostics.
 
+The first operational command also works: `ERPDERT codex` discovers Windows
+PATH command routes, groups launchers that reference the same package, and
+shows local version, Node, and adjacent npm evidence without running them.
+
+`ERPDERT run my-tools.DERT` connects the language to that operation: a
+`STERT ; ERPDERT ;; codex` request drives discovery, with its written context
+and a result attributed to the source line. `--preview` explains the request
+without searching. A runnable example ships with the executable.
+
 This is not a complete language release. It does not yet
-execute DERT operations, manage packages, install itself, or
+execute package-changing DERT operations, manage packages, install itself, or
 provide an editor extension or note app. No canonical v1.0 grammar is claimed.
 
 Windows and PowerShell are first. The planned initial operational use is an opinionated
@@ -38,6 +47,8 @@ From this workspace in PowerShell, after publishing:
 
 ```powershell
 .\.artifacts\win-x64\ERPDERT.exe -help
+.\.artifacts\win-x64\ERPDERT.exe codex
+.\.artifacts\win-x64\ERPDERT.exe run .\.artifacts\win-x64\examples\my-tools.DERT
 .\.artifacts\win-x64\ERPDERT.exe inspect .\RERDMERR.DERT --at 37
 .\.artifacts\win-x64\ERPDERT.exe lint .\RERDMERR.DERT
 ```
@@ -50,6 +61,60 @@ Omit `--at` to see reasoning folded into handles. `--expand` reveals the source
 for inspection, and `--plain` removes styling. These commands never modify files.
 The original corpus currently produces a title-underline warning and an
 unfinished-list notice; it is deliberately left untouched.
+
+### Let your DERT request an operation
+
+Save this as `my-tools.DERT`:
+
+```dert
+STERT ; ERPDERT ;; codex
+// why ; codex ;; Find the installation my terminal can see. //
+ƒin.
+```
+
+Run `ERPDERT run my-tools.DERT`. The result comes from the same discovery
+engine as `ERPDERT codex`, with the requesting source and its notes shown first.
+The one-line form without `ƒin.` works too. Neither form launches Codex itself.
+
+Add `--preview` to see the interpretation without searching, then use the
+complete run command printed beneath it. `--plain` follows that command.
+Formatting warnings remain visible without stopping discovery. Unsupported
+operations and incomplete structure are cited before dispatch; the runner
+does not quietly execute only the recognized part of a mixed request.
+Multiple supported chains run in source order with separately attributed results.
+A notes-only file has nothing to run and is left alone.
+
+These are the runner's current implemented capabilities, not the limits of
+DERT's evolving design. No source is rewritten and no package changes are made.
+
+### Which Codex?
+
+Run `ERPDERT codex` (or the executable path above). No document is required.
+The first PowerShell PATH match stays first even when a later package is newer
+or easier to identify. Three npm launchers referencing one package are shown
+together, not diagnosed as three conflicting installs. Competing groups,
+missing entrypoints or Node, unreadable folders, and unidentified launchers
+receive plain-English findings with their actual paths.
+
+The npm-style adapter reads launcher references and package metadata. An adjacent
+npm launcher is supporting evidence, not proof of who installed Codex. A package's
+development `packageManager` field does not choose the user's updater. Unknown
+ownership remains unknown; no install, update, repair, or discovered program runs.
+
+This searches local PATH folders, not the whole computer. Shell aliases/functions,
+execution policy, native payloads, and runtime compatibility are not validated.
+The report includes a read-only command to inspect overrides in your own PowerShell
+session. Relative, quoted, inaccessible, and network PATH entries are explained
+instead of silently reinterpreted. `--plain` preserves all information without color.
+Exit codes: `0` = one group with no inspection findings; `1` = missing, competing,
+unknown, broken, or incomplete discovery; `2` = unsupported usage/platform.
+Neither `0` nor a file being found certifies that Codex can launch.
+
+The adapter was grounded in [npm's Windows layout](https://docs.npmjs.com/cli/v11/configuring-npm/folders/),
+[PowerShell's external-command lookup](https://github.com/PowerShell/PowerShell/blob/master/src/System.Management.Automation/engine/CommandSearcher.cs),
+and [Codex's package launcher](https://github.com/openai/codex/blob/main/codex-cli/bin/codex.js).
+`tests/Invoke-DiscoverySmoke.ps1` compares the published program with actual
+PowerShell discovery in isolated fixture environments, without changing your PATH.
 
 ### Go from a finding to its rehearsal
 
@@ -71,6 +136,12 @@ For note boundaries, subsequent copied choices retain the source check and your
 `--plain` preference until the selected preview. Only that exact edit's separate
 approval command can write. The ordinary interactive `repair` commands below
 remain available. Lint never creates a recovery copy or changes source.
+
+After an approved repair or undo, **VERIFIED RESULT** shows findings in the bytes
+actually saved and checked. Each supported finding has a fresh rehearsal command
+at its new line number. Unsupported repairs stay explained; completing one edit
+never claims to fix everything. Following a result command only opens a preview,
+and plain mode stays with copied approvals, undo, and subsequent actions.
 
 ### Rehearse a title repair
 
@@ -150,21 +221,30 @@ dotnet publish src/Erpdert.Cli -c Release -r win-x64 --self-contained true -o .a
 .\tests\Invoke-RepairSmoke.ps1
 .\tests\Invoke-NoteRepairSmoke.ps1
 .\tests\Invoke-LintHandoffSmoke.ps1
+.\tests\Invoke-RepairFollowthroughSmoke.ps1
+.\tests\Invoke-SourceOnlySmoke.ps1
 ```
 
-The smoke check runs the executable against the example extracted directly from
-`original.md`, verifies ownership, tests damaged input and error exits, and checks
-that source hashes did not change. Generated evidence stays in `.artifacts/proof`.
+The executable checks use standalone DERT test inputs under `tests/Fixtures`,
+verify ownership, exercise damaged input and error exits, and check that inspected
+inputs stay unchanged. They do not read or validate the project's documentation.
+Generated evidence stays in `.artifacts/proof`.
 The repair smoke suite applies and undoes edits on generated copies, executes the
 printed PowerShell commands, and checks exact reversal and stale-approval refusal.
 Its evidence and recovery copies stay in `.artifacts/repair-proof`.
-The note-boundary suite checks original-example choices, copied selection/apply/
+The note-boundary suite checks reasoning-note choices, copied selection/apply/
 undo commands, actual released ownership, refusal paths, and Unicode/BOM/EOF
 reversal. Its evidence stays in `.artifacts/note-proof`.
 The lint-handoff suite executes copied links from a different directory, checks
 source-bound note choices and unsupported findings, preserves unusual filenames,
 rejects stale links, and verifies separate approval/undo. Its evidence stays in
 `.artifacts/lint-proof`.
+The repair-followthrough suite checks copied actions after title repair, note
+closure, and undo, including shifted lines and stale links. Evidence stays in
+`.artifacts/followthrough-proof`.
+The source-only check builds, tests, publishes, and runs all five suites in a fresh
+copy containing only code, build settings, and tests. No reference documents or
+old build outputs are copied; evidence stays in `.artifacts/source-only-proof`.
 The [implementation record](docs/IMPLEMENTATION-STATUS.md) separates tested
 behavior, provisional parser decisions, and unfinished product work.
 
@@ -213,14 +293,15 @@ without a compulsory tutorial or an announcement that they are a beginner.
 
 Recognition, ownership inspection, read-only linting, title-rule rehearsal, and
 author-selected unfinished-note closure now have working implementations.
-Supported lint findings now link directly to their source-bound rehearsals,
-without write prompts or guessed repairs. The next delivery step is the return
-journey after an approved repair: connect remaining findings in the verified
-result to their own current actions. A successful selected repair must not imply
-that every unrelated finding was fixed. No generic auto-fix or new grammar is implied.
+Supported lint findings and verified repair results now link directly to their
+source-bound rehearsals, without write prompts or guessed repairs. Operational
+development now has read-only Codex discovery driven from both CLI commands and
+DERT requests. The next operational work is
+installation ownership and a supported update rehearsal: identify the manager,
+exact target, and intended effect before offering any execution.
 
 The broader Windows proof still includes an ambiguous edit, supported command
-rehearsal, read-only discovery, and an optional result kept in the document.
+rehearsal and an optional result kept in the document.
 The original cases remain in that proof; difficult punctuation and note nesting
 are central.
 
