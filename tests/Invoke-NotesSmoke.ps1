@@ -182,6 +182,19 @@ try {
     Check-Window @($unicodePath, '--still') ([IO.Path]::GetFileName($unicodePath) + ' / DERT') -ThroughCli
     if ((Get-FileHash -LiteralPath $unicodePath).Hash -ne $unicodeBefore) { throw 'Unicode title opening changed the source bytes.' }
     $record.Add('PASS Unicode title opening preserves its spelling, cell-counted rule, BOM and mixed newlines')
+    $literalPath = Join-Path $proofPath 'literal [words] 日本語.DERT'
+    $literalSource = @'
+items ; note ;;
+C:\Users\Ryan\,
+"C:\notes; old"\, // Keep that slash.
+"a hook ; line ;; and //,", // A separate annotation.
+say "hello"" // literally,"
+'@
+    [IO.File]::WriteAllText($literalPath, $literalSource, [Text.UTF8Encoding]::new($true))
+    $literalBefore = (Get-FileHash -LiteralPath $literalPath).Hash
+    Check-Window @($literalPath, '--still') ([IO.Path]::GetFileName($literalPath) + ' / DERT') -ThroughCli
+    if ((Get-FileHash -LiteralPath $literalPath).Hash -ne $literalBefore) { throw 'Literal punctuation opening changed source bytes.' }
+    $record.Add('PASS literal paths, quote spans, annotation and final comma retain exact UTF-8 bytes on open')
     Write-Host ($record -join "`n")
     Write-Host "All $($record.Count) published notes checks passed. Evidence: $proofPath"
 }

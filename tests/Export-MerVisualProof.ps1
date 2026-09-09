@@ -9,6 +9,8 @@ param(
     [Nullable[int]] $AtLine,
     [switch] $SourceView,
     [switch] $DocumentWindow,
+    [switch] $StructureView,
+    [string] $DocumentPath,
     [switch] $ProbeLocal,
     [string] $InspectionPath,
     [ValidateSet('title', 'note')]
@@ -22,6 +24,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 if ($SourceView -and $null -eq $AtLine) { throw '-SourceView requires -AtLine.' }
+if ($StructureView -and (-not $DocumentWindow -or $null -eq $AtLine)) { throw '-StructureView requires -DocumentWindow and -AtLine.' }
+if ($DocumentPath -and $DemoCase) { throw 'Choose DocumentPath or DemoCase for this captured source.' }
 if ($ProbeLocal -and (-not $DocumentWindow -or $null -eq $AtLine)) { throw '-ProbeLocal requires -DocumentWindow and -AtLine.' }
 if ($UpdatePrefix) { $UpdatePrefix = (Resolve-Path -LiteralPath $UpdatePrefix).Path }
 if ($LocationPrefix) { $LocationPrefix = (Resolve-Path -LiteralPath $LocationPrefix).Path }
@@ -37,11 +41,11 @@ Add-Type -AssemblyName System.Drawing
 
 # Invoke the actual application adapter; the input is a shipped product example,
 # not a prose specification. This harness renders engine frames, not OS screenshots.
-$sourcePath = Join-Path $BuildFolder 'examples/mer.DERT'
+$sourcePath = if ($DocumentPath) { (Resolve-Path -LiteralPath $DocumentPath).Path } else { Join-Path $BuildFolder 'examples/mer.DERT' }
 $adapter = [Dert.Cli.CliApplication].Assembly.GetType('Dert.Cli.Motion.NoteScore')
 $method = $adapter.GetMethod('Analyze', [Reflection.BindingFlags]'Static,NonPublic')
 $read = [Func[string]] { [IO.File]::ReadAllText($sourcePath) }
-$label = 'mer.DERT'
+$label = [IO.Path]::GetFileName($sourcePath)
 if ($DemoCase) {
     $catalog = [Dert.Cli.CliApplication].Assembly.GetType('Dert.Cli.Motion.DemoCatalog')
     $cases = $catalog.GetProperty('Cases', [Reflection.BindingFlags]'Static,NonPublic').GetValue($null)
@@ -185,6 +189,12 @@ try {
         $reviewOutput.Dispose()
     }
     $annotation = $null
+    if ($StructureView) {
+        $document = $adapter.GetProperty('Document', [Reflection.BindingFlags]'Instance,NonPublic').GetValue($analysis)
+        $structure = [Dert.Core.DertStructureIndex]::new($document)
+        $connection = [Dert.Cli.CliApplication].Assembly.GetType('Dert.Cli.Motion.StructureConnection')
+        $annotation = $connection.GetMethod('Describe', [Reflection.BindingFlags]'Static,NonPublic').Invoke($null, @($structure, [int]$AtLine))
+    }
     if ($ProbeLocal) {
         $planType = [Dert.Cli.CliApplication].Assembly.GetType('Dert.Cli.Operations.DertOperationPlan')
         $document = $adapter.GetProperty('Document', [Reflection.BindingFlags]'Instance,NonPublic').GetValue($analysis)

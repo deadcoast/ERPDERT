@@ -64,7 +64,7 @@ internal static class HeaderReader
         return quoted;
     }
 
-    private static bool IsEscaped(string text, int position)
+    internal static bool IsEscaped(string text, int position)
     {
         var count = 0;
         for (var i = position - 1; i >= 0 && text[i] == '\\'; i--) count++;

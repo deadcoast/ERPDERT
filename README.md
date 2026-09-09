@@ -73,6 +73,14 @@ This remains a bounded manager integration. DERT does not install itself or
 provide an editor extension or the full planned note application. The current
 authoring window is a single-document Windows proof. No canonical v1.0 grammar is claimed.
 
+The [original syntax coverage map](docs/ORIGINAL-COVERAGE.md) records what each
+source family currently means to the parser and runner, with independent tests
+and unresolved decisions. Inspect, MER and Notes distinguish the captured end of
+a chain from an authored goodbye. Historical START and unfinished hooks retain
+their spelling; DERCS retains its original help intent and points to CLI help
+while its binding remains unimplemented. Open `examples/as-written.DERT` in the
+published Notes host to follow these forms in context.
+
 Windows and PowerShell are first. The planned initial operational use is an opinionated
 search, update, and doctoring CLI that identifies supported installations and
 their actual managers. DERT supplies its configuration, contextual notes, and
@@ -130,11 +138,21 @@ A title that wraps keeps its rule and asks for a wider view to compare it.
 The [width policy and inspected evidence](docs/superpowers/specs/2026-09-09-unicode-title-width-design.md)
 record the Unicode data and font-dependent limits.
 
-Reasoning opens from its gutter handle or **Ctrl+Space**. Its explanation and
-owned entries stay available beside the source; narrow windows place that
-context below it. Active sinkers stay expanded. Colors and folding never write
-decorations or indentation into the document, and written operations are text
-inside this window.
+Use the reasoning gutter, **Inspect reasoning**, or **Ctrl+Space** to read beside
+the folded source. The context connects the named target, ordered entries, each
+entry's own explanation and its actual closing line. Narrow windows place the
+reading controls and entries below the note.
+
+Choose an entry or **Edit source** to select its original words in the buffer.
+**Return to note** or **Escape** restores your original selection and scroll
+position while keeping your edits. Moving the source caret outside the reasoning
+returns it to its folded resting view; an active selection stays visible. Pending
+proposals keep their Apply/Leave choices. Try `DERT write examples/weekend.DERT`
+from the published folder. The [interaction and evidence](docs/superpowers/specs/2026-09-09-reasoning-return-design.md)
+record the supported return behavior.
+
+Active sinkers stay expanded. Colors and folding never write decorations or
+indentation into the document, and written operations are text inside this window.
 
 For an expanded list, select its header or an active item. **Add another item…**
 lets you enter the actual words and optional `//` annotation, then previews their

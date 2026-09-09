@@ -15,10 +15,18 @@ namespace Dert.Notes;
 
 public sealed class NotesWindow : Window
 {
+    public static RoutedUICommand LiteralTextCommand { get; } = new("Literal text", nameof(LiteralTextCommand), typeof(NotesWindow),
+        new InputGestureCollection { new KeyGesture(Key.L, ModifierKeys.Control | ModifierKeys.Shift) });
+    public static RoutedUICommand InspectReasoningCommand { get; } = new("Inspect reasoning", nameof(InspectReasoningCommand), typeof(NotesWindow),
+        new InputGestureCollection { new KeyGesture(Key.Space, ModifierKeys.Control) });
+    public static RoutedUICommand ReturnToNoteCommand { get; } = new("Return to note", nameof(ReturnToNoteCommand), typeof(NotesWindow),
+        new InputGestureCollection { new KeyGesture(Key.Escape) });
     public TextEditor Editor { get; }
     public AuthoringSession Session { get; }
     public ListAuthoringPanel Lists { get; }
     public GoodbyeAuthoringPanel Goodbye { get; }
+    public ReasoningPanel ReasoningView { get; }
+    public LiteralAuthoringPanel Literals { get; }
     private readonly DraftFileService files;
     private DraftFileSnapshot? opened;
     private TitleRepairPlan? preview;
@@ -32,6 +40,7 @@ public sealed class NotesWindow : Window
     private readonly StackPanel entries = new() { Margin = new(0, 14, 0, 0) };
     private readonly Button align;
     private readonly Button inspectReasoning;
+    private readonly Button literalText;
     private readonly StackPanel previewActions = new() { Orientation = Orientation.Horizontal, Visibility = Visibility.Collapsed };
     private readonly Border accent = new() { Background = Palette.Signal, Height = 2, Opacity = 0.45 };
     private readonly bool still;
@@ -97,6 +106,11 @@ public sealed class NotesWindow : Window
             notice.Text = message; notice.Foreground = Palette.Signal; notice.ToolTip = null;
             if (!this.still) accent.BeginAnimation(OpacityProperty, new DoubleAnimation(0.15, 1, TimeSpan.FromMilliseconds(260)) { AutoReverse = true });
         };
+        Session.LiteralEdited += message =>
+        {
+            notice.Text = message; notice.Foreground = Palette.Signal; notice.ToolTip = null;
+            if (!this.still) accent.BeginAnimation(OpacityProperty, new DoubleAnimation(0.15, 1, TimeSpan.FromMilliseconds(260)) { AutoReverse = true });
+        };
 
         var root = new DockPanel { Margin = new(30, 22, 30, 20), LastChildFill = true };
         Content = root;
@@ -136,20 +150,33 @@ public sealed class NotesWindow : Window
         context.Margin = new(0, 12, 0, 14); inspector.Children.Add(context);
         align = Action("Align title…", PreviewTitle);
         inspector.Children.Add(align);
-        inspectReasoning = Action("Inspect / fold reasoning", Session.ToggleReasoning);
+        inspectReasoning = Action("Inspect reasoning", () => InspectReasoning());
         inspector.Children.Add(inspectReasoning);
+        ReasoningView = new(Session, () => ReturnToNote());
+        inspector.Children.Add(ReasoningView);
         Lists = new(Session, message => { notice.Text = message; notice.Foreground = Palette.Muted; notice.ToolTip = null; },
-            () => { if (Lists?.IsReviewing == true) { preview = null; if (Goodbye?.IsReviewing == true) Goodbye.Reset(); } Update(); });
+            () => { if (Lists?.IsReviewing == true) { preview = null; if (Goodbye?.IsReviewing == true) Goodbye.Reset(); } Update(); }, CanLeaveLiteral);
         inspector.Children.Add(Lists);
         Goodbye = new(Session, message => { notice.Text = message; notice.Foreground = Palette.Muted; notice.ToolTip = null; },
             () => { if (Goodbye?.IsReviewing == true) preview = null; Update(); },
             () =>
             {
+                if (!CanLeaveLiteral()) return false;
                 if (!Lists.IsReviewing) return true;
                 notice.Text = "Apply or leave the list proposal before opening another choice.";
                 return false;
             });
         inspector.Children.Add(Goodbye);
+        Literals = new(Session, message => { notice.Text = message; notice.Foreground = Palette.Muted; notice.ToolTip = null; }, Update,
+            () =>
+            {
+                if (!Lists.IsReviewing && !Goodbye.IsReviewing && preview is null) return true;
+                notice.Text = "Apply or leave the current proposal before choosing literal text.";
+                return false;
+            });
+        literalText = Action("Literal text…", Literals.Begin);
+        literalText.ToolTip = "Select words in source, then preview quote marks. Ctrl+Shift+L.";
+        inspector.Children.Add(literalText); inspector.Children.Add(Literals);
         previewActions.Children.Add(Action("Apply", ApplyTitle, true));
         previewActions.Children.Add(Action("Leave", () => { preview = null; Update(); }));
         inspector.Children.Add(previewActions);
@@ -170,6 +197,11 @@ public sealed class NotesWindow : Window
         Command(ApplicationCommands.SaveAs, () => Save(true));
         Command(ApplicationCommands.Open, ChooseOpen);
         Command(ApplicationCommands.New, NewDocument);
+        Command(InspectReasoningCommand, () => InspectReasoning());
+        Command(LiteralTextCommand, Literals.Begin);
+        Editor.TextArea.SelectionChanged += (_, _) => Update();
+        CommandBindings.Add(new(ReturnToNoteCommand, (_, e) => { ReturnToNote(); e.Handled = true; },
+            (_, e) => { e.CanExecute = Session.Reasoning.Owner is not null; e.Handled = true; }));
         Editor.CommandBindings.Add(new(ApplicationCommands.Undo, (_, e) => { Session.Undo(); e.Handled = true; }));
         Editor.CommandBindings.Add(new(ApplicationCommands.Redo, (_, e) => { Session.Redo(); e.Handled = true; }));
         Editor.PreviewKeyDown += (_, e) =>
@@ -177,7 +209,21 @@ public sealed class NotesWindow : Window
             if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.None && Session.CompleteTitleLine()) e.Handled = true;
             else if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control) { Lists.BeginAdd(); e.Handled = true; }
             else if (e.Key == Key.Enter && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift)) { Lists.PreviewFinish(); e.Handled = true; }
-            else if (e.Key == Key.Space && Keyboard.Modifiers == ModifierKeys.Control) { Session.ToggleReasoning(); e.Handled = true; }
+        };
+        Editor.PreviewMouseLeftButtonDown += (_, e) =>
+        {
+            var hit = e.OriginalSource as DependencyObject;
+            while (hit is Visual && hit is not ICSharpCode.AvalonEdit.Folding.FoldingMargin)
+                hit = VisualTreeHelper.GetParent(hit);
+            if (hit is not ICSharpCode.AvalonEdit.Folding.FoldingMargin) return;
+            var view = Editor.TextArea.TextView;
+            var point = e.GetPosition(view);
+            var at = view.GetPosition(new Point(view.ScrollOffset.X, point.Y + view.ScrollOffset.Y));
+            if (at is { } location && Session.Reasoning.HasReasoningAt(location.Line))
+            {
+                e.Handled = true;
+                InspectReasoning(location.Line);
+            }
         };
         Editor.LostKeyboardFocus += (_, _) => Session.CompleteBoundary();
         DataObject.AddPastingHandler(Editor, (_, _) => Dispatcher.BeginInvoke(Session.CompleteBoundary, DispatcherPriority.Background));
@@ -189,6 +235,30 @@ public sealed class NotesWindow : Window
         void Command(RoutedUICommand command, Action action) => CommandBindings.Add(new(command, (_, e) => { action(); e.Handled = true; }));
     }
 
+    private bool InspectReasoning(int? line = null)
+    {
+        if (Lists.IsReviewing || Goodbye.IsReviewing || Literals.IsReviewing || preview is not null)
+        {
+            notice.Text = "Apply or leave the current proposal before inspecting reasoning.";
+            notice.Foreground = Palette.Copper;
+            return false;
+        }
+        if (!Session.Reasoning.Begin(line)) return false;
+        ReasoningView.FocusReturn();
+        return true;
+    }
+
+    private bool ReturnToNote()
+    {
+        if (Lists.IsReviewing || Goodbye.IsReviewing || Literals.IsReviewing || preview is not null)
+        {
+            notice.Text = "Apply or leave the current proposal before returning to the note.";
+            notice.Foreground = Palette.Copper;
+            return false;
+        }
+        return Session.Reasoning.Return();
+    }
+
     public void LoadPath(string path)
     {
         if (!ReadyToSave()) return;
@@ -198,6 +268,7 @@ public sealed class NotesWindow : Window
             opened = captured;
             Lists.Reset();
             Goodbye.Reset();
+            Literals.Reset();
             needsAttention = false; preview = null;
             Session.Load(captured.Text);
             notice.Text = "Opened without changing the file. Corrections are available as previews.";
@@ -252,7 +323,7 @@ public sealed class NotesWindow : Window
     private void NewDocument()
     {
         if (!ConfirmDeparture()) return;
-        opened = null; preview = null; needsAttention = false; Lists.Reset(); Goodbye.Reset(); Session.Load("", true);
+        opened = null; preview = null; needsAttention = false; Lists.Reset(); Goodbye.Reset(); Literals.Reset(); Session.Load("", true);
         notice.Text = "Your words stay here until you choose Save."; Editor.Focus(); Update();
     }
 
@@ -271,6 +342,7 @@ public sealed class NotesWindow : Window
 
     public void PreviewTitle()
     {
+        if (!CanLeaveLiteral()) return;
         if (Lists.HasDraft) { ReadyToSave(); return; }
         Lists.Reset();
         Goodbye.Reset();
@@ -287,7 +359,7 @@ public sealed class NotesWindow : Window
 
     private void Update()
     {
-        if (align is null || Lists is null || Goodbye is null) return; // Controller can publish while the visual tree is built.
+        if (align is null || Lists is null || Goodbye is null || Literals is null || literalText is null) return; // Controller can publish while the visual tree is built.
         name.Text = opened is null ? "Untitled.DERT" : Path.GetFileName(opened.Path);
         name.ToolTip = opened?.Path;
         state.Text = needsAttention ? "File needs attention" : Session.IsDirty ? "Unsaved changes" : opened is null ? "New note / not saved" : "Saved source";
@@ -299,7 +371,15 @@ public sealed class NotesWindow : Window
         previewActions.Visibility = preview is null ? Visibility.Collapsed : Visibility.Visible;
         Lists.Refresh();
         Goodbye.Refresh();
-        if (preview is not null || Lists.IsReviewing) Goodbye.Visibility = Visibility.Collapsed;
+        Literals.Refresh();
+        literalText.Visibility = !Literals.IsReviewing && !Lists.IsReviewing && !Goodbye.IsReviewing && preview is null && Editor.SelectionLength > 0
+            ? Visibility.Visible : Visibility.Collapsed;
+        var pendingChoice = Lists.IsReviewing || Goodbye.IsReviewing || Literals.IsReviewing || preview is not null;
+        Session.Reasoning.HoldForPendingEdit(pendingChoice);
+        ReasoningView.Refresh(pendingChoice);
+        heading.Visibility = ReasoningView.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+        if (preview is not null || Lists.IsReviewing || Session.Reasoning.Owner is not null && !Goodbye.IsReviewing)
+            Goodbye.Visibility = Visibility.Collapsed;
         var goodbyeVisible = Goodbye.Visibility == Visibility.Visible;
         entries.Visibility = Lists.IsReviewing || goodbyeVisible ? Visibility.Collapsed : Visibility.Visible;
         if (preview is not null || Goodbye.IsReviewing) Lists.Visibility = Visibility.Collapsed;
@@ -307,6 +387,13 @@ public sealed class NotesWindow : Window
         align.Visibility = preview is null && !Lists.IsReviewing && !goodbyeVisible && plan.IsReady ? Visibility.Visible : Visibility.Collapsed;
         context.Visibility = Lists.IsReviewing || goodbyeVisible ? Visibility.Collapsed : Visibility.Visible;
         inspectReasoning.Visibility = Visibility.Collapsed;
+        if (Literals.IsReviewing)
+        {
+            heading.Text = "Every mark is yours"; heading.Visibility = Visibility.Visible;
+            context.Visibility = entries.Visibility = align.Visibility = Lists.Visibility = Goodbye.Visibility = ReasoningView.Visibility = Visibility.Collapsed;
+            LayoutProposal();
+            return;
+        }
         if (preview is { Edit: { } edit })
         {
             heading.Text = "Align your title";
@@ -318,6 +405,12 @@ public sealed class NotesWindow : Window
         LayoutProposal();
         if (Lists.IsReviewing) { heading.Text = Lists.OwnerName; return; }
         if (goodbyeVisible) { heading.Text = "A proper goodbye"; return; }
+        if (Session.Reasoning.Owner is { } inspected)
+        {
+            heading.Text = DertStructureIndex.Label(inspected);
+            context.Visibility = entries.Visibility = align.Visibility = Lists.Visibility = Visibility.Collapsed;
+            return;
+        }
         if (!Lists.IsReviewing && (at?.Node is ReasoningNoteNode or ReasoningBlockNode || at?.Parent is ReasoningBlockNode))
             inspectReasoning.Visibility = Visibility.Visible;
         heading.Text = at is null ? Editor.Text.Length == 0 ? "A little room for your words" : "Room for the next thought" : DertStructureIndex.Label(at.Node);
@@ -327,27 +420,24 @@ public sealed class NotesWindow : Window
         {
             var parent = at.Parent is null ? "Part of this document" : $"Belongs to line {at.Parent.LineNumber}: {DertStructureIndex.Label(at.Parent)}";
             context.Text = DertStructureIndex.Kind(at) + " / " + parent;
+            if (at.Node.LineNumber == Editor.TextArea.Caret.Line && DertSourceReading.Form(at.Node) is { } reading)
+                context.Text += "\n\n" + reading.Explanation;
+            if (at.Node is ChainNode chain) context.Text += "\n\n" + DertSourceReading.ChainExtent(index, chain);
             if (at.Node is NoteNode { IsTitle: true }) context.Text += "\n\n" + plan.Explanation +
                 (titleRules.TitleWraps ? "\n\nYour title wraps in this window. The rule keeps its source marks; widen the view to compare the full width." : "");
             if (at.Node is ReasoningNoteNode note) context.Text += "\n\n" + note.Header.Payload?.Text + (note.Closing is null ? "\n\nClosing // missing." : "");
             if (at.Node is NoteEntryNode entry) context.Text += "\n\n" + entry.Annotation?.Text;
+            if (DertPunctuation.Detail(at.Node) is { } punctuation) context.Text += "\n\n" + punctuation;
             var block = at.Node as ReasoningBlockNode ?? at.Parent as ReasoningBlockNode;
             if (block is not null)
             {
-                context.Text += block.Closing is null ? "\n\nClosing // missing." : "\n\nIts own // closes this note.";
-                foreach (var child in block.Entries)
-                    entries.Children.Add(Action($"{child.LineNumber} / {child.Value.Text}", () => GoTo(child.Value.Span.Start), small: true));
+                context.Text += $"\n\n{block.Entries.Count} entries. Inspect their explanations beside the folded source.";
+                if (block.Closing is null) context.Text += "\n\nClosing // missing.";
             }
         }
         foreach (var finding in Session.Parsed.Diagnostics.Where(finding => finding.LineNumber == Editor.TextArea.Caret.Line &&
             !(finding.Code == "DERT3003" && Lists.Visibility == Visibility.Visible)))
             entries.Children.Add(Label(finding.Message, Palette.Copper, 13));
-    }
-
-    private void GoTo(int offset)
-    {
-        foreach (var fold in Session.Folds.GetFoldingsContaining(offset)) fold.IsFolded = false;
-        Editor.CaretOffset = offset; Editor.ScrollToLine(Editor.Document.GetLineByOffset(offset).LineNumber); Editor.Focus();
     }
 
     private void Problem(Exception error)
@@ -362,8 +452,17 @@ public sealed class NotesWindow : Window
     private static bool Expected(Exception error) => error is IOException or UnauthorizedAccessException or ArgumentException or RepairException;
     private bool ReadyToSave()
     {
+        if (!CanLeaveLiteral()) return false;
         if (!Lists.HasDraft) return true;
         notice.Text = "The new item is still a preview. Apply it to your note or choose Leave before saving.";
+        notice.Foreground = Palette.Copper;
+        return false;
+    }
+
+    private bool CanLeaveLiteral()
+    {
+        if (Literals?.IsReviewing != true) return true;
+        notice.Text = "Apply or leave the literal preview before opening another choice or saving.";
         notice.Foreground = Palette.Copper;
         return false;
     }
@@ -371,7 +470,8 @@ public sealed class NotesWindow : Window
     private void LayoutProposal()
     {
         if (contextScroll is null) return;
-        var reviewing = Lists.IsReviewing || Goodbye.Visibility == Visibility.Visible;
+        ReasoningView.Layout(ActualWidth < 950);
+        var reviewing = Lists.IsReviewing || Literals.IsReviewing || Goodbye.Visibility == Visibility.Visible || ReasoningView.Visibility == Visibility.Visible;
         contextBreath.Height = ActualWidth < 950 && reviewing ? 8 : 24;
         var height = ActualWidth < 950 ? reviewing ? Math.Clamp(ActualHeight - 480, 180, 320) : 220 : double.PositiveInfinity;
         if (contextScroll.MaxHeight == height) return;

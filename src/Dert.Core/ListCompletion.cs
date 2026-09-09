@@ -44,6 +44,13 @@ public sealed class ListEditPlan : ISourceRepairPlan
 
 public static class ListCompletion
 {
+    public static ListEditPlan PlanLiteral(DertDocument document, int line, string words)
+    {
+        var literal = LiteralText.Protect(words);
+        return literal.IsAvailable ? Plan(document, line, ListAction.Add, literal.Text)
+            : new(document, ListAction.Add, literal.Explanation, StatementAt(document, line));
+    }
+
     public static StatementNode? StatementAt(DertDocument document, int line)
     {
         var at = new DertStructureIndex(document).AtLine(line);

@@ -257,8 +257,10 @@ inside an unrelated word, quote, or ordinary note.
 
 ## Complete disposition of the source example families
 
-Grouped duplicates remain represented here; each exact original example should
-become a fixture when implementation begins. None has been rewritten in place.
+Grouped duplicates remain represented here. The table below retains the original
+design assessment; the [current coverage map](ORIGINAL-COVERAGE.md) now gives every
+C01-C13 family an independent test-owned fixture, semantic assertions, implemented
+reading and remaining limit. Original source examples remain unchanged.
 
 | ID | Source | Example family | Disposition and remaining issue |
 | --- | --- | --- | --- |
@@ -278,8 +280,11 @@ become a fixture when implementation begins. None has been rewritten in place.
 
 ## Cases that must challenge the recognizer
 
-These are specified probes, not executed tests. Their purpose is to expose where
-the current proposal still needs a decision or would violate established intent.
+These are the original requested probes. Their [current evidence and disposition](ORIGINAL-COVERAGE.md#the-recognizer-and-interaction-challenges)
+now distinguishes verified behavior, bounded implementation and deferred work for
+every T01-T24 case, with the later T25 receipt-identity proposal retained separately.
+Passing tests of the current reading do not turn design recommendations into
+canonical grammar decisions.
 
 | Probe | Input or action | Required evidence or result |
 | --- | --- | --- |

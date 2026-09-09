@@ -81,11 +81,13 @@ public static class DertParser
                 else if (header.Head.Text is "ƒin." or "fin." && header.Hook is null && header.Line is null)
                 {
                     EndPayload();
-                    Paint(header.Head.Span, SemanticRole.Boundary);
                     if (chainStart is null)
                         Add(new TextNode(line.Span, line.Number, field));
                     else
+                    {
+                        Paint(header.Head.Span, SemanticRole.Boundary);
                         EndChain(line.End, header.Head.Span);
+                    }
                 }
                 else if (header.Hook is not null || header.Line is not null)
                 {

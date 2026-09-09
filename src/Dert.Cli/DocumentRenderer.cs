@@ -169,8 +169,14 @@ internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain,
             _ => "document"
         };
         Line($"Belongs to  {owner}", SemanticRole.Target);
+        if (DertSourceReading.Form(focused.Node) is { } reading) Line(reading.Explanation, SemanticRole.ContextNote);
+        if (DertPunctuation.Detail(focused.Node) is { } punctuation) Line(punctuation, SemanticRole.ContextNote);
         switch (focused.Node)
         {
+            case ChainNode chain:
+                Fields(chain.Header);
+                Line(DertSourceReading.ChainExtent(new(document), chain), SemanticRole.ContextNote);
+                break;
             case NoteEntryNode entry:
                 Line($"Value       {entry.Value.Text}", SemanticRole.Sinker);
                 if (entry.Annotation is not null) Line($"Context     {entry.Annotation.Text}");

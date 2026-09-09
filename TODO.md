@@ -59,8 +59,8 @@ See [the interaction and evidence record](docs/superpowers/specs/2026-09-09-udl-
 See [the host decision and evidence](docs/superpowers/specs/2026-09-09-notes-authoring-design.md).
 This completes the bounded title/free-note/reasoning host increment. It does not
 complete the full note application, clean-account installation, clipboard/IME
-coverage or a general formatter. Expanded reasoning remains open until folded;
-automatic refolding after temporary inspection is retained for further design.
+coverage or a general formatter. The temporary inspection increment below adds
+automatic return to the reasoning's folded resting view.
 
 ## Next: make authorship feel complete
 
@@ -75,7 +75,7 @@ silently become list repairs. See [the design and evidence](docs/superpowers/spe
 | Priority | Person's action and intended payoff | Existing support and remaining work | Evidence needed before calling it delivered |
 | --- | --- | --- | --- |
 | 1 — bounded increment delivered | Type a title and immediately enjoy its matching rule, then keep writing | Native host, title behavior and guarded save/reopen now work. Continue real clipboard/IME, dialog and clean-account validation. | Actual control/input tests and rendered wide/narrow views exist. OS clipboard, input-method composition and clean-user first launch remain unproven. |
-| 2 — initial authoring integration delivered | Open a reasoning handle and follow an explanation without losing the note | Folding, keyboard toggling and owned entries now share the authoring source. Define automatic refolding after inspection without hiding an active edit. | Adjacent/missing boundaries and exact selection are covered. Long-note usability, real clipboard round trips and automatic resting-state restoration remain. |
+| 2 — bounded inspection and return delivered | Open a reasoning handle and follow an explanation without losing the note | Gutter, Inspect and Ctrl+Space expose a connected reading view; entry actions edit exact source. Return/Escape restores anchored selection and viewport, retaining edits. Navigation away refolds reasoning while active selections remain visible. | Native controls cover long-note repeated use, reverse/rectangular selections, deleted adjacent owners, missing boundaries, pending proposals and Save/reopen. Wide/narrow rendered views inspected. Human long-note usability and real clipboard/IME remain unproven. |
 | 3 — delivered in Notes | Finish an unfinished list deliberately | Separate Add another item and Finish this list choices now preview literal words, required punctuation and the resulting ending. Undo and guarded Save/reopen are integrated. | Core and native host cases cover annotations, blank lines, headers, quoted punctuation, stale drafts, repeated additions and following prose. Unfinished quotes are refused; no unattended CLI list repair is claimed. |
 | 4 — delivered in Notes | Get the florin goodbye without rewriting unrelated words | Recognized chain endings display `ƒin.` automatically, with literal source retained for Copy and Save. Context exposes typed spelling and an optional exact one-character source-edit preview with native Undo. | 18 core and 12 native cases cover exclusions, actual glyphs, native copy data, typing/deletion, selection direction, stale previews, list drafts and Save/reopen. Wide/narrow controls inspected; highlighting creates no source edit. |
 | 5 — bounded increment delivered | Give a title its own language without a crooked rule | Shared Unicode width data connects parser, repair and MER. Notes fits each authored dash to actual title glyph width; incorrect counts remain visibly short or long. Source spelling, normalization, Undo and guarded Save remain intact. | Core and native cases cover combining marks, CJK, RTL, joined emoji, flags, font changes, partial selection and exact UTF-8 reopen. Wide/narrow WPF frames inspected. Tabs/controls and incomplete characters explain unavailable width; wrapped titles retain their rule. Cross-terminal fonts and IME remain unproven. |
@@ -90,20 +90,30 @@ The Unicode [interaction and evidence](docs/superpowers/specs/2026-09-09-unicode
 records the shared cell policy, native font measurements and precise limits.
 `examples/world-notes.DERT` offers a notes-only starting point with a mixed title.
 
-Recommended next complete increment: reasoning that returns to its resting view
-after temporary inspection (the remaining part of priority 2), without hiding an
-active edit or losing the author's place. Define a predictable keyboard and
-pointer interaction, then inspect repeated use in long notes. Carry the authoring
-validation gaps above alongside it; the eventual full note application remains
-a larger scope.
+Temporary reasoning inspection and return now have a [worked interaction and
+evidence record](docs/superpowers/specs/2026-09-09-reasoning-return-design.md).
+Reading keeps source folded; editing uses the original buffer. Return is a
+navigation action, with source Undo and Save retaining their existing meanings.
+
+The [original example coverage map](docs/ORIGINAL-COVERAGE.md) now accounts for
+C01-C13 and T01-T24 with independent fixtures, assertions, observed readings and
+explicit limits. Viewer explanations distinguish captured chain extent from an
+authored closer; historical START, unfinished hooks and DERCS keep their identity.
+
+Recommended next bounded increment: make literal punctuation comfortable.
+Work through authoring Windows paths, quotes, `//`, hooks, lines and trailing
+literal commas with exact source previews and useful feedback. Keep a proposed
+escape grammar distinct from the behavior already implemented, and carry the
+authoring validation gaps above alongside this work.
 
 ## Deepen the language without inventing a dialect
 
-- [ ] **Close the original example coverage map.** Reconcile C01-C13 and T01-T24
-  in the syntax lab against current test-owned fixtures. Record the exact
-  implemented reading of `STERT ;`, historical `START`, compact invocation,
-  DERCS/help and loose fragments. A parser recovery choice is not a canonical
-  grammar decision. Ask for intent only when competing meanings remain consequential.
+- [x] **Close the original example coverage map.** C01-C13 have test-owned
+  fixtures and semantic assertions; T01-T24 have verified, bounded or deferred
+  dispositions. Compact extent, unfinished hooks, historical START, DERCS/help
+  and loose fragments have explicit current readings. The [map](docs/ORIGINAL-COVERAGE.md)
+  retains canonical grammar, general formatter and receipt-integration limits;
+  this completes the accounting, not those deferred features.
 - [ ] **Make literal punctuation comfortable.** Work through authoring `//`,
   `;`, `;;`, quotes, Windows paths and trailing literal commas. Current quote
   protection is not a settled escape-language specification. A literal edit

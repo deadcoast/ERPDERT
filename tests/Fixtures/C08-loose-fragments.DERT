@@ -1,0 +1,12 @@
+// similarities ; AI ;; claudecode, claude, codex, openai-desktop-app //
+codex,
+claude, // I dont care if it calls claudes installer, i just want it to be correct.
+
+pip, // and python inherently to manage pip?
+npm,
+
+support doctoring ; conflicts ;;
+
+possible_conflicts, // something thats known to override it, block it, or conflicting with it
+conflicts, // something that is almost surely conflicting
+fixme, // the confirmation command to fix the conflict

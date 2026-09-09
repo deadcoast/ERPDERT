@@ -29,6 +29,12 @@ internal static class StructureConnection
         }
         else
         {
+            if (DertPunctuation.Detail(node) is { } punctuation) Add(punctuation, Ink.Muted);
+            if (DertSourceReading.Form(node) is { } reading)
+            {
+                Add(reading.Explanation, Ink.Muted);
+                compact.Add(InkLine.Plain(reading.Summary, Ink.Muted));
+            }
             switch (node)
             {
                 case NoteEntryNode entry:
@@ -36,7 +42,7 @@ internal static class StructureConnection
                     Add($"Entry {Array.IndexOf(siblings, entry) + 1} of {siblings.Length}", Ink.Muted);
                     Add(entry.Value.Text);
                     Add(entry.Annotation is null ? "No explanation on this entry." : "// " + entry.Annotation.Text, Ink.Signal);
-                    Add(entry.HasComma ? "Comma present / retained as written" : "No trailing comma", Ink.Muted);
+                    Add(DertPunctuation.Reading(index, line), Ink.Muted);
                     compact.Add(InkLine.Plain(TerminalText.Clip(entry.Value.Text, 56)));
                     compact.Add(InkLine.Plain(TerminalText.Clip(entry.Annotation?.Text ?? "No entry explanation", 56), Ink.Signal));
                     break;
@@ -82,10 +88,14 @@ internal static class StructureConnection
         {
             var end = DertStructureIndex.Closing(boundary);
             var closing = end is { } span ? index.LineOf(span.Start) : (int?)null;
-            var label = boundary is ChainNode ? closing is { } cl ? $"Chain ends on line {cl}" : "Chain ending missing"
+            var label = boundary is ChainNode chain ? DertSourceReading.ChainExtent(index, chain)
                 : closing is { } nl ? $"Closed by // on line {nl}" : "Closing // missing";
-            Add(label, closing is null ? Ink.Copper : Ink.Muted);
-            if (compact.Count < 5) compact.Add(InkLine.Plain(label, closing is null ? Ink.Copper : Ink.Muted));
+            var boundaryInk = closing is null && boundary is not ChainNode ? Ink.Copper : Ink.Muted;
+            Add(label, boundaryInk);
+            // The source extent survives a crowded compact view. Any displaced
+            // field still appears in the source and in full structure detail.
+            compact.Insert(1, InkLine.Plain(label, boundaryInk));
+            if (compact.Count > 5) compact.RemoveAt(compact.Count - 1);
             if (boundary is not ReasoningNoteNode) ownership = new(boundary.LineNumber, closing,
                 DertStructureIndex.Children(boundary).Select(child => child.LineNumber).ToArray(), index.LineOf(Math.Max(boundary.Span.Start, boundary.Span.End - 1)));
         }

@@ -58,6 +58,12 @@ internal sealed record DertOperationPlan(DertDocument Document,
                 return;
             }
             var receiver = header.Target!.Text;
+            if (receiver.Equals("DERCS", StringComparison.OrdinalIgnoreCase))
+            {
+                Problem("ERP6002", chain,
+                    "DERCS is the original help form. This build does not bind its command, option and variable fields yet. Use DERT --help to read the available CLI commands.");
+                return;
+            }
             var where = receiver.Equals("where", StringComparison.OrdinalIgnoreCase);
             if (!where && !receiver.Equals("update", StringComparison.OrdinalIgnoreCase) && !receiver.Equals("ERPDERT", StringComparison.OrdinalIgnoreCase))
             {

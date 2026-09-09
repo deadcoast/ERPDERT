@@ -9,11 +9,13 @@ public sealed class AuthoringSession
     public TextEditor Editor { get; }
     public DertDocument Parsed { get; private set; } = DertParser.Parse("");
     public FoldingManager Folds { get; }
+    public ReasoningInspection Reasoning { get; }
     public event Action? Changed;
     public event Action? TitleAligned;
     public event Action<string>? TitleAlignmentUnavailable;
     public event Action<string>? ListEdited;
     public event Action<string>? GoodbyeEdited;
+    public event Action<string>? LiteralEdited;
     private bool applying;
     private bool autoTitle;
     private bool titleChanged;
@@ -26,9 +28,12 @@ public sealed class AuthoringSession
     {
         Editor = editor;
         Folds = FoldingManager.Install(editor.TextArea);
+        Reasoning = new(this, () => Changed?.Invoke());
+        editor.TextArea.SelectionChanged += (_, _) => { if (!applying) Reasoning.QueueNavigation(); };
         editor.TextChanged += (_, _) => Refresh();
         editor.TextArea.Caret.PositionChanged += (_, _) =>
         {
+            if (!applying) Reasoning.QueueNavigation();
             if (!applying && titleChanged && !boundaryQueued)
             {
                 boundaryQueued = true;
@@ -45,6 +50,7 @@ public sealed class AuthoringSession
 
     public void Load(string text, bool newDocument = false)
     {
+        Reasoning.Reset();
         applying = true;
         try
         {
@@ -97,6 +103,7 @@ public sealed class AuthoringSession
         // folds receive their resting presentation without altering the text.
         foreach (var fold in Folds.GetFoldingsContaining(Editor.CaretOffset))
             if (Editor.IsKeyboardFocusWithin) fold.IsFolded = false;
+        Reasoning.RefreshSource();
         Editor.TextArea.TextView.Redraw();
         Changed?.Invoke();
     }
@@ -201,6 +208,26 @@ public sealed class AuthoringSession
         finally { applying = false; }
         Refresh();
         GoodbyeEdited?.Invoke("ƒ is now in your source. Undo restores f; Save keeps this spelling on disk.");
+        return true;
+    }
+
+    public bool ApplyLiteralPreview(LiteralEditPlan preview, bool reverseSelection = false)
+    {
+        if (applying || preview.Source != Editor.Text || preview.Edit is not { } edit) return false;
+        applying = true;
+        try
+        {
+            using (Editor.Document.RunUpdate()) Editor.Document.Replace(edit.Span.Start, edit.Span.Length, edit.After);
+            Editor.Select(edit.Span.Start, edit.After.Length);
+            if (reverseSelection)
+            {
+                Editor.CaretOffset = edit.Span.Start;
+                Editor.TextArea.Selection = ICSharpCode.AvalonEdit.Editing.Selection.Create(Editor.TextArea, edit.Span.Start + edit.After.Length, edit.Span.Start);
+            }
+        }
+        finally { applying = false; }
+        Refresh();
+        LiteralEdited?.Invoke("Quote marks added to your source. Undo restores the original source; Save keeps this spelling on disk.");
         return true;
     }
 

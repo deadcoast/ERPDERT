@@ -3,6 +3,52 @@
 2026-09-06. This records implemented behavior, not a canonical language release.
 The original language notes and subsequent user decisions retain authority.
 
+## Original example coverage and consistent readings, 2026-09-09
+
+The [coverage map](ORIGINAL-COVERAGE.md) now accounts for C01-C13 and T01-T24 with
+test-owned fixtures, semantic assertions and explicit implementation limits.
+This is source-family accounting, not a canonical grammar or full format claim.
+
+The shared source-reading projection supplies inspect, MER and Notes with actual
+chain capture boundaries, unfinished-hook context, historical START and original
+DERCS intent. EOF and a following STERT are not displayed as missing required
+punctuation. DERCS remains unsupported by the runner and receives relevant help
+advice. A loose fin./ƒin. remains text without an owned-boundary highlight.
+Quoted/prose lookalikes stay excluded; compact MER keeps the extent visible.
+
+Fresh source-only verification passed **888 tests** (807 core/CLI/MER, 81 native)
+and **all eleven executable suites**. This adds 49 core/CLI and 9 native cases.
+Wide/narrow native and MER renders were inspected; both independent review
+findings were fixed and retested. The Windows package and its new `as-written`
+example were refreshed, and all 13 published Notes checks passed. See the
+[design and delivery record](superpowers/specs/2026-09-09-original-coverage-design.md).
+The map keeps general formatting, receipt import/identity and canonical language
+choices separate from implemented behaviors; OS input, accessibility and human
+usability evidence remain limited as recorded there.
+
+## Temporary reasoning inspection and return, 2026-09-09
+
+Notes now exposes reasoning through its gutter, Inspect reasoning and Ctrl+Space
+in a connected reading surface while closed source stays folded. Ordered entries
+retain their own explanations, named target and actual closing line. The compact
+view places controls beside the entries below the source.
+
+Entry actions and Edit source select the original buffer. Return/Escape restores
+anchored caret, native selection and viewport while retaining source edits.
+Navigation away refolds reasoning without hiding active selections. Pending
+proposals keep their decisions; deleted or reclassified owners withdraw their
+inspection rather than passing it to an adjacent note. Reading never executes
+written operations or changes Undo history.
+
+Verification: **830 tests passed** (758 core/CLI/MER, 72 native), plus **all eleven
+executable suites** from fresh source/test inputs. This adds 24 native cases.
+Wide/narrow actual WPF renders were inspected and revised; independent review
+found no remaining concrete blocker after the retained boundary regressions
+passed. The Windows package was refreshed and its 13 existing Notes smoke checks
+passed. OS pointer input, clipboard/IME, accessibility tools, clean-account
+installation and human long-note usability remain unproven. See the
+[interaction, review and evidence record](superpowers/specs/2026-09-09-reasoning-return-design.md).
+
 ## DERT ecosystem, update and where, 2026-09-09
 
 The latest user instruction makes DERT the executable/ecosystem and `update`

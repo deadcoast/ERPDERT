@@ -1,0 +1,4 @@
+START
+
+command option variable ;;
+string, // no comma on last string item to indicate end of string

@@ -1,0 +1,9 @@
+STERT ;
+// CONTEXTUAL PSEUDO NOTE TO DISPLAY TO AI AGENT WHAT THE USER WANTS, ITS A META WAY OF BOTH PROMPTING AS AN EXAMPLE AND WHAT THE SYNTAX IS DESIGNED TO BE
+support doctoring ; conflicts ;;
+
+possible_conflicts, // something thats known to override it, block it, or conflicting with it
+conflicts, // something that is almost surely conflicting
+fixme, // the confirmation command to fix the conflict
+
+fin. // CORRECTED and or rendered TO THE lowercase f florin

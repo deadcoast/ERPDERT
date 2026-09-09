@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-09-09 — the original forms, accounted for
+
+- Reconciled all 13 original source families and 24 challenge cases into an
+  [evidence map](docs/ORIGINAL-COVERAGE.md). Independent fixtures and assertions
+  retain spelling, ranges, annotations, ownership and application eligibility.
+  Original notes remain editable source artifacts outside test infrastructure.
+- Unified source explanations across inspect, MER and Notes. A captured chain
+  extent at EOF or the next STERT is distinguished from an authored closer.
+  Historical START, annotated fragments and unfinished hooks keep their reading.
+- Corrected DERCS runner advice to preserve its help intent without inventing a
+  binding; loose goodbyes no longer receive chain-boundary highlighting. Narrow
+  MER retains the boundary even when source-form context fills its compact view.
+- Added the shipped `as-written.DERT` example and general source-structure visual
+  capture support. Inspected native and MER views at wide/narrow sizes and fixed
+  the independent review findings. **888 tests and all eleven executable suites
+  passed** from fresh source/test inputs; the Windows package is refreshed.
+- Added 49 core/CLI and 9 native cases. General formatting, literal grammar,
+  receipt import/identity and actual OS input/accessibility work retain explicit
+  limits. Next TODO: literal punctuation authoring.
+
+## 2026-09-09 — read the reasoning, return to the note
+
+- Added a temporary Notes reading view with ordered entries, their explanations,
+  named target and actual closing line. Gutter, Inspect and Ctrl+Space share it;
+  narrow windows place reading controls beside the entries below the source.
+- Connected exact source editing with Return/Escape to the original anchored
+  selection and viewport. Edits remain in the buffer; navigation away refolds
+  reasoning while active selections and pending proposals remain protected.
+- Preserved reverse/rectangular selections, retained owner identity through
+  renames and withdrew deleted reasoning without adopting an adjacent note.
+  Reading leaves saved bytes and Undo untouched.
+- Verified **830 tests and all eleven executable suites** from source-only
+  inputs, including 24 new native cases. Inspected wide/narrow WPF controls,
+  resolved independent review findings and refreshed the Windows package.
+  See the [interaction and evidence](docs/superpowers/specs/2026-09-09-reasoning-return-design.md).
+
 ## 2026-09-09 — DERT connects update, where and doctor
 
 - Normalized the ecosystem/executable to DERT and the original operation to
