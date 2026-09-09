@@ -53,7 +53,7 @@ try {
     [IO.File]::WriteAllBytes($corpus, [IO.File]::ReadAllBytes((Join-Path $PSScriptRoot 'Fixtures\mixed-structures.DERT')))
     $corpusHash = (Get-FileHash -LiteralPath $corpus).Hash
     $relative = [IO.Path]::GetRelativePath((Get-Location).Path, $corpus)
-    $lint = Invoke-Check 'Mixed supported and unsupported findings' 0 { & $appPath lint $relative --plain } @('DERT2003', 'REHEARSE / TITLE RULE', 'DERT3003', 'NO REPAIR OFFERED', '--from-lint')
+    $lint = Invoke-Check 'Repair preview and current-file list authoring have distinct handoffs' 0 { & $appPath lint $relative --plain } @('DERT2003', 'REHEARSE / TITLE RULE', 'DERT3003', 'CHOOSE / IN NOTES', 'current file', '--from-lint')
     if ($lint -match '--apply') { throw 'Lint offered approval without an edit preview.' }
     $titleHandoff = Get-PrintedCommand $lint ' --from-lint [A-F0-9]{64} --plain'
     Push-Location -LiteralPath $proofPath

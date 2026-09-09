@@ -13,6 +13,7 @@ public sealed class AuthoringSession
     public event Action? TitleAligned;
     public event Action<string>? TitleAlignmentUnavailable;
     public event Action<string>? ListEdited;
+    public event Action<string>? GoodbyeEdited;
     private bool applying;
     private bool autoTitle;
     private bool titleChanged;
@@ -182,6 +183,25 @@ public sealed class AuthoringSession
 
         static int Map(int offset, SourceEdit edit) => offset <= edit.Span.Start ? offset : offset >= edit.Span.End
             ? offset + edit.After.Length - edit.Span.Length : edit.Span.Start;
+    }
+
+    public bool ApplyGoodbyePreview(FlorinEditPlan preview)
+    {
+        if (applying || preview.Source != Editor.Text || preview.Edit is not { } edit) return false;
+        var caret = Editor.CaretOffset;
+        var selection = Editor.TextArea.Selection;
+        applying = true;
+        try
+        {
+            using (Editor.Document.RunUpdate()) Editor.Document.Replace(edit.Span.Start, edit.Span.Length, edit.After);
+            // f and ƒ are each one UTF-16 code unit. Native source positions stay exact.
+            Editor.TextArea.Selection = selection;
+            Editor.CaretOffset = caret;
+        }
+        finally { applying = false; }
+        Refresh();
+        GoodbyeEdited?.Invoke("ƒ is now in your source. Undo restores f; Save keeps this spelling on disk.");
+        return true;
     }
 
     private void ApplyTitle(TitleRepairPlan plan)

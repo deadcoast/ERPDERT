@@ -1,5 +1,40 @@
 # Changelog
 
+## 2026-09-09 — the original florin goodbye
+
+- Typed `fin.` automatically appears as `ƒin.` at a recognized chain ending in
+  Notes. Source, selection, native copy data and Save retain the typed spelling;
+  the context offers a literal view and identifies the opening line.
+- Added an optional exact `f` → `ƒ` source preview with Apply, Leave and native
+  Undo/Redo. It preserves selection direction and caret, rejects stale source,
+  respects pending list drafts, and uses the existing guarded Save/reopen.
+- Notes, quotes, URLs, paths and standalone fragments remain untouched. No
+  parser grammar or CLI/MER source-display behavior was changed.
+- Inspected actual wide/narrow WPF frames and corrected clipped narrow controls.
+  Verified 671 tests and all ten executable suites from fresh source-only inputs,
+  including 18 core florin cases, 12 native cases and 11 published Notes checks.
+  Next in [TODO](TODO.md): non-ASCII title width.
+
+## 2026-09-09 — choose how your list continues
+
+- Added native Add another item and Finish this list choices with exact source
+  previews, actual item text, owned-list context and one-step buffer undo. Repeated
+  additions preview their needed separator; Save/reopen uses the existing guards.
+- Preserved annotations, whitespace, line endings, reasoning commas and following
+  structures. Plans reject additions that become other structures or absorb prose,
+  and refuse punctuation edits inside unfinished quoted text.
+- Retained unapplied typed words across source changes, with explicit Review again
+  or Leave. Save and document departure cannot silently discard a new-item draft.
+  Cleared the old source selection after Add so the next keystroke edits the new item.
+- Connected DERT3003 findings in lint and MER to current-file authoring. Those
+  commands do not claim the revision checks or approval of a repair command.
+- Inspected and revised wide/narrow WPF previews so source, the item field, exact
+  comparison and Apply/Leave remain visible together. The florin goodbye is next
+  in [TODO](TODO.md); no grammar or unattended CLI list repair was added.
+- Verified 641 tests and all ten executable suites in fresh source-only inputs,
+  including 28 list-plan cases, 23 native host tests and nine published Notes
+  checks. The Windows build is refreshed with the complete authoring host.
+
 ## 2026-09-09 — write, align and return to your notes
 
 - Added `ERPDERT write [file]`, a bundled Windows authoring window with live

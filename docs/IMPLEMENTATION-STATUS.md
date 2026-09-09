@@ -3,6 +3,80 @@
 2026-09-06. This records implemented behavior, not a canonical language release.
 The original language notes and subsequent user decisions retain authority.
 
+## The original florin goodbye, 2026-09-09
+
+At a parsed chain ending, the Notes editor renders typed `fin.` as `ƒin.` with
+one visual character for one source character. Source spelling, native copy
+data, selection, dirty state and Undo history remain untouched by rendering.
+The ending's context shows its opening line, explains displayed versus stored
+spelling, and offers a window-local typed-spelling view. Standalone fragments,
+notes, quoted text, URLs, paths and larger words do not qualify.
+
+An optional Write ƒ in source preview changes only `f` to `ƒ`. Apply retains the
+native selection shape/direction and caret, creates one Undo step, and leaves
+Save separate. Source changes withdraw the preview; caret movement cannot
+retarget it. List proposals keep their existing protections. Opening and saving
+an untreated goodbye preserve literal bytes, including BOM and mixed newlines.
+The grammar and CLI/MER source excerpts are unchanged.
+
+Verification: 671 tests (636 core/CLI, 35 native) and all ten executable suites
+passed in fresh source-only inputs. This increment adds 18 core and 12 native
+florin cases, plus two published Notes checks (11 total). Native glyph runs,
+typing/deletion, copy data, stale plans, selection, Undo/Redo and Save/reopen were
+exercised. Wide/narrow rendered WPF controls were inspected; they are not desktop
+screenshots. OS clipboard round trips, IME and clean-account installation remain
+separate gaps. Evidence: `.artifacts/florin-source-only-final.log`,
+`.artifacts/source-only-proof/7c5a6e8891fe4256b4bbb730063617cf` and
+`.artifacts/florin-host-proof`. See the [worked design](superpowers/specs/2026-09-09-florin-goodbye-design.md).
+
+## Deliberate list completion, 2026-09-09
+
+The native notes window now offers Add another item and Finish this list for a
+selected expanded statement or one of its active sinkers. Add accepts the actual
+single-line item, including an optional annotation, and previews its insertion
+and any needed preceding separator. Finish previews only the last continuation
+comma's removal. Reasoning, free notes, inline payloads and ordinary prose are
+not selected through this path. The original source's list and reasoning comma
+distinction remains intact; this adds an editing interaction, not a grammar rule.
+
+Shared `ListCompletion` plans retain exact edits and reparse proposed source to
+verify the additional item's owner and preserved existing values/annotations.
+Following text cannot silently become more list entries. Existing line endings,
+blank lines, quoted punctuation and separate headers remain. Unfinished quoted
+text refuses punctuation treatment; the editor still retains and displays it.
+This guard was added after review reproduced a comma being removed inside an
+unfinished literal. Four regression cases failed before the fix and pass afterward.
+
+Each accepted proposal is one native undo step. Finish maps the existing source
+selection; Add clears the old selection and places the caret at the new item,
+so subsequent typing cannot replace an older value. The latter was reproduced in
+review and verified with a native text-input regression. Source changes withdraw
+the plan and retain typed candidate words for explicit Review again. Save and
+departure do not silently discard a typed proposal; Apply or Leave resolves it.
+The existing guarded writer supplies save/reopen, external-change refusal and
+verified recovery. Preview alone makes no disk or source change.
+
+Lint and MER's detailed DERT3003 advice offer a literal PowerShell `write` command.
+It explicitly opens the current file and directs selection to the recorded line;
+it does not claim a captured-revision check, choose the author's intention, or
+apply a repair. Existing repair commands still check their captured source bytes.
+
+Wide and narrow actual WPF frames were inspected. The first narrow view clipped
+the comparison and Apply controls; revised space allocation, compact spacing and
+themed input now keep those with the selected source. Duplicate comma advice is
+omitted when the list choice already explains it. Frames are retained under
+`.artifacts/list-host-proof`; they are rendered controls, not desktop screenshots.
+The [worked interaction](superpowers/specs/2026-09-09-list-completion-design.md)
+records decisions and remaining evidence. The next recommended TODO is the florin
+goodbye. Modal dialogs, OS clipboard/IME and clean-account delivery still require
+their separate inspection; no unattended CLI list repair is implemented.
+
+Verification: 641 tests (618 core/CLI and 23 native host) and all ten published
+suites passed in a fresh source-only copy. The increment adds 28 plan cases,
+ten native list cases, current-file handoff coverage and three published Notes
+checks (nine total). Evidence: `.artifacts/list-source-only-final.log` and
+`.artifacts/source-only-proof/758acc8b76034aa89f864324bce4e22c`.
+
 ## Native notes authoring, 2026-09-09
 
 `ERPDERT write [file.DERT] [--still]` now opens a packaged WPF/AvalonEdit window.
@@ -687,12 +761,12 @@ or accessibility with screen readers; those need direct evaluation.
 
 ## Next complete interaction
 
-The current UDL recommendation is deliberate list completion in the authoring
-host: keep a continuation comma while writing, then offer distinct Add another
-item and Finish this list actions with exact preview and undo. The native
-title/free-note/reasoning host is implemented as recorded above; clipboard/IME,
-dialog, long-note and clean-account validation remain. Non-ASCII title width is
-also separate. See [TODO](../TODO.md) for the broader development order.
+The next UDL recommendation is non-ASCII title width: establish a compatible
+visible-width policy across the Notes host, MER and title repair, then inspect
+combining marks, CJK, emoji and font fallback in the actual delivery surfaces.
+The florin goodbye, deliberate list completion and native title/free-note/reasoning
+host are implemented as recorded above. Clipboard/IME, dialog, long-note and
+clean-account validation remain. See [TODO](../TODO.md) for the broader order.
 
 Operational rehearsal already connects installation selection, manager inventory,
 registry evidence and dependency dry runs to the requesting source. Its remaining

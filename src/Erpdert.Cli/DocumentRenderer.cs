@@ -17,6 +17,8 @@ internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain,
         Line("ERPDERT write [file.DERT] [--still]", SemanticRole.Sinker);
         Line("    Write in the bundled Windows notes window. Titles align on Enter; source colors and reasoning folds follow your words. Ctrl+S saves; Ctrl+Z undoes buffer edits.", SemanticRole.ContextNote);
         Line("    Opened mismatched titles offer a preview. Save retains original encoding/newlines and checks for external changes; Save as creates a new copy.", SemanticRole.ContextNote);
+        Line("    Select an expanded list to Add another item or Finish this list. Exact previews keep annotations and ownership; Apply edits the buffer, Ctrl+Z undoes, Ctrl+S saves.", SemanticRole.ContextNote);
+        Line("    A chain-ending fin. appears as ƒin. in Notes; Copy and Save retain typed source. Select its line to show typed spelling or preview writing ƒ into the source.", SemanticRole.ContextNote);
         Line("");
         Line("ERPDERT mer", SemanticRole.Sinker);
         Line("    Open the bundled note in MER's ASCII source window, with a short edge trace as recorded connections appear.", SemanticRole.ContextNote);

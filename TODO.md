@@ -64,18 +64,33 @@ automatic refolding after temporary inspection is retained for further design.
 
 ## Next: make authorship feel complete
 
+The deliberate list-completion increment is implemented: select an expanded
+list's header or active item to add actual words or finish its final continuation
+comma. Both choices preview the exact source before Apply, use one native undo
+step, and share guarded Save/reopen. New-item drafts survive source changes and
+need Apply or explicit Leave before saving. Lint and MER offer a clearly labeled
+current-file authoring command. Notes, prose and unfinished quoted text cannot
+silently become list repairs. See [the design and evidence](docs/superpowers/specs/2026-09-09-list-completion-design.md).
+
 | Priority | Person's action and intended payoff | Existing support and remaining work | Evidence needed before calling it delivered |
 | --- | --- | --- | --- |
 | 1 — bounded increment delivered | Type a title and immediately enjoy its matching rule, then keep writing | Native host, title behavior and guarded save/reopen now work. Continue real clipboard/IME, dialog and clean-account validation. | Actual control/input tests and rendered wide/narrow views exist. OS clipboard, input-method composition and clean-user first launch remain unproven. |
 | 2 — initial authoring integration delivered | Open a reasoning handle and follow an explanation without losing the note | Folding, keyboard toggling and owned entries now share the authoring source. Define automatic refolding after inspection without hiding an active edit. | Adjacent/missing boundaries and exact selection are covered. Long-note usability, real clipboard round trips and automatic resting-state restoration remain. |
-| 3 | Finish an unfinished list deliberately | Parser retains terminal commas and explains DERT3003. Implement separate `Add another item` and `Finish this list` choices, with an exact preview and guarded undo. A comma may represent ongoing typing. | Distinguish a promised next item from a finished list. Preserve commas in prose, annotations, blank lines and subsequent headers; do not silently infer intent. |
-| 4 | Get the florin goodbye without rewriting unrelated words | Both `fin.` and `ƒin.` are recognized. Implement the original convenience as a clearly defined presentation treatment or explicit reversible edit at a recognized terminator. | Quoted text, notes, URL/path strings, ordinary `fin.` fragments, real chain endings and undo. Highlighting alone must not write a file. |
+| 3 — delivered in Notes | Finish an unfinished list deliberately | Separate Add another item and Finish this list choices now preview literal words, required punctuation and the resulting ending. Undo and guarded Save/reopen are integrated. | Core and native host cases cover annotations, blank lines, headers, quoted punctuation, stale drafts, repeated additions and following prose. Unfinished quotes are refused; no unattended CLI list repair is claimed. |
+| 4 — delivered in Notes | Get the florin goodbye without rewriting unrelated words | Recognized chain endings display `ƒin.` automatically, with literal source retained for Copy and Save. Context exposes typed spelling and an optional exact one-character source-edit preview with native Undo. | 18 core and 12 native cases cover exclusions, actual glyphs, native copy data, typing/deletion, selection direction, stale previews, list drafts and Save/reopen. Wide/narrow controls inspected; highlighting creates no source edit. |
 | 5 | Give a title any language without a crooked rule | MER measures grapheme/cell widths; title repair currently limits checked widths to ASCII. Establish one compatible display-width policy and exercise the renderer and repair together. | Combining marks, CJK, emoji/ZWJ, tabs, fallback fonts and both line-ending forms in the delivery host. A passed arithmetic test is insufficient visual evidence. |
 
-Recommended next complete increment: deliberate list completion (priority 3),
-with distinct Add another item and Finish this list actions, source ownership,
-exact preview and undo. Carry the authoring validation gaps above alongside it;
-the eventual full note application remains a larger scope.
+The florin [interaction and evidence](docs/superpowers/specs/2026-09-09-florin-goodbye-design.md)
+records its source-preserving appearance and separate author-selected edit.
+CLI/MER excerpts remain literal. Copy data was checked through the native copy
+command without altering the OS clipboard; a cross-application clipboard round
+trip and IME remain unproven.
+
+Recommended next complete increment: titles in any language (priority 5).
+Establish a compatible visible-width policy across the Notes host, MER and title
+repair, then inspect combining marks, CJK and emoji with actual font fallback.
+Carry the authoring validation gaps above alongside it; the eventual full note
+application remains a larger scope.
 
 ## Deepen the language without inventing a dialect
 

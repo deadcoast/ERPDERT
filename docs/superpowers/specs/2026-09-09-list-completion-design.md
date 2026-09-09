@@ -50,3 +50,43 @@ No grammar decision is added by this interaction.
    exercise native focus/buttons, stale previews, second additions and verified
    saves. Run source-only tests and published checks. Record clipboard/IME and
    clean-account limits separately from these control and executable results.
+
+## Delivery and review evidence
+
+Implemented shared `ListCompletion` plans, native `ListAuthoringPanel` choices,
+grouped buffer edits, existing guarded Save/reopen, and DERT3003 authoring handoffs
+from lint and MER. The handoff opens the current file; it explicitly does not
+inherit captured-revision checks or approval from repair links. The editor's
+proposal is then bound to the actual buffer revision and selected owner.
+
+Read-only review found two concrete defects. Unfinished quoted text could expose
+an internal comma as a list separator; the new guard uses the existing escaped
+quote recognition and leaves such text unchanged. Four regression cases failed
+before the guard and passed after. Add could retain an earlier source selection
+after moving the caret; the next input could then replace the old item. Add now
+clears that selection, verified by a failing-then-passing native text-input case.
+Finish still preserves its mapped selection.
+
+Wide and narrow WPF frames were inspected for both choices. The first compact
+addition clipped its comparison and buttons. Revised space allocation, compact
+spacing, input styling and removal of duplicate comma advice leave the source,
+typed item, full comparison and Apply/Leave visible together at 780×780. Source
+and context use the accepted MER palette. These are rendered controls, not OS
+screenshots. Evidence: `.artifacts/list-host-proof/list-add-1180.png`,
+`list-add-780.png`, `list-finish-1180.png`, and `list-finish-780.png`.
+
+Fresh source-only verification passed 618 core/CLI tests and 23 native host tests
+(641 total), then all ten published executable suites. This includes 28 list-plan
+cases, ten added native list cases, nine published Notes checks, 50 MER checks
+and 20 update checks. Native list cases cover draft retention, source invalidation,
+button dispatch, exact Finish selection, Add then typing, grouped undo, repeated
+addition and guarded save/reopen. Published checks verify literal lint commands,
+actual CLI-to-window launch, and unchanged incomplete-list/BOM bytes on opening.
+The working Windows build is republished separately.
+
+Evidence is retained in `.artifacts/list-source-only-final.log` and
+`.artifacts/source-only-proof/758acc8b76034aa89f864324bce4e22c`.
+The normal guarded-writer recovery limits still apply. OS clipboard/IME, modal
+departure dialogs, clean-account installation and long-note usability have not
+been established by these tests. The next recommendation remains the original
+florin goodbye; these list choices do not settle new literal or nesting grammar.

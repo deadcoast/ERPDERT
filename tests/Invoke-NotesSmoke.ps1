@@ -168,6 +168,13 @@ try {
     Check-Window @($listPath, '--still') ([IO.Path]::GetFileName($listPath) + ' / ERPDERT') -ThroughCli
     if ((Get-FileHash -LiteralPath $listPath).Hash -ne $listBefore) { throw 'Opening the incomplete list changed its comma or annotation.' }
     $record.Add('PASS current-file authoring keeps the continuation comma and annotation untouched on open')
+    $goodbyePath = Join-Path $proofPath "goodbye [fin] ' & florin.DERT"
+    $goodbyeSource = "STERT`r`n// fin. stays a note`nfin. // Until tomorrow."
+    [IO.File]::WriteAllText($goodbyePath, $goodbyeSource, [Text.UTF8Encoding]::new($true))
+    $goodbyeBefore = (Get-FileHash -LiteralPath $goodbyePath).Hash
+    Check-Window @($goodbyePath, '--still') ([IO.Path]::GetFileName($goodbyePath) + ' / ERPDERT') -ThroughCli
+    if ((Get-FileHash -LiteralPath $goodbyePath).Hash -ne $goodbyeBefore) { throw 'Opening the goodbye changed the literal source bytes.' }
+    $record.Add('PASS goodbye opening preserves typed fin., BOM, mixed newlines and annotations')
     Write-Host ($record -join "`n")
     Write-Host "All $($record.Count) published notes checks passed. Evidence: $proofPath"
 }

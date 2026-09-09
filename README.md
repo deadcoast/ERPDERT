@@ -112,10 +112,39 @@ context below it. Active sinkers stay expanded. Colors and folding never write
 decorations or indentation into the document, and written operations are text
 inside this window.
 
+For an expanded list, select its header or an active item. **Add another item…**
+lets you enter the actual words and optional `//` annotation, then previews their
+new source line. **Finish this list…** previews removal of only the last
+continuation comma. Apply changes your buffer as one undoable edit. Repeated
+additions show any needed comma on the previous item; following prose cannot be
+silently absorbed. Commas in annotations and reasoning are preserved.
+
+**Ctrl+Enter** opens Add; **Ctrl+Shift+Enter** opens Finish. Source changes withdraw
+a pending proposal while retaining your typed item for **Review again**. **Leave**
+discards the proposal. Save requires applying or leaving a typed proposal first;
+departure asks before discarding those words. Unfinished quoted text is preserved
+and explained instead of treating its comma as a list boundary.
+
+Lint and MER's detailed findings offer a copyable `write` command for DERT3003.
+It opens the **current file**, which may differ from the analysis, and does not
+apply a choice. Repair commands retain their separate source-byte checks.
+
+Type `fin.` to close a `STERT` chain: Notes automatically displays `ƒin.`.
+The source still contains `fin.`; Copy and Save keep that typed spelling.
+Select the ending's line to see its opening line and **Show typed spelling**.
+That view choice applies to this window and never changes your words.
+
+**Write ƒ in source…** offers the exact one-character edit if you want the florin
+in the saved file too. **Apply** changes the buffer; **Ctrl+Z** restores `f`;
+**Ctrl+S** saves. Notes, quotes, paths, URLs and standalone fragments are left
+alone. Existing `ƒin.` is already literal source. CLI/MER source excerpts retain
+the source spelling; this automatic appearance belongs to the Notes editor.
+
 **Ctrl+S** saves; **Ctrl+Shift+S** creates a new copy; **Ctrl+Z / Ctrl+Y** undo and
 redo buffer edits. New, Open and Close offer Save, Discard or Cancel when needed.
 `--still`, `ERPDERT_MOTION=off`, and Windows reduced-motion settings suppress the
-short accent that follows an actual title alignment.
+short accent that follows an actual title alignment, accepted list edit or
+accepted florin source edit. Displaying the florin alone adds no animation or edit.
 
 Existing-file saves check the opened file's identity and original bytes, preserve
 its BOM and literal line endings, keep verified previous bytes in the adjacent
@@ -673,9 +702,10 @@ and recorded receipts in the CLI. MER's source window also
 carries comparison, explicit repair approval, verified saved results and undo,
 sharing the existing guarded repair service. Written update requests connect to
 copy selection, npm checks and a retained rehearsal in that same source window.
-The native authoring window now brings title treatment, reasoning inspection and
-guarded save/reopen to the act of writing. The next proposed UDL increment is
-deliberate list completion with separate choices and exact undo; remaining host
+The native authoring window now brings title treatment, reasoning inspection,
+deliberate list completion and the original florin goodbye to writing, with
+guarded save/reopen. The next proposed UDL increment is a shared, visually checked
+title-width policy for non-ASCII text. Remaining host
 validation and wider operation workflows stay in [TODO](TODO.md).
 
 Integrated update approval, execution and verified results remain operational
