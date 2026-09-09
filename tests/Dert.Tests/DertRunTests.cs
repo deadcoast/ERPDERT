@@ -1,6 +1,6 @@
 using System.Text;
-using Erpdert.Cli;
-using Erpdert.Cli.Discovery;
+using Dert.Cli;
+using Dert.Cli.Discovery;
 using Spectre.Console;
 using Xunit;
 
@@ -9,11 +9,11 @@ namespace Dert.Tests;
 public class DertRunTests
 {
     [Theory]
-    [InlineData("STERT ; ERPDERT ;; codex")]
-    [InlineData("STERT ; ERPDERT ;; codex\nƒin.")]
-    [InlineData("STERT ; ERPDERT ;; codex\nfin.")]
-    [InlineData("STERT;ERPDERT;;codex // keep my annotation")]
-    [InlineData("\uFEFFSTERT ; erpdert ;; CODEX\r\nƒin.\r\n")]
+    [InlineData("STERT ; update ;; codex")]
+    [InlineData("STERT ; update ;; codex\nƒin.")]
+    [InlineData("STERT ; update ;; codex\nfin.")]
+    [InlineData("STERT;update;;codex // keep my annotation")]
+    [InlineData("\uFEFFSTERT ; update ;; CODEX\r\nƒin.\r\n")]
     public void Written_operation_reaches_the_actual_discovery_engine(string source)
     {
         using var fixture = new DiscoveryFixture();
@@ -38,7 +38,7 @@ public class DertRunTests
         using var fixture = new DiscoveryFixture();
         var prefix = fixture.Package("node", "8.7.6");
         using var file = new ScratchDocument("""
-            STERT ; ERPDERT ;; codex
+            STERT ; update ;; codex
             // Why this tool matters to me
             // support doctoring ; conflicts ;;
             // fixme, // ask before changing anything
@@ -52,7 +52,7 @@ public class DertRunTests
         Assert.Contains("support doctoring", output);
         Assert.Contains("fixme", output);
         Assert.Contains("ask before changing anything", output);
-        Assert.Contains("ERPDERT codex", output);
+        Assert.Contains("DERT update codex", output);
         Assert.Contains("No discovery was performed", output);
         Assert.DoesNotContain("CODEX / DISCOVERY", output);
         Assert.DoesNotContain("8.7.6", output);
@@ -63,7 +63,7 @@ public class DertRunTests
     {
         using var fixture = new DiscoveryFixture();
         var prefix = fixture.Package("node", "1.0.0");
-        using var file = new ScratchDocument("// MY TOOLS\nSTERT ; ERPDERT ;; codex");
+        using var file = new ScratchDocument("// MY TOOLS\nSTERT ; update ;; codex");
         var (exit, output) = Run(file.Path, prefix);
         Assert.Equal(0, exit);
         Assert.Contains("DERT2003", output);
@@ -72,8 +72,8 @@ public class DertRunTests
     }
 
     [Theory]
-    [InlineData("// STERT ; ERPDERT ;; codex //")]
-    [InlineData("// context ; codex ;;\n// STERT ; ERPDERT ;; codex, // this is an example\n//")]
+    [InlineData("// STERT ; update ;; codex //")]
+    [InlineData("// context ; codex ;;\n// STERT ; update ;; codex, // this is an example\n//")]
     [InlineData("STERT\n// just keeping notes\nƒin.")]
     [InlineData("ordinary prose without an operation")]
     public void Notes_and_prose_are_not_promoted_into_operations(string source)
@@ -87,7 +87,7 @@ public class DertRunTests
 
     [Theory]
     [InlineData("STERT\n// keep this context even without a command\nƒin.", 0)]
-    [InlineData("STERT ; ERPDERT ;; claude\n// keep this context even without a command\nƒin.", 1)]
+    [InlineData("STERT ; update ;; claude\n// keep this context even without a command\nƒin.", 1)]
     public void Non_runnable_chains_still_show_the_authors_context(string source, int expectedExit)
     {
         using var file = new ScratchDocument(source);
@@ -101,22 +101,22 @@ public class DertRunTests
     [Fact]
     public void Document_context_between_chains_keeps_its_source_position()
     {
-        using var file = new ScratchDocument("STERT ; ERPDERT ;; codex\n// first chain context\nƒin.\n// between chains context\nSTERT ; ERPDERT ;; codex\n// second chain context");
+        using var file = new ScratchDocument("STERT ; update ;; codex\n// first chain context\nƒin.\n// between chains context\nSTERT ; update ;; codex\n// second chain context");
         var (_, output) = Run(file.Path, "", "--preview");
         Assert.True(output.IndexOf("first chain context", StringComparison.Ordinal) < output.IndexOf("between chains context", StringComparison.Ordinal));
         Assert.True(output.IndexOf("between chains context", StringComparison.Ordinal) < output.IndexOf("second chain context", StringComparison.Ordinal));
     }
 
     [Theory]
-    [InlineData("STERT ; ERPDERT ;; claude", "claude")]
-    [InlineData("STERT ; ERPDERT ;; codex --update", "codex --update")]
-    [InlineData("STERT ; ERPDERT ;; codex; whoami", "codex; whoami")]
+    [InlineData("STERT ; update ;; claude", "claude")]
+    [InlineData("STERT ; update ;; codex --update", "codex --update")]
+    [InlineData("STERT ; update ;; codex; whoami", "codex; whoami")]
     [InlineData("STERT ; SOMETHING ;; codex", "SOMETHING")]
-    [InlineData("STERT ; ERPDERT", "STERT")]
-    [InlineData("STERT ; ERPDERT ;;", "STERT")]
-    [InlineData("STERT ; ERPDERT ;; codex\ncommands ; uninstallme ;;", "uninstallme")]
-    [InlineData("STERT ; ERPDERT ;; codex\nrun this please", "run this please")]
-    [InlineData("ERPDERT ;; codex", "ERPDERT")]
+    [InlineData("STERT ; update", "STERT")]
+    [InlineData("STERT ; update ;;", "STERT")]
+    [InlineData("STERT ; update ;; codex\ncommands ; uninstallme ;;", "uninstallme")]
+    [InlineData("STERT ; update ;; codex\nrun this please", "run this please")]
+    [InlineData("DERT ;; codex", "DERT")]
     public void Unimplemented_or_incomplete_content_is_cited_instead_of_partially_run(string source, string offendingText)
     {
         using var fixture = new DiscoveryFixture();
@@ -136,7 +136,7 @@ public class DertRunTests
     {
         using var fixture = new DiscoveryFixture();
         var prefix = fixture.Package("node", "8.7.6");
-        using var file = new ScratchDocument("STERT ; ERPDERT ;; codex\nƒin.\nSTERT ; ERPDERT ;; claude");
+        using var file = new ScratchDocument("STERT ; update ;; codex\nƒin.\nSTERT ; update ;; claude");
         var (exit, output) = Run(file.Path, prefix);
         Assert.Equal(1, exit);
         Assert.Contains(file.Path + ":3", output);
@@ -149,7 +149,7 @@ public class DertRunTests
     {
         using var fixture = new DiscoveryFixture();
         var prefix = fixture.Package("node", "8.7.6");
-        using var file = new ScratchDocument("STERT ; ERPDERT ;; codex\n// first reason\nƒin.\nSTERT ; ERPDERT ;; codex\n// second reason");
+        using var file = new ScratchDocument("STERT ; update ;; codex\n// first reason\nƒin.\nSTERT ; update ;; codex\n// second reason");
         var (exit, output) = Run(file.Path, prefix);
         Assert.Equal(0, exit);
         Assert.Contains("STEP 01 / RESULT", output);
@@ -163,7 +163,7 @@ public class DertRunTests
     [Fact]
     public void Discovery_attention_is_not_misreported_as_a_failed_DERT_parse()
     {
-        using var file = new ScratchDocument("STERT ; ERPDERT ;; codex");
+        using var file = new ScratchDocument("STERT ; update ;; codex");
         var (exit, output) = Run(file.Path, "");
         Assert.Equal(1, exit);
         Assert.Contains("1 operation completed", output);
@@ -175,7 +175,7 @@ public class DertRunTests
     [Fact]
     public void Incomplete_reasoning_is_source_cited_before_any_dispatch()
     {
-        using var file = new ScratchDocument("STERT ; ERPDERT ;; codex\n// support ; conflicts ;;\n// one entry");
+        using var file = new ScratchDocument("STERT ; update ;; codex\n// support ; conflicts ;;\n// one entry");
         var (exit, output) = Run(file.Path, "");
         Assert.Equal(1, exit);
         Assert.Contains("DERT1001", output);
@@ -197,7 +197,7 @@ public class DertRunTests
     [Fact]
     public void Source_comments_cannot_send_terminal_control_sequences()
     {
-        using var file = new ScratchDocument("STERT ; ERPDERT ;; codex\n// [red]context\u001b[2J\u202E");
+        using var file = new ScratchDocument("STERT ; update ;; codex\n// [red]context\u001b[2J\u202E");
         var (_, output) = Run(file.Path, "", "--preview");
         Assert.Contains("[red]context\\u001B[2J\\u202E", output);
         Assert.DoesNotContain("\u001b", output, StringComparison.Ordinal);
@@ -210,7 +210,7 @@ public class DertRunTests
     [InlineData("--at")]
     public void File_run_does_not_accept_unrelated_repair_or_inspection_flags(string option)
     {
-        using var file = new ScratchDocument("STERT ; ERPDERT ;; codex");
+        using var file = new ScratchDocument("STERT ; update ;; codex");
         var (exit, output) = Run(file.Path, "", option);
         Assert.Equal(2, exit);
         Assert.Contains(option, output);

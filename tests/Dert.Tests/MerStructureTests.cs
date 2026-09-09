@@ -1,4 +1,4 @@
-using Erpdert.Cli;
+using Dert.Cli;
 using Spectre.Console;
 using Xunit;
 

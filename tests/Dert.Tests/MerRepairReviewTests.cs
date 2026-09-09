@@ -1,9 +1,9 @@
 using System.Text;
 using System.Reflection;
-using Erpdert.Cli;
-using Erpdert.Cli.Discovery;
-using Erpdert.Cli.Repairs;
-using Erpdert.Mer;
+using Dert.Cli;
+using Dert.Cli.Discovery;
+using Dert.Cli.Repairs;
+using Dert.Mer;
 using Spectre.Console;
 using Xunit;
 
@@ -88,7 +88,7 @@ public class MerRepairReviewTests
     [Fact]
     public void Successful_title_edit_keeps_other_errors_and_clears_old_probe_results()
     {
-        using var file = new ScratchDocument("// TITLE\n// --\nSTERT ; ERPDERT ;; codex\nfin.");
+        using var file = new ScratchDocument("// TITLE\n// --\nSTERT ; update ;; codex\nfin.");
         var result = Run(file.Path, "at 3\nprobe\nrepair title\napply\nat 3\ndetails\n\n");
         var afterSave = result.Output[result.Output.IndexOf("Saved / bytes verified", StringComparison.Ordinal)..];
         Assert.DoesNotContain("Local inspection recorded", afterSave);
@@ -171,7 +171,7 @@ public class MerRepairReviewTests
         using var file = new ScratchDocument("// plans ; weekend ;;\n// music,\n// food");
         var result = Run(file.Path, "repair\ndetails\n\n");
         var revision = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(file.Path)));
-        var commands = result.Output.Split('\n').Where(line => line.StartsWith("ERPDERT repair", StringComparison.Ordinal)).ToArray();
+        var commands = result.Output.Split('\n').Where(line => line.StartsWith("DERT repair", StringComparison.Ordinal)).ToArray();
         Assert.NotEmpty(commands);
         Assert.All(commands, command => Assert.Contains("--from-lint " + revision + " --plain", command));
     }
@@ -201,7 +201,7 @@ public class MerRepairReviewTests
         // writer to exercise a failure that cannot reliably be scheduled on disk.
         var assembly = typeof(CliApplication).Assembly;
         var flags = BindingFlags.NonPublic | BindingFlags.Static;
-        var adapter = assembly.GetType("Erpdert.Cli.Motion.NoteScore")!;
+        var adapter = assembly.GetType("Dert.Cli.Motion.NoteScore")!;
         var bytes = File.ReadAllBytes(path);
         var analysis = adapter.GetMethod("Analyze", flags)!.Invoke(null,
             [new Func<string>(() => Encoding.UTF8.GetString(bytes)), path, false, null, CancellationToken.None, DocumentSourceState.Original])!;
@@ -213,10 +213,10 @@ public class MerRepairReviewTests
         var console = AnsiConsole.Create(new AnsiConsoleSettings { Ansi = AnsiSupport.No, Interactive = InteractionSupport.No, Out = new AnsiConsoleOutput(writer) });
         console.Profile.Width = 132;
         console.Profile.Height = 32;
-        var renderer = Activator.CreateInstance(assembly.GetType("Erpdert.Cli.DocumentRenderer")!, console, true, null, true);
-        var reviewType = assembly.GetType("Erpdert.Cli.Motion.MerReview")!;
+        var renderer = Activator.CreateInstance(assembly.GetType("Dert.Cli.DocumentRenderer")!, console, true, null, true);
+        var reviewType = assembly.GetType("Dert.Cli.Motion.MerReview")!;
         var review = Activator.CreateInstance(reviewType, analysis, journal.Snapshot(TimeSpan.Zero), bytes, path, console,
-            renderer, new StringReader("repair title\napply\ndetails\n\n"), true, null, new RepairFileService(fault), null);
+            renderer, new StringReader("repair title\napply\ndetails\n\n"), true, null, new RepairFileService(fault), null, null);
         var exit = (int)reviewType.GetMethod("Run", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(review, [CancellationToken.None])!;
         return (exit, writer.ToString());
     }

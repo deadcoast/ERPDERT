@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string] $Executable = (Join-Path $PSScriptRoot '..\.artifacts\win-x64\ERPDERT.exe'))
+param([string] $Executable = (Join-Path $PSScriptRoot '..\.artifacts\win-x64\DERT.exe'))
 
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
@@ -80,7 +80,7 @@ try {
     Assert-Unchanged $note $noteHash
 
     $unsupported = Join-Path $proofPath 'unsupported width.DERT'
-    [IO.File]::WriteAllText($unsupported, '// café', $encoding)
+    [IO.File]::WriteAllText($unsupported, "// first`tsecond", $encoding)
     $unsupportedLint = Invoke-Check 'Unsupported title does not offer a dead-end repair' 0 { & $appPath lint $unsupported --plain } @('DERT2003', 'NO REPAIR OFFERED', 'width')
     if ($unsupportedLint -match '--from-lint|(?m)^& ') { throw 'Unsupported title got a repair command.' }
 

@@ -9,7 +9,7 @@ param(
 # targets only a newly created fixture prefix. Never invokes the manual update.
 $ErrorActionPreference = 'Stop'
 $projectPath = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
-if (-not $Executable) { $Executable = Join-Path $projectPath '.artifacts/win-x64/ERPDERT.exe' }
+if (-not $Executable) { $Executable = Join-Path $projectPath '.artifacts/win-x64/DERT.exe' }
 $Executable = (Resolve-Path -LiteralPath $Executable).Path
 $NodePrefix = (Resolve-Path -LiteralPath $NodePrefix).Path
 $node = Join-Path $NodePrefix 'node.exe'
@@ -52,10 +52,10 @@ $start.Environment['npm_config_globalconfig'] = $globalConfig
 $start.Environment['npm_config_cache'] = Join-Path $proof 'cache'
 $source = Join-Path $proof 'live-update.DERT'
 if ($Mer) {
-    [IO.File]::WriteAllText($source, "STERT ; ERPDERT ;; codex`n// why ; codex ;; Check the exact copy. //`ncommands ; updateme ;;`nfin.")
+    [IO.File]::WriteAllText($source, "STERT ; update ;; codex`n// why ; codex ;; Check the exact copy. //`ncommands ; updateme ;;`nfin.")
     foreach ($argument in @('mer', $source, '--review', '--plain')) { $start.ArgumentList.Add($argument) }
 }
-else { foreach ($argument in @('codex', 'updateme', '--plain')) { $start.ArgumentList.Add($argument) } }
+else { foreach ($argument in @('update', 'codex', 'updateme', '--plain')) { $start.ArgumentList.Add($argument) } }
 $process = [Diagnostics.Process]::Start($start)
 try {
     $stdout = $process.StandardOutput.ReadToEndAsync()

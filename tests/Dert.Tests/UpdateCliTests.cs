@@ -1,6 +1,6 @@
-using Erpdert.Cli;
-using Erpdert.Cli.Discovery;
-using Erpdert.Cli.Operations;
+using Dert.Cli;
+using Dert.Cli.Discovery;
+using Dert.Cli.Operations;
 using Spectre.Console;
 using Xunit;
 
@@ -13,7 +13,7 @@ public class UpdateCliTests
     {
         var (exit, output) = Invoke(["-help", "--plain"], "");
         Assert.Equal(0, exit);
-        Assert.Contains("ERPDERT codex updateme", output);
+        Assert.Contains("DERT update codex updateme", output);
         Assert.Contains("commands ; updateme ;;", output);
         Assert.Contains("rehearsal", output);
         Assert.DoesNotContain("package operations are not implemented", output);
@@ -61,10 +61,10 @@ public class UpdateCliTests
     [InlineData("commands;updateme;; // keep this annotation")]
     public void Dert_update_preview_binds_the_statement_without_querying_managers(string statement)
     {
-        using var file = new ScratchDocument("STERT ; ERPDERT ;; codex\n// why ; codex ;; Keep this copy current. //\n" + statement + "\nƒin.");
+        using var file = new ScratchDocument("STERT ; update ;; codex\n// why ; codex ;; Keep this copy current. //\n" + statement + "\nƒin.");
         var (exit, output) = Invoke(["run", file.Path, "--preview", "--plain"], "");
         Assert.Equal(0, exit);
-        Assert.Contains("ERPDERT codex updateme", output);
+        Assert.Contains("DERT update codex updateme", output);
         Assert.Contains("Keep this copy current", output);
         Assert.Contains("update rehearsal", output);
         Assert.DoesNotContain("ERP6004", output);
@@ -77,7 +77,7 @@ public class UpdateCliTests
     [InlineData("commands ; updateme ;;\ncommands ; updateme ;;")]
     public void Unhandled_update_arguments_are_cited_and_never_dropped(string statement)
     {
-        using var file = new ScratchDocument("STERT ; ERPDERT ;; codex\n" + statement);
+        using var file = new ScratchDocument("STERT ; update ;; codex\n" + statement);
         var (exit, output) = Invoke(["run", file.Path, "--preview", "--plain"], "");
         Assert.Equal(1, exit);
         Assert.Contains("ERP600", output);
@@ -87,10 +87,10 @@ public class UpdateCliTests
     [Fact]
     public void A_note_describing_updateme_does_not_request_it()
     {
-        using var file = new ScratchDocument("STERT ; ERPDERT ;; codex\n// commands ; updateme ;; later //");
+        using var file = new ScratchDocument("STERT ; update ;; codex\n// commands ; updateme ;; later //");
         var (exit, output) = Invoke(["run", file.Path, "--preview", "--plain"], "");
         Assert.Equal(0, exit);
-        Assert.DoesNotContain("STEP 01 / ERPDERT codex updateme", output);
+        Assert.DoesNotContain("STEP 01 / DERT update codex updateme", output);
     }
 
     [Fact]
@@ -104,14 +104,14 @@ public class UpdateCliTests
         Assert.DoesNotContain(" install ", output);
     }
 
-    private static (int Exit, string Output) Run(string[] extra, string path) => Invoke(["codex", "updateme", "--plain", .. extra], path);
+    private static (int Exit, string Output) Run(string[] extra, string path) => Invoke(["update", "codex", "updateme", "--plain", .. extra], path);
 
     internal static (int Exit, string Output) Invoke(string[] args, string path, ICommandRunner? runner = null, int width = 200)
     {
         using var writer = new StringWriter();
         var console = AnsiConsole.Create(new AnsiConsoleSettings { Ansi = AnsiSupport.No, ColorSystem = ColorSystemSupport.NoColors, Out = new AnsiConsoleOutput(writer) });
         console.Profile.Width = width;
-        var exit = CliApplication.Run(args, console, invocation: ["ERPDERT.exe"], discoveryEnvironment: new(path, ".EXE;.CMD"), commandRunner: runner);
+        var exit = CliApplication.Run(args, console, invocation: ["DERT.exe"], discoveryEnvironment: new(path, ".EXE;.CMD"), commandRunner: runner);
         return (exit, writer.ToString());
     }
 }

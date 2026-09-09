@@ -1,2 +1,2 @@
 @echo off
-start "" "%~dp0notes\ERPDERT.Notes.exe"
+start "" "%~dp0notes\DERT.Notes.exe"

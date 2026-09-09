@@ -1,5 +1,5 @@
-using Erpdert.Cli;
-using Erpdert.Mer;
+using Dert.Cli;
+using Dert.Mer;
 using Spectre.Console;
 using Xunit;
 

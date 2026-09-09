@@ -1,4 +1,4 @@
-using Erpdert.Cli.Authoring;
+using Dert.Cli.Authoring;
 using Xunit;
 
 namespace Dert.Tests;
@@ -8,10 +8,10 @@ public class AuthoringLaunchTests
     [Fact]
     public void Launch_uses_the_packaged_host_and_literal_absolute_arguments()
     {
-        var folder = Path.Combine(Path.GetTempPath(), "ERPDERT with spaces");
+        var folder = Path.Combine(Path.GetTempPath(), "DERT with spaces");
         var source = "my [notes] ' & $(not a command).DERT";
         var start = AuthoringCommand.LaunchInfo([source, "--still"], folder);
-        Assert.Equal(Path.Combine(folder, "notes", "ERPDERT.Notes.exe"), start.FileName);
+        Assert.Equal(Path.Combine(folder, "notes", "DERT.Notes.exe"), start.FileName);
         Assert.False(start.UseShellExecute);
         Assert.Equal(new[] { Path.GetFullPath(source), "--still" }, start.ArgumentList);
         Assert.Empty(start.Arguments);

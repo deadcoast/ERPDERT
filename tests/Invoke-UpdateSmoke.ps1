@@ -3,7 +3,7 @@ param([string] $Executable)
 
 $ErrorActionPreference = 'Stop'
 $projectPath = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
-if (-not $Executable) { $Executable = Join-Path $projectPath '.artifacts/win-x64/ERPDERT.exe' }
+if (-not $Executable) { $Executable = Join-Path $projectPath '.artifacts/win-x64/DERT.exe' }
 $Executable = (Resolve-Path -LiteralPath $Executable).Path
 $shellPath = (Get-Process -Id $PID).Path
 $proofPath = Join-Path $projectPath ('.artifacts\update-proof\' + [Guid]::NewGuid().ToString('N'))
@@ -74,10 +74,10 @@ try {
     $record.Add($buildOutput)
     New-Package $prefix
     $example = Join-Path (Split-Path -Parent $Executable) 'examples/update-my-tools.DERT'
-    Assert-Result 'Shipped update example previews without structural findings' (Invoke-Child $Executable @('run', $example, '--preview', '--plain')) 0 @('ERPDERT codex updateme', 'support doctoring') @('DERT2003', 'DERT1001', 'CHECK / npm')
+    Assert-Result 'Shipped update example previews without structural findings' (Invoke-Child $Executable @('run', $example, '--preview', '--plain')) 0 @('DERT update codex updateme', 'support doctoring') @('DERT2003', 'DERT1001', 'CHECK / npm')
     $metadata = Join-Path $prefix 'node_modules/@openai/codex/package.json'
     $originalHash = (Get-FileHash -LiteralPath $metadata).Hash
-    $result = Invoke-Child $Executable @('codex', 'updateme', '--plain')
+    $result = Invoke-Child $Executable @('update', 'codex', 'updateme', '--plain')
     Assert-Result 'Newer release completes the real child-process rehearsal' $result 0 @('REHEARSED / NOT APPLIED', '1.0.0', '2.0.0', '@openai/codex@2.0.0')
     $manual = @($result.Output -split '\r?\n' | Where-Object { $_.StartsWith('& ') -and $_.Contains("'install'") })
     if ($manual.Count -ne 1) { throw 'Expected one intact manual update command.' }
@@ -87,24 +87,24 @@ try {
     if ($lastCall -notcontains $prefix -or $lastCall -notcontains '@openai/codex@2.0.0' -or $lastCall -contains '--dry-run') { throw 'Copied manual arguments were corrupted.' }
 
     Set-Scenario '1.0.0'
-    Assert-Result 'Already-current copy needs no install rehearsal' (Invoke-Child $Executable @('codex', 'updateme', '--plain')) 0 @('ALREADY CURRENT') @('MANUAL UPDATE / CHANGES PACKAGES')
+    Assert-Result 'Already-current copy needs no install rehearsal' (Invoke-Child $Executable @('update', 'codex', 'updateme', '--plain')) 0 @('ALREADY CURRENT') @('MANUAL UPDATE / CHANGES PACKAGES')
     Set-Scenario '0.9.0'
-    Assert-Result 'Newer installed version is not downgraded' (Invoke-Child $Executable @('codex', 'updateme', '--plain')) 1 @('NEWER THAN LATEST') @('MANUAL UPDATE / CHANGES PACKAGES')
+    Assert-Result 'Newer installed version is not downgraded' (Invoke-Child $Executable @('update', 'codex', 'updateme', '--plain')) 1 @('NEWER THAN LATEST') @('MANUAL UPDATE / CHANGES PACKAGES')
     Set-Scenario '2.0.0' 'wrong-root'
-    Assert-Result 'Wrong npm target folder is explained' (Invoke-Child $Executable @('codex', 'updateme', '--plain')) 1 @('ERP5204') @('MANUAL UPDATE / CHANGES PACKAGES')
+    Assert-Result 'Wrong npm target folder is explained' (Invoke-Child $Executable @('update', 'codex', 'updateme', '--plain')) 1 @('ERP5204') @('MANUAL UPDATE / CHANGES PACKAGES')
     Set-Scenario '2.0.0' 'view'
-    Assert-Result 'Registry failure is not a current-version claim' (Invoke-Child $Executable @('codex', 'updateme', '--plain')) 1 @('ERP5203', 'fixture npm failure') @('ALREADY CURRENT', 'MANUAL UPDATE / CHANGES PACKAGES')
+    Assert-Result 'Registry failure is not a current-version claim' (Invoke-Child $Executable @('update', 'codex', 'updateme', '--plain')) 1 @('ERP5203', 'fixture npm failure') @('ALREADY CURRENT', 'MANUAL UPDATE / CHANGES PACKAGES')
     Set-Scenario '2.0.0' 'install'
-    Assert-Result 'Failed npm dry run never offers an update' (Invoke-Child $Executable @('codex', 'updateme', '--plain')) 1 @('ERP5203') @('REHEARSED / NOT APPLIED', 'MANUAL UPDATE / CHANGES PACKAGES')
+    Assert-Result 'Failed npm dry run never offers an update' (Invoke-Child $Executable @('update', 'codex', 'updateme', '--plain')) 1 @('ERP5203') @('REHEARSED / NOT APPLIED', 'MANUAL UPDATE / CHANGES PACKAGES')
     Set-Scenario '2.0.0-beta.1'
-    Assert-Result 'Unimplemented release-channel comparison stays explicit' (Invoke-Child $Executable @('codex', 'updateme', '--plain')) 1 @('ERP5205') @('MANUAL UPDATE / CHANGES PACKAGES')
+    Assert-Result 'Unimplemented release-channel comparison stays explicit' (Invoke-Child $Executable @('update', 'codex', 'updateme', '--plain')) 1 @('ERP5205') @('MANUAL UPDATE / CHANGES PACKAGES')
     Set-Scenario '2.0.0'
 
     $second = Join-Path $proofPath 'another copy'
     New-Package $second
     $script:searchPath = $prefix + ';' + $second
     $beforeChoice = (Get-FileHash -LiteralPath (Join-Path $prefix 'calls.jsonl')).Hash
-    $choices = Invoke-Child $Executable @('codex', 'updateme', '--plain')
+    $choices = Invoke-Child $Executable @('update', 'codex', 'updateme', '--plain')
     Assert-Result 'Competing copies ask for a target before querying' $choices 1 @('CHOOSE THE COPY', '--path') @('MANUAL UPDATE / CHANGES PACKAGES')
     if ($beforeChoice -ne (Get-FileHash -LiteralPath (Join-Path $prefix 'calls.jsonl')).Hash) { throw 'Choosing a copy unexpectedly ran npm.' }
     $choice = @($choices.Output -split '\r?\n' | Where-Object { $_.StartsWith('& ') -and $_.Contains(' --path ') })[0]
@@ -112,14 +112,14 @@ try {
     $script:searchPath = $prefix
 
     $source = Join-Path $proofPath 'my updates.DERT'
-    Write-Fixture $source "STERT ; ERPDERT ;; codex`n// keep this explanation`ncommands ; updateme ;;`nƒin."
+    Write-Fixture $source "STERT ; update ;; codex`n// keep this explanation`ncommands ; updateme ;;`nƒin."
     $sourceHash = (Get-FileHash -LiteralPath $source).Hash
     Assert-Result 'DERT reaches the same rehearsal with its requesting line' (Invoke-Child $Executable @('run', $source, '--plain')) 0 @('REHEARSED / NOT APPLIED', 'keep this explanation', "FROM ${source}:3")
     $beforePreview = (Get-FileHash -LiteralPath (Join-Path $prefix 'calls.jsonl')).Hash
-    Assert-Result 'DERT preview interprets update intent without external queries' (Invoke-Child $Executable @('run', $source, '--preview', '--plain')) 0 @('ERPDERT codex updateme') @('CHECK / npm', 'MANUAL UPDATE / CHANGES PACKAGES')
+    Assert-Result 'DERT preview interprets update intent without external queries' (Invoke-Child $Executable @('run', $source, '--preview', '--plain')) 0 @('DERT update codex updateme') @('CHECK / npm', 'MANUAL UPDATE / CHANGES PACKAGES')
     if ($beforePreview -ne (Get-FileHash -LiteralPath (Join-Path $prefix 'calls.jsonl')).Hash) { throw 'Source preview unexpectedly ran npm.' }
     $unsupported = Join-Path $proofPath 'unsupported.DERT'
-    Write-Fixture $unsupported "STERT ; ERPDERT ;; codex`ncommands ; updateme ;;`nƒin.`nSTERT ; ERPDERT ;; unknown"
+    Write-Fixture $unsupported "STERT ; update ;; codex`ncommands ; updateme ;;`nƒin.`nSTERT ; update ;; unknown"
     Assert-Result 'Unsupported later chain prevents even the earlier npm query' (Invoke-Child $Executable @('run', $unsupported, '--plain')) 1 @('No operations ran') @('CHECK / npm')
     if ($beforePreview -ne (Get-FileHash -LiteralPath (Join-Path $prefix 'calls.jsonl')).Hash) { throw 'Blocked document unexpectedly ran npm.' }
     Assert-Result 'MER discovers update copies without querying npm' (Invoke-Child $Executable @('mer', $source, '--review', '--plain') "at 3`nrehearse`n`n") 0 @('Copy 1 of 1', 'check queries npm and the registry') @('MANUAL UPDATE / CHANGES PACKAGES')

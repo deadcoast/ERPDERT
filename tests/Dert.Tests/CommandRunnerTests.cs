@@ -1,4 +1,4 @@
-using Erpdert.Cli.Operations;
+using Dert.Cli.Operations;
 using Xunit;
 
 namespace Dert.Tests;

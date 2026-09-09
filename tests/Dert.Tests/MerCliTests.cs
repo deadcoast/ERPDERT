@@ -1,4 +1,4 @@
-using Erpdert.Cli;
+using Dert.Cli;
 using Spectre.Console;
 using Xunit;
 
@@ -19,7 +19,7 @@ public class MerCliTests
             Interactive = InteractionSupport.No,
             Out = new AnsiConsoleOutput(writer)
         });
-        var exit = CliApplication.Run(["codex", "updateme", "--plain"], console,
+        var exit = CliApplication.Run(["update", "codex", "updateme", "--plain"], console,
             discoveryEnvironment: new(fixture.Prefix, ".EXE;.CMD"), commandRunner: fixture);
         Assert.Equal(2, exit);
         Assert.Empty(fixture.Calls);
@@ -56,10 +56,10 @@ public class MerCliTests
     [Fact]
     public void Copied_DERT_preview_commands_keep_reduced_motion()
     {
-        using var file = new ScratchDocument("STERT ; ERPDERT ;; codex\ncommands ; updateme ;;\nƒin.");
+        using var file = new ScratchDocument("STERT ; update ;; codex\ncommands ; updateme ;;\nƒin.");
         var (exit, output) = Invoke(["run", file.Path, "--preview", "--still", "--plain"]);
         Assert.Equal(0, exit);
-        var command = Assert.Single(output.Split('\n'), line => line.StartsWith("ERPDERT run ", StringComparison.Ordinal));
+        var command = Assert.Single(output.Split('\n'), line => line.StartsWith("DERT run ", StringComparison.Ordinal));
         Assert.Contains("--still", command);
     }
     [Fact]
@@ -102,7 +102,7 @@ public class MerCliTests
     public void Reduced_motion_is_available_on_the_real_update_workflow()
     {
         using var fixture = new UpdateFixture();
-        var (exit, output) = UpdateCliTests.Invoke(["codex", "updateme", "--still", "--plain"], fixture.Prefix, fixture);
+        var (exit, output) = UpdateCliTests.Invoke(["update", "codex", "updateme", "--still", "--plain"], fixture.Prefix, fixture);
         Assert.Equal(0, exit);
         Assert.Contains("REHEARSED / NOT APPLIED", output);
         Assert.DoesNotContain('\u001b', output);
@@ -123,7 +123,7 @@ public class MerCliTests
             Interactive = InteractionSupport.Yes,
             Out = new AnsiConsoleOutput(writer)
         });
-        var exit = CliApplication.Run(["codex", "updateme", "--still"], console,
+        var exit = CliApplication.Run(["update", "codex", "updateme", "--still"], console,
             discoveryEnvironment: new(fixture.Prefix, ".EXE;.CMD"), commandRunner: fixture);
         var output = System.Text.RegularExpressions.Regex.Replace(writer.ToString(), "\u001b\\[[0-9;]*m", "");
         Assert.Equal(expectedExit, exit);
@@ -132,7 +132,7 @@ public class MerCliTests
         Assert.DoesNotContain("✓ TARGET FOLDER", output);
         // Event-driven still frames may show this evidence before the receipt.
         // The final retained receipt must contain it exactly once.
-        var receiptAt = output.LastIndexOf("ERPDERT / mer", StringComparison.Ordinal);
+        var receiptAt = output.LastIndexOf("DERT / mer", StringComparison.Ordinal);
         Assert.True(receiptAt >= 0);
         Assert.Equal(1, output[receiptAt..].Split("npm sees @openai/codex", StringSplitOptions.None).Length - 1);
         if (fault == "invalid-json") Assert.DoesNotContain("Read the registry / checked", output);

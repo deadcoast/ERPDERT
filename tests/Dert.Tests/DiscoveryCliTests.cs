@@ -1,5 +1,5 @@
-using Erpdert.Cli;
-using Erpdert.Cli.Discovery;
+using Dert.Cli;
+using Dert.Cli.Discovery;
 using Spectre.Console;
 using Xunit;
 
@@ -11,7 +11,7 @@ public class DiscoveryCliTests
     public void Codex_is_an_operation_not_a_document_path()
     {
         using var fixture = new DiscoveryFixture();
-        var (exit, output) = RunIn(fixture, [], "codex", "--plain");
+        var (exit, output) = RunIn(fixture, [], "update", "codex", "--plain");
         Assert.Contains("CODEX / DISCOVERY", output);
         Assert.InRange(exit, 0, 1);
         Assert.Contains("Nothing was executed, installed, updated, or changed.", output);
@@ -22,7 +22,7 @@ public class DiscoveryCliTests
     {
         using var fixture = new DiscoveryFixture();
         var prefix = fixture.Package("node tools [red]", "9.8.7");
-        var (exit, output) = RunIn(fixture, [prefix], "codex", "--plain");
+        var (exit, output) = RunIn(fixture, [prefix], "update", "codex", "--plain");
         Assert.Equal(0, exit);
         Assert.Contains("One installation group", output);
         Assert.Contains("9.8.7", output);
@@ -40,7 +40,7 @@ public class DiscoveryCliTests
         using var fixture = new DiscoveryFixture();
         var first = fixture.Write("manual/codex.exe", "unidentified");
         var prefix = fixture.Package("node", "1.2.3");
-        var (exit, output) = RunIn(fixture, [Path.GetDirectoryName(first)!, prefix], "codex", "--plain");
+        var (exit, output) = RunIn(fixture, [Path.GetDirectoryName(first)!, prefix], "update", "codex", "--plain");
         Assert.Equal(1, exit);
         Assert.Contains("2 installation groups", output);
         Assert.True(output.IndexOf(first, StringComparison.Ordinal) < output.IndexOf(prefix, StringComparison.Ordinal));
@@ -53,7 +53,7 @@ public class DiscoveryCliTests
     {
         using var fixture = new DiscoveryFixture();
         var prefix = fixture.Package("node", "1.0.0\\u001b[2J[red]\\u202E");
-        var (_, output) = RunIn(fixture, [prefix], "codex", "--plain");
+        var (_, output) = RunIn(fixture, [prefix], "update", "codex", "--plain");
         Assert.DoesNotContain("\u001b", output, StringComparison.Ordinal);
         Assert.DoesNotContain("\u202E", output, StringComparison.Ordinal);
         Assert.Contains("\\u001B[2J[red]\\u202E", output);
@@ -63,7 +63,7 @@ public class DiscoveryCliTests
     public void Empty_search_does_not_claim_uninstalled_or_trigger_an_install_prompt()
     {
         using var fixture = new DiscoveryFixture();
-        var (exit, output) = RunIn(fixture, [], "codex", "--plain");
+        var (exit, output) = RunIn(fixture, [], "update", "codex", "--plain");
         Assert.Equal(1, exit);
         Assert.Contains("does not prove Codex is uninstalled", output);
         Assert.Contains("0 command matches", output);
@@ -76,7 +76,7 @@ public class DiscoveryCliTests
         using var fixture = new DiscoveryFixture();
         var prefix = fixture.Package("node", "1.0.0");
         File.WriteAllText(Path.Combine(prefix, "node_modules", "@openai", "codex", "package.json"), "null");
-        var (exit, output) = RunIn(fixture, [prefix], "codex", "--plain");
+        var (exit, output) = RunIn(fixture, [prefix], "update", "codex", "--plain");
         Assert.Equal(1, exit);
         Assert.Contains("ERP5104", output);
         Assert.Contains("package.json", output);
@@ -88,7 +88,7 @@ public class DiscoveryCliTests
     {
         using var fixture = new DiscoveryFixture();
         var prefix = fixture.Package("long folder with spaces [literal]", "1.2.3");
-        var (_, output) = RunWith(new(prefix, ".EXE;.CMD"), ["codex", "--plain"], width: 40);
+        var (_, output) = RunWith(new(prefix, ".EXE;.CMD"), ["update", "codex", "--plain"], width: 40);
         var lines = output.Split('\n').Select(line => line.TrimEnd('\r')).ToArray();
         Assert.Contains(Path.Combine(prefix, "codex.ps1"), lines);
         Assert.Contains(lines, line => line.Contains(Path.Combine(prefix, "node.exe"), StringComparison.Ordinal));
@@ -102,7 +102,7 @@ public class DiscoveryCliTests
     public void Help_exposes_the_operational_entry_point_without_a_document()
     {
         var (_, output) = Run("-help");
-        Assert.Contains("ERPDERT codex", output);
+        Assert.Contains("DERT update codex", output);
     }
 
     [Theory]
@@ -111,7 +111,7 @@ public class DiscoveryCliTests
     [InlineData("notes.DERT")]
     public void Discovery_rejects_unimplemented_operations_and_document_options(string option)
     {
-        var (exit, output) = Run("codex", option);
+        var (exit, output) = Run("update", "codex", option);
         Assert.Equal(2, exit);
         Assert.Contains("read-only", output);
         Assert.Contains(option, output);

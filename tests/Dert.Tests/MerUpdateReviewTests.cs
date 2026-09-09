@@ -1,7 +1,7 @@
-using Erpdert.Cli;
-using Erpdert.Cli.Discovery;
-using Erpdert.Cli.Operations;
-using Erpdert.Mer;
+using Dert.Cli;
+using Dert.Cli.Discovery;
+using Dert.Cli.Operations;
+using Dert.Mer;
 using System.Reflection;
 using System.Text;
 using Spectre.Console;
@@ -11,7 +11,7 @@ namespace Dert.Tests;
 
 public class MerUpdateReviewTests
 {
-    private const string Source = "STERT ; ERPDERT ;; codex\n// why ; codex ;; Keep the right copy. //\ncommands ; updateme ;;\nfin.";
+    private const string Source = "STERT ; update ;; codex\n// why ; codex ;; Keep the right copy. //\ncommands ; updateme ;;\nfin.";
 
     [Fact]
     public void Selecting_and_comparing_a_copy_does_not_start_npm()
@@ -75,8 +75,8 @@ public class MerUpdateReviewTests
 
     [Theory]
     [InlineData("// commands ; updateme ;; This stays a note. //")]
-    [InlineData("STERT ; ERPDERT ;; codex\ncommands ; unknown ;;\nfin.")]
-    [InlineData("STERT ; ERPDERT ;; codex\ncommands ; updateme ;;\n// unfinished ; note ;;")]
+    [InlineData("STERT ; update ;; codex\ncommands ; unknown ;;\nfin.")]
+    [InlineData("STERT ; update ;; codex\ncommands ; updateme ;;\n// unfinished ; note ;;")]
     public void Notes_and_ineligible_source_do_not_start_rehearsals(string source)
     {
         using var fixture = new UpdateFixture();
@@ -250,7 +250,7 @@ public class MerUpdateReviewTests
         internal ReviewHarness(string path, UpdateFixture fixture, ICommandRunner runner)
         {
             var assembly = typeof(CliApplication).Assembly;
-            var adapter = assembly.GetType("Erpdert.Cli.Motion.NoteScore")!;
+            var adapter = assembly.GetType("Dert.Cli.Motion.NoteScore")!;
             var bytes = File.ReadAllBytes(path);
             var analysis = adapter.GetMethod("Analyze", BindingFlags.Static | BindingFlags.NonPublic)!.Invoke(null,
                 [new Func<string>(() => Encoding.UTF8.GetString(bytes)), path, false, null, CancellationToken.None, DocumentSourceState.Original])!;
@@ -259,10 +259,10 @@ public class MerUpdateReviewTests
             foreach (var change in (IReadOnlyList<MotionEvent>)adapter.GetProperty("Events")!.GetValue(analysis)!) journal.Apply(change, TimeSpan.Zero);
             var console = AnsiConsole.Create(new AnsiConsoleSettings { Ansi = AnsiSupport.No, Interactive = InteractionSupport.No, Out = new AnsiConsoleOutput(output) });
             console.Profile.Width = 132; console.Profile.Height = 40;
-            var renderer = Activator.CreateInstance(assembly.GetType("Erpdert.Cli.DocumentRenderer")!, console, true, null, true);
-            type = assembly.GetType("Erpdert.Cli.Motion.MerReview")!;
+            var renderer = Activator.CreateInstance(assembly.GetType("Dert.Cli.DocumentRenderer")!, console, true, null, true);
+            type = assembly.GetType("Dert.Cli.Motion.MerReview")!;
             review = Activator.CreateInstance(type, analysis, journal.Snapshot(TimeSpan.Zero), bytes, path, console, renderer,
-                new StringReader(""), true, new DiscoveryEnvironment(fixture.Prefix, ".CMD;.EXE"), null, runner)!;
+                new StringReader(""), true, new DiscoveryEnvironment(fixture.Prefix, ".CMD;.EXE"), null, runner, null)!;
             type.GetField("selected", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(review, 3);
         }
         internal void Command(string command, CancellationToken cancellation = default) =>

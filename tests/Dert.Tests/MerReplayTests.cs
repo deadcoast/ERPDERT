@@ -1,4 +1,4 @@
-using Erpdert.Mer;
+using Dert.Mer;
 using Xunit;
 
 namespace Dert.Tests;
@@ -14,8 +14,8 @@ public class MerReplayTests
         var replay = new ReplaySequence(score, events);
         replay.Seek(2, TimeSpan.FromSeconds(10));
         var before = replay.Receipt().Select(line => line.Text).ToArray();
-        var assembly = typeof(Erpdert.Cli.CliApplication).Assembly;
-        var analysis = Activator.CreateInstance(assembly.GetType("Erpdert.Cli.Motion.NoteScore")!, score, events, 0);
+        var assembly = typeof(Dert.Cli.CliApplication).Assembly;
+        var analysis = Activator.CreateInstance(assembly.GetType("Dert.Cli.Motion.NoteScore")!, score, events, 0);
         var writer = new StringWriter();
         var console = Spectre.Console.AnsiConsole.Create(new Spectre.Console.AnsiConsoleSettings
         {
@@ -23,7 +23,7 @@ public class MerReplayTests
             Interactive = Spectre.Console.InteractionSupport.No,
             Out = new Spectre.Console.AnsiConsoleOutput(writer)
         });
-        var play = assembly.GetType("Erpdert.Cli.Motion.ReplayPlayer")!.GetMethod("Play", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+        var play = assembly.GetType("Dert.Cli.Motion.ReplayPlayer")!.GetMethod("Play", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
         Assert.True(Assert.IsType<bool>(play.Invoke(null, [analysis, console, true, true, CancellationToken.None,
             (Func<string?>)(() => ""), null, true, replay, 3, null])));
         Assert.Equal(before, replay.Receipt().Select(line => line.Text));

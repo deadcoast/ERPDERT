@@ -3,7 +3,7 @@ param([string] $Executable)
 
 $ErrorActionPreference = 'Stop'
 $projectPath = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
-if (-not $Executable) { $Executable = Join-Path $projectPath '.artifacts/win-x64/ERPDERT.exe' }
+if (-not $Executable) { $Executable = Join-Path $projectPath '.artifacts/win-x64/DERT.exe' }
 $Executable = (Resolve-Path -LiteralPath $Executable).Path
 $proofPath = Join-Path $projectPath ('.artifacts/mer-proof/' + [Guid]::NewGuid().ToString('N'))
 [void] [IO.Directory]::CreateDirectory($proofPath)
@@ -132,17 +132,23 @@ try {
     $bad = Join-Path $proofPath 'invalid-utf8.DERT'
     [IO.File]::WriteAllBytes($bad, [byte[]] @(255, 254, 255))
     Assert-Mer 'Invalid encoding does not become a clean result' (Invoke-Mer @('mer', $bad, '--plain')) 2 @('Could not finish', 'UTF-8')
-    Assert-Mer 'Unrecognized options remain explained' (Invoke-Mer @('mer', '--whatever', '--plain')) 2 @('Use ERPDERT mer', 'Reading never edits', 'explicit apply')
-    Assert-Mer 'New engine is discoverable in executable help' (Invoke-Mer @('-help', '--plain')) 0 @('ERPDERT mer', '--still')
+    Assert-Mer 'Unrecognized options remain explained' (Invoke-Mer @('mer', '--whatever', '--plain')) 2 @('Use DERT mer', 'Reading never edits', 'explicit apply')
+    Assert-Mer 'New engine is discoverable in executable help' (Invoke-Mer @('-help', '--plain')) 0 @('DERT mer', '--still')
     Assert-Mer 'Offline demo runs all cases without setup or input' (Invoke-Mer @('demo', '--all', '--plain')) 0 @('Title alignment', 'Context that belongs together', 'Unfinished is not broken', 'Words beyond ASCII', 'When a check cannot finish', 'not reviewed', 'No files')
     Assert-Mer 'Selectable title case rehearses the actual rule' (Invoke-Mer @('demo', '--case', 'title', '--plain')) 0 @('+ // --------------', 'Look for', 'not applied')
     Assert-Mer 'Selectable context case shows actual entry ownership' (Invoke-Mer @('demo', '--case', 'context', '--plain')) 0 @('belongs to line 4', 'Last train at 23:40')
     Assert-Mer 'Selectable unfinished case keeps its real finding' (Invoke-Mer @('demo', '--case', 'unfinished', '--plain')) 0 @('missing', 'ATTENTION')
     Assert-Mer 'Selectable Unicode case preserves the original words' (Invoke-Mer @('demo', '--case', 'unicode', '--plain')) 0 @('café', '日本語', '👩‍💻')
+    $unicodeTitlePath = Join-Path $proofPath 'unicode title.DERT'
+    [IO.File]::WriteAllText($unicodeTitlePath, "// café 日本語 👩‍💻`r`n// --`n// Keep my words.", [Text.UTF8Encoding]::new($true))
+    $unicodeTitleHash = (Get-FileHash -LiteralPath $unicodeTitlePath).Hash
+    Assert-Mer 'Unicode title uses the shared width in MER' (Invoke-Mer @('mer', $unicodeTitlePath, '--plain')) 0 @('café 日本語 👩‍💻', '12 marks', 'short')
+    Assert-Mer 'Unicode title exact repair keeps joined emoji visible' (Invoke-Mer @('repair', $unicodeTitlePath, '--plain')) 0 @('café 日本語 👩‍💻', '// --------------', '14 title columns', 'PREVIEW ONLY')
+    if ((Get-FileHash -LiteralPath $unicodeTitlePath).Hash -ne $unicodeTitleHash) { throw 'Unicode title review wrote source bytes.' }
     Assert-Mer 'Intentional decoding failure is a failed check not a failed demo' (Invoke-Mer @('demo', '--case', 'failure', '--plain')) 0 @('Read the source / failed', 'FAILED', 'not run')
     Assert-Mer 'Step backward and record a real personal judgment' (Invoke-Mer @('demo', '--review', '--step', '--plain') "`n`nback`nnext`nchange Too much text`nq`n") 0 @('Paused replay', 'title / needs work', 'Too much text', 'context / not reviewed')
     Assert-Mer 'End of input leaves unseen cases unreviewed' (Invoke-Mer @('demo', '--review', '--plain')) 0 @('title / not reviewed / not shown', 'Nothing saved or uploaded')
-    Assert-Mer 'Contradictory demo options show the usable choices' (Invoke-Mer @('demo', '--all', '--case', 'title', '--plain')) 2 @('ERPDERT demo', '--case')
+    Assert-Mer 'Contradictory demo options show the usable choices' (Invoke-Mer @('demo', '--all', '--case', 'title', '--plain')) 2 @('DERT demo', '--case')
     $heldTitle = Invoke-Mer @('demo', '--case', 'title', '--review', '--plain') "`nq`n"
     Assert-Mer 'Title review holds its actual measured preview' $heldTitle 0 @('Measured against your title', '+ // --------------', 'Preview only / not applied')
     if ($heldTitle.Output.Contains('Read the source / checked')) { throw 'The held title was buried beneath the full audit.' }

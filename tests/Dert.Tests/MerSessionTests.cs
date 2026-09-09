@@ -1,4 +1,4 @@
-using Erpdert.Mer;
+using Dert.Mer;
 using Xunit;
 
 namespace Dert.Tests;
@@ -31,7 +31,7 @@ public class MerSessionTests
             session.Publish(new FinishMotion(MotionOutcome.Complete, "Source unchanged."));
         }
         Assert.Contains("42 bytes", output.ToString());
-        Assert.Equal(1, output.ToString().Split("ERPDERT").Length - 1);
+        Assert.Equal(1, output.ToString().Split("DERT").Length - 1);
         Assert.DoesNotContain('\u001b', output.ToString());
     }
 

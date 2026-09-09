@@ -1,5 +1,5 @@
-using Erpdert.Cli;
-using Erpdert.Cli.Discovery;
+using Dert.Cli;
+using Dert.Cli.Discovery;
 using Spectre.Console;
 using Xunit;
 
@@ -10,7 +10,7 @@ public class MerLocalInspectionTests
     [Fact]
     public void Navigation_names_real_destinations_and_keeps_inline_context_readable()
     {
-        using var file = new ScratchDocument("// TOOLS\n// --\nSTERT ; ERPDERT ;; codex\n// why ; codex ;; Find my own copy. //\nfin.");
+        using var file = new ScratchDocument("// TOOLS\n// --\nSTERT ; update ;; codex\n// why ; codex ;; Find my own copy. //\nfin.");
         var result = Run(file.Path, "next\nnext\nnext\nprev\n\n");
         Assert.Equal(0, result.Exit);
         Assert.Contains("next: line 3", result.Output);
@@ -29,7 +29,7 @@ public class MerLocalInspectionTests
     {
         using var fixture = new DiscoveryFixture();
         var prefix = fixture.Package("Ryan's [tools]", "1.2.3");
-        using var file = new ScratchDocument("STERT ; ERPDERT ;; codex\n// why ; codex ;; Keep the right copy. //\nfin.");
+        using var file = new ScratchDocument("STERT ; update ;; codex\n// why ; codex ;; Keep the right copy. //\nfin.");
         var original = File.ReadAllBytes(file.Path);
         var result = Run(file.Path, "at 1\nprobe\ndetails\n\n", new(prefix, ".CMD;.EXE"), replay);
         Assert.Equal(0, result.Exit);
@@ -49,7 +49,7 @@ public class MerLocalInspectionTests
         using var fixture = new DiscoveryFixture();
         var first = fixture.Package("first", "1.2.3");
         var second = fixture.Package("second", "2.0.0");
-        using var file = new ScratchDocument("STERT ; ERPDERT ;; codex\nfin.");
+        using var file = new ScratchDocument("STERT ; update ;; codex\nfin.");
         using var input = new ChangingInput("at 1\nprobe\ncopy 2\ndetails\n\n", 3,
             () => File.WriteAllText(Path.Combine(second, "node_modules", "@openai", "codex", "package.json"), "null"));
         var result = Run(file.Path, input, new(first + ";" + second, ".CMD;.EXE"));
@@ -63,7 +63,7 @@ public class MerLocalInspectionTests
     {
         using var fixture = new DiscoveryFixture();
         var prefix = fixture.Package("installed", "9.8.7");
-        using var file = new ScratchDocument("STERT ; ERPDERT ;; codex\nfin.");
+        using var file = new ScratchDocument("STERT ; update ;; codex\nfin.");
         using var input = new ChangingInput("at 1\nprobe\n\n", 2, () => File.WriteAllText(file.Path, "// changed"));
         var result = Run(file.Path, input, new(prefix, ".CMD"));
         Assert.Contains("Source changed since this analysis", result.Output);
@@ -73,8 +73,8 @@ public class MerLocalInspectionTests
 
     [Theory]
     [InlineData("// why ; codex ;; Just a note. //", "No discovery request at this line")]
-    [InlineData("STERT ; ERPDERT ;; codex\ncommands ; unknown ;;\nfin.", "ERP6004")]
-    [InlineData("STERT ; ERPDERT ;; codex\ncommands ; updateme ;;\nfin.", "update rehearsal")]
+    [InlineData("STERT ; update ;; codex\ncommands ; unknown ;;\nfin.", "ERP6004")]
+    [InlineData("STERT ; update ;; codex\ncommands ; updateme ;;\nfin.", "update rehearsal")]
     public void Context_or_ineligible_operations_do_not_acquire_discovery_effects(string source, string explanation)
     {
         using var fixture = new DiscoveryFixture();
@@ -91,7 +91,7 @@ public class MerLocalInspectionTests
     {
         using var fixture = new DiscoveryFixture();
         var prefix = fixture.Package("installed", "1.2.3");
-        using var file = new ScratchDocument("STERT ; ERPDERT ;; codex\nfin.");
+        using var file = new ScratchDocument("STERT ; update ;; codex\nfin.");
         var result = Run(file.Path, "at 1\nprobe\ndetails\n\n", new("relative;" + prefix, ".CMD;.EXE"));
         Assert.Contains("First observed match / incomplete search", result.Output);
         Assert.DoesNotContain("First external PATH match", result.Output);
@@ -101,7 +101,7 @@ public class MerLocalInspectionTests
     [Fact]
     public void Details_keeps_every_application_blocker_in_the_captured_plan()
     {
-        using var file = new ScratchDocument("STERT ; ERPDERT ;; codex\ncommands ; unknown ;;\nfin.\nSTERT ; other ;; codex\nfin.");
+        using var file = new ScratchDocument("STERT ; update ;; codex\ncommands ; unknown ;;\nfin.\nSTERT ; other ;; codex\nfin.");
         var result = Run(file.Path, "at 1\ndetails\n\n");
         Assert.Contains("ERP6004 / line 2", result.Output);
         Assert.Contains("ERP6002 / line 4", result.Output);
@@ -110,7 +110,7 @@ public class MerLocalInspectionTests
     [Fact]
     public void Binding_findings_are_reachable_through_source_navigation()
     {
-        using var file = new ScratchDocument("STERT ; ERPDERT ;; codex\ncommands ; unknown ;;\nfin.");
+        using var file = new ScratchDocument("STERT ; update ;; codex\ncommands ; unknown ;;\nfin.");
         var result = Run(file.Path, "at 1\nnext\n\n");
         Assert.Contains("next: line 2 / ERP6004", result.Output);
         Assert.Contains("Operation needs attention", result.Output);
@@ -120,7 +120,7 @@ public class MerLocalInspectionTests
     [Fact]
     public void Redirected_input_does_not_start_inspection_without_explicit_review()
     {
-        using var file = new ScratchDocument("STERT ; ERPDERT ;; codex\nfin.");
+        using var file = new ScratchDocument("STERT ; update ;; codex\nfin.");
         var writer = new StringWriter();
         var console = AnsiConsole.Create(new AnsiConsoleSettings
         {
@@ -151,7 +151,7 @@ public class MerLocalInspectionTests
     [Fact]
     public void Empty_discovery_and_invalid_copy_choices_keep_their_actual_meaning()
     {
-        using var file = new ScratchDocument("STERT ; ERPDERT ;; codex\nfin.");
+        using var file = new ScratchDocument("STERT ; update ;; codex\nfin.");
         var result = Run(file.Path, "at 1\nprobe\ncopy 2\n\n");
         Assert.Contains("No Codex launcher found", result.Output);
         Assert.Contains("No inspected copy has that number", result.Output);

@@ -11,7 +11,7 @@ $record = [Collections.Generic.List[string]]::new()
 
 # Build a fresh copy from source and test inputs only. Never move or hide the
 # user's documents, and never reuse bin/obj outputs that could conceal a dependency.
-$rootInputs = @('ERPDERT.slnx', 'Directory.Build.props', 'global.json')
+$rootInputs = @('DERT.slnx', 'Directory.Build.props', 'global.json')
 foreach ($name in $rootInputs) {
     Copy-Item -LiteralPath (Join-Path $projectPath $name) -Destination (Join-Path $copyPath $name)
 }
@@ -19,7 +19,7 @@ $sourceRoots = @((Join-Path $projectPath 'src'), (Join-Path $projectPath 'tests'
 foreach ($file in Get-ChildItem -LiteralPath $sourceRoots -Recurse -File) {
     $relative = [IO.Path]::GetRelativePath($projectPath, $file.FullName)
     if ($relative -match '(^|[\\/])(bin|obj|TestResults|\.artifacts)([\\/]|$)') { continue }
-    if ($file.Extension -notin @('.cs', '.csproj', '.props', '.targets', '.json', '.ps1', '.cmd', '.DERT', '.xaml') -and $file.Name -ne 'AVALONEDIT-LICENSE.txt') { continue }
+    if ($file.Extension -notin @('.cs', '.csproj', '.props', '.targets', '.json', '.ps1', '.cmd', '.DERT', '.xaml') -and $file.Name -notin @('AVALONEDIT-LICENSE.txt', 'UNICODE-LICENSE.txt')) { continue }
     $destination = Join-Path $copyPath $relative
     [void] (New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force)
     Copy-Item -LiteralPath $file.FullName -Destination $destination
@@ -36,16 +36,16 @@ function Invoke-Dotnet {
 
 Push-Location -LiteralPath $copyPath
 try {
-    Invoke-Dotnet @('test', 'ERPDERT.slnx', '-c', 'Release')
+    Invoke-Dotnet @('test', 'DERT.slnx', '-c', 'Release')
     $output = (& (Join-Path $copyPath 'src\Publish-Windows.ps1') 6>&1 | Out-String)
     $record.Add("Publish-Windows.ps1`n$output")
     Write-Host $output
-    foreach ($suite in @('Invoke-PublishedSmoke.ps1', 'Invoke-RepairSmoke.ps1', 'Invoke-NoteRepairSmoke.ps1', 'Invoke-LintHandoffSmoke.ps1', 'Invoke-RepairFollowthroughSmoke.ps1', 'Invoke-DiscoverySmoke.ps1', 'Invoke-DertRunSmoke.ps1', 'Invoke-UpdateSmoke.ps1', 'Invoke-MerSmoke.ps1', 'Invoke-NotesSmoke.ps1')) {
+    foreach ($suite in @('Invoke-PublishedSmoke.ps1', 'Invoke-RepairSmoke.ps1', 'Invoke-NoteRepairSmoke.ps1', 'Invoke-LintHandoffSmoke.ps1', 'Invoke-RepairFollowthroughSmoke.ps1', 'Invoke-DiscoverySmoke.ps1', 'Invoke-DertRunSmoke.ps1', 'Invoke-UpdateSmoke.ps1', 'Invoke-WhereSmoke.ps1', 'Invoke-MerSmoke.ps1', 'Invoke-NotesSmoke.ps1')) {
         $output = (& (Join-Path $copyPath "tests\$suite") 6>&1 | Out-String)
         $record.Add("$suite`n$output")
         Write-Host $output
     }
-    Write-Host 'Source-only build, tests, publish, and all ten executable suites passed without documentation.'
+    Write-Host 'Source-only build, tests, publish, and all eleven executable suites passed without documentation.'
 }
 catch {
     $record.Add($_.ToString())

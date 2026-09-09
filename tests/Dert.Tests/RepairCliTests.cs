@@ -1,5 +1,5 @@
-using Erpdert.Cli;
-using Erpdert.Cli.Repairs;
+using Dert.Cli;
+using Dert.Cli.Repairs;
 using Spectre.Console;
 using Xunit;
 
@@ -47,7 +47,7 @@ public class RepairCliTests
         Assert.Equal("// TITLE\n// -----", File.ReadAllText(file.Path));
         Assert.Contains("TITLE ALIGNED", output);
         Assert.Contains("before.DERT", output);
-        Assert.Contains("ERPDERT undo", output);
+        Assert.Contains("DERT undo", output);
     }
 
     [Fact]
@@ -146,7 +146,7 @@ public class RepairCliTests
     [Theory]
     [InlineData("// TITLE\n// -----", 0)]
     [InlineData("STERT\n// a note\nƒin.", 0)]
-    [InlineData("// café", 1)]
+    [InlineData("// first\tsecond", 1)]
     public void No_candidate_does_not_create_a_recovery_record(string text, int expectedExit)
     {
         using var file = new ScratchDocument(text);
@@ -184,7 +184,7 @@ public class RepairCliTests
         using var file = new ScratchDocument("// TITLE");
         var (exit, output) = Run(["repair", file.Path, "--plain"], width: 32);
         Assert.Equal(0, exit);
-        var command = Assert.Single(output.Split('\n'), line => line.StartsWith("ERPDERT repair '"));
+        var command = Assert.Single(output.Split('\n'), line => line.StartsWith("DERT repair '"));
         Assert.Contains(file.Path, command);
         Assert.Matches(@"--apply [A-F0-9]{64}", command);
         Assert.DoesNotContain("\u001b", output, StringComparison.Ordinal);
@@ -198,7 +198,7 @@ public class RepairCliTests
         File.Move(file.Path, path);
         var (exit, output) = Run(["repair", path, "--plain"]);
         Assert.Equal(0, exit);
-        var command = Assert.Single(output.Split('\n'), line => line.StartsWith("ERPDERT repair ("));
+        var command = Assert.Single(output.Split('\n'), line => line.StartsWith("DERT repair ("));
         Assert.Contains("it''s a' + [char]0x200B + 'note.DERT')", command);
         Assert.DoesNotContain("\u200B", command, StringComparison.Ordinal);
         Assert.DoesNotContain("\\u200B", command, StringComparison.Ordinal);
@@ -215,7 +215,7 @@ public class RepairCliTests
         var path = System.IO.Path.Combine(file.DirectoryPath, $"Ryan{quote}s notes.DERT");
         File.Move(file.Path, path);
         var output = Run(["repair", path, "--plain"]).Output;
-        var command = Assert.Single(output.Split('\n'), line => line.StartsWith("ERPDERT repair "));
+        var command = Assert.Single(output.Split('\n'), line => line.StartsWith("DERT repair "));
         Assert.Contains($"[char]0x{(int)quote:X4}", command);
     }
 

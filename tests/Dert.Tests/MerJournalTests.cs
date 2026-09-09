@@ -1,4 +1,4 @@
-using Erpdert.Mer;
+using Dert.Mer;
 using Xunit;
 
 namespace Dert.Tests;

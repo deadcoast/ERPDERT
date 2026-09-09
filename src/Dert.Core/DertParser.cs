@@ -1,3 +1,5 @@
+using Dert.Text;
+
 namespace Dert.Core;
 
 public static class DertParser
@@ -233,16 +235,16 @@ public static class DertParser
                     hasRule ? next!.ContentSpan : title.Span, hasRule ? next!.Number : title.LineNumber));
                 return;
             }
-            if (title.Content.Text.Any(c => c is < ' ' or > '~'))
+            if (!DisplayCells.TryMeasureTitle(title.Content.Text, out var width, out var reason))
             {
                 diagnostics.Add(new("DERT3004", DiagnosticSeverity.Notice,
-                    "This title uses characters whose display width is not checked by this first language build.",
+                    reason,
                     title.Content.Span, title.LineNumber));
                 return;
             }
-            if (rule[2..].Trim().Length != title.Content.Text.Length)
+            if (rule[2..].Trim().Length != width)
                 diagnostics.Add(new("DERT2003", DiagnosticSeverity.Warning,
-                    $"The title underline needs {title.Content.Text.Length} marks to match the title.",
+                    $"The title underline needs {width} marks to match the title.",
                     next!.ContentSpan, next.Number));
         }
 

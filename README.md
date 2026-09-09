@@ -1,4 +1,4 @@
-# ERPDERT MER
+# DERT
 
 An Ermahgerd language, a Windows CLI, and an unusually attentive place to put
 your words. DERT is being designed so a person can enjoy technically expressive
@@ -16,31 +16,46 @@ notes is already a complete user. Education is incidental.
 
 ## Current state
 
+The ecosystem and executable are **DERT**. The original ERPDERT operation is now
+`DERT update codex`; MER retains its name and role. Current CLI/UDL bindings,
+projects, namespaces, launchers and examples share this identity. Original notes
+remain untouched; `STERT ; ERPDERT ;; codex` still binds the update operation.
+
+`DERT where codex` connects PATH routes, verified package roots, Windows registered
+locations and adjacent data folders in one ASCII view, with measured sizes and
+explicit evidence gaps. `DERT where 'Visual Studio Code'` also accepts literal
+application display names. Generic location works independently of manager adapters.
+
+`DERT where codex --doctor` (or `-dr`) shares the update adapter's npm verification
+and saves an exact reinstall proposal. Its offered `--apply` command rechecks the
+reviewed copy, uninstalls, reinstalls the pinned version and verifies inventory
+and the launcher/JavaScript entrypoint. Codex itself is not launched.
+
 The language workbench works: a source-preserving lexer/parser and a Windows
 CLI for inspecting, linting, and rehearsing reversible title-rule and note-boundary
 repairs. It recognizes the original example without
 rewriting its syntax, associates each reasoning entry with its own explanation,
 and supplies semantic colors, folds, source locations, and English diagnostics.
 
-`ERPDERT write` opens the bundled Windows notes window. Type a title, press
+`DERT write` opens the bundled Windows notes window. Type a title, press
 Enter, and its matching rule follows as an undoable buffer edit. The same parser
 drives live source colors, reasoning folds and attached explanations. Save and
 reopen keep your exact UTF-8 source; no external editor needs to be installed.
 
-The first operational command also works: `ERPDERT codex` discovers Windows
+The first operational command also works: `DERT update codex` discovers Windows
 PATH command routes, groups launchers that reference the same package, and
 shows local version, Node, and adjacent npm evidence without running them.
 
-`ERPDERT run my-tools.DERT` connects the language to that operation: a
-`STERT ; ERPDERT ;; codex` request drives discovery, with its written context
+`DERT run my-tools.DERT` connects the language to that operation: a
+`STERT ; update ;; codex` request drives discovery, with its written context
 and a result attributed to the source line. `--preview` explains the request
 without searching. A runnable example ships with the executable.
 
-`ERPDERT codex updateme` now rehearses an npm-managed update: select the copy,
+`DERT update codex updateme` now rehearses an npm-managed update: select the copy,
 confirm its manager's inventory, check the latest release, and inspect npm's
 dependency dry run. The same operation is available inside DERT.
 
-`ERPDERT mer` now keeps the authored source in an ASCII document window, with
+`DERT mer` now keeps the authored source in an ASCII document window, with
 line numbers, a short animated edge trace, and an explanation attached to the
 selected line. The complete check log opens with `details` or `--details`.
 From a supported DERT request, `probe` connects that line to actual local Codex
@@ -49,12 +64,12 @@ compares installations from the same recorded inspection.
 Notes have their own navigation: `find <text>` searches captured source,
 `hit N` selects a result, `owner` follows the actual parent, and `structure`
 reveals the selected fields, entries and ending in that same document window.
-`ERPDERT demo` provides five selectable offline cases, holds the result for
+`DERT demo` provides five selectable offline cases, holds the result for
 review, and opens the complete recorded detail on request. Interactive npm
 rehearsals use the same engine's operation view for real checks.
 
-This is not a complete language release. It does not yet
-execute package-changing DERT operations, manage packages, install itself, or
+The supported npm doctor can execute a reviewed reinstall and verify its result.
+This remains a bounded manager integration. DERT does not install itself or
 provide an editor extension or the full planned note application. The current
 authoring window is a single-document Windows proof. No canonical v1.0 grammar is claimed.
 
@@ -72,14 +87,14 @@ authoring and integration work, including what remains beyond the current CLI.
 From this workspace in PowerShell, after publishing:
 
 ```powershell
-.\.artifacts\win-x64\ERPDERT.exe -help
-.\.artifacts\win-x64\ERPDERT.exe write
-.\.artifacts\win-x64\ERPDERT.exe demo
-.\.artifacts\win-x64\ERPDERT.exe mer
-.\.artifacts\win-x64\ERPDERT.exe codex
-.\.artifacts\win-x64\ERPDERT.exe run .\.artifacts\win-x64\examples\my-tools.DERT
-.\.artifacts\win-x64\ERPDERT.exe inspect .\RERDMERR.DERT --at 37
-.\.artifacts\win-x64\ERPDERT.exe lint .\RERDMERR.DERT
+.\.artifacts\win-x64\DERT.exe -help
+.\.artifacts\win-x64\DERT.exe write
+.\.artifacts\win-x64\DERT.exe demo
+.\.artifacts\win-x64\DERT.exe mer
+.\.artifacts\win-x64\DERT.exe update codex
+.\.artifacts\win-x64\DERT.exe run .\.artifacts\win-x64\examples\my-tools.DERT
+.\.artifacts\win-x64\DERT.exe inspect .\RERDMERR.DERT --at 37
+.\.artifacts\win-x64\DERT.exe lint .\RERDMERR.DERT
 ```
 
 Line 37 is the original `fixme` entry. The connection view shows its value,
@@ -96,7 +111,7 @@ unfinished-list notice; it is deliberately left untouched.
 Double-click **`Try Notes.cmd`** in the published folder, or open a file:
 
 ```powershell
-.\.artifacts\win-x64\ERPDERT.exe write 'C:\My notes\weekend.DERT'
+.\.artifacts\win-x64\DERT.exe write 'C:\My notes\weekend.DERT'
 ```
 
 Start a new title with `// MY TITLE` and press Enter. Renaming an aligned title
@@ -104,7 +119,16 @@ adjusts its rule when you leave the title line; Enter advances past that rule.
 Undo reverses the automatic edit without immediately reinserting it. Deleting
 the rule deliberately leaves it deleted. Opening a mismatched title offers
 **Align title…**, an exact preview with Apply and Leave. Unicode words are kept;
-automatic rule width currently supports ASCII titles and explains that limit.
+accents, CJK, right-to-left text and joined emoji now receive matching rules.
+For example, `// café 日本語 👩‍💻` receives 14 marks. Notes fits those marks to
+the actual displayed title, including font fallback; CLI lint, repair and MER
+share the same stored mark count. Your spelling and accent sequences stay exact.
+
+Try the bundled `examples/world-notes.DERT`. Tabs, controls and incomplete
+characters retain their source and explain why automatic width is unavailable.
+A title that wraps keeps its rule and asks for a wider view to compare it.
+The [width policy and inspected evidence](docs/superpowers/specs/2026-09-09-unicode-title-width-design.md)
+record the Unicode data and font-dependent limits.
 
 Reasoning opens from its gutter handle or **Ctrl+Space**. Its explanation and
 owned entries stay available beside the source; narrow windows place that
@@ -142,7 +166,7 @@ the source spelling; this automatic appearance belongs to the Notes editor.
 
 **Ctrl+S** saves; **Ctrl+Shift+S** creates a new copy; **Ctrl+Z / Ctrl+Y** undo and
 redo buffer edits. New, Open and Close offer Save, Discard or Cancel when needed.
-`--still`, `ERPDERT_MOTION=off`, and Windows reduced-motion settings suppress the
+`--still`, `DERT_MOTION=off`, and Windows reduced-motion settings suppress the
 short accent that follows an actual title alignment, accepted list edit or
 accepted florin source edit. Displaying the florin alone adds no animation or edit.
 
@@ -156,7 +180,7 @@ undo lasts for the current session; reopening starts a new undo history. Saving
 is limited to regular local Windows files; it is not a power-loss-atomic save or
 a cross-session editing history.
 
-Keep the published `notes` folder beside `ERPDERT.exe`. The authoring host ships
+Keep the published `notes` folder beside `DERT.exe`. The authoring host ships
 its own desktop runtime and editor dependency with its license. A normal-user
 installer, file associations, and clean-account validation remain TODO work.
 
@@ -165,7 +189,7 @@ installer, file associations, and clean-account validation remain TODO work.
 Double-click **`Try MER.cmd`** inside the published `win-x64` folder, or run:
 
 ```powershell
-.\.artifacts\win-x64\ERPDERT.exe demo
+.\.artifacts\win-x64\DERT.exe demo
 ```
 
 Press Enter to start, or choose a case by number: title alignment, contextual
@@ -204,8 +228,8 @@ never marked approved. The card is not saved or uploaded; copy it from scrollbac
 For a focused review or a noninteractive transcript:
 
 ```powershell
-ERPDERT demo --case context --step
-ERPDERT demo --all --plain
+DERT demo --case context --step
+DERT demo --all --plain
 ```
 
 The latter needs no input. Redirected demos also run without prompts unless
@@ -216,11 +240,11 @@ for the available names and options.
 ### Watch MER move on your own notes
 
 ```powershell
-ERPDERT mer
-ERPDERT mer .\my-notes.DERT
-ERPDERT mer .\my-notes.DERT --replay
-ERPDERT mer .\my-notes.DERT --still
-ERPDERT mer .\my-notes.DERT --details
+DERT mer
+DERT mer .\my-notes.DERT
+DERT mer .\my-notes.DERT --replay
+DERT mer .\my-notes.DERT --still
+DERT mer .\my-notes.DERT --details
 ```
 
 The bare command analyzes the shipped `examples/mer.DERT`, then deliberately
@@ -279,7 +303,7 @@ probe
 details
 ```
 
-`next` selects its `STERT ; ERPDERT ;; codex` request. `probe` inspects local
+`next` selects its `STERT ; update ;; codex` request. `probe` inspects local
 external command routes and attaches their package/dependency evidence to that
 line. If several installations are found, `copy 2` views the second captured
 copy. Dependencies are attributed to their launcher; nearby npm does not prove
@@ -318,7 +342,7 @@ redirected output never reads review commands. `--details` and `--review` are
 alternative output modes.
 
 This is inline CLI output, not a full-screen application. The custom
-`Erpdert.Mer` library owns its cell layout, motion, row-difference rendering,
+`Dert.Mer` library owns its cell layout, motion, row-difference rendering,
 source focus, and final receipt. It has no UI-framework package dependency.
 The existing CLI still uses Spectre.Console for other reports and host
 capabilities; those surfaces have not all been migrated.
@@ -326,7 +350,7 @@ capabilities; those surfaces have not all been migrated.
 For a complete notes-only example:
 
 ```powershell
-.\.artifacts\win-x64\ERPDERT.exe mer .\.artifacts\win-x64\examples\weekend.DERT
+.\.artifacts\win-x64\DERT.exe mer .\.artifacts\win-x64\examples\weekend.DERT
 ```
 
 Type `find quiet`, `hit 2`, then `owner`. Search includes original values,
@@ -348,15 +372,15 @@ Resize the terminal to switch between connected side-by-side and stacked
 layouts. Very short or narrow windows show the status and explain how to obtain
 the full record. `--still` keeps the document window without timer animation;
 `--plain` removes color too. Redirected output and `TERM=dumb` do not animate. Set
-`ERPDERT_MOTION=off` to disable motion across these surfaces; `NO_COLOR` controls
+`DERT_MOTION=off` to disable motion across these surfaces; `NO_COLOR` controls
 color separately. Ctrl+C returns `130`. Stopping a replay preserves its already
 completed analysis, including findings not yet shown; the receipt explicitly
 says playback stopped. Stopping a running operation instead retains the observed
 partial result and marks unfinished work. Both require available output.
 
-`codex updateme` and its DERT equivalent now publish real npm checks into MER
+`update codex updateme` and its DERT equivalent now publish real npm checks into MER
 in an interactive terminal. There is no deliberate pacing on those operations.
-`--still` is also available on `codex updateme` and `run`.
+`--still` is also available on `update codex updateme` and `run`.
 
 The engine is Windows-first. It handles common combining, emoji, and CJK
 clusters without splitting them at a clip boundary; exact glyph width still
@@ -369,13 +393,13 @@ the live viewport can show only a focused excerpt.
 Save this as `my-tools.DERT`:
 
 ```dert
-STERT ; ERPDERT ;; codex
+STERT ; update ;; codex
 // why ; codex ;; Find the installation my terminal can see. //
 ƒin.
 ```
 
-Run `ERPDERT run my-tools.DERT`. The result comes from the same discovery
-engine as `ERPDERT codex`, with the requesting source and its notes shown first.
+Run `DERT run my-tools.DERT`. The result comes from the same discovery
+engine as `DERT update codex`, with the requesting source and its notes shown first.
 The one-line form without `ƒin.` works too. Neither form launches Codex itself.
 
 Add `--preview` to see the interpretation without searching, then use the
@@ -389,12 +413,79 @@ A notes-only file has nothing to run and is left alone.
 These are the runner's current implemented capabilities, not the limits of
 DERT's evolving design. No source is rewritten and no package changes are made.
 
+### Find an application and review its repair
+
+```powershell
+DERT where codex
+DERT where 'Visual Studio Code'
+DERT where codex --doctor
+DERT where codex -dr --path 'C:\Tools\codex.ps1'
+```
+
+`where` reads exact external-command names on PATH, Windows App Paths and exact
+registered display names. Codex adds verified package roots and its configured
+or default data-folder candidate. This is a bounded local search; it does not
+scan every drive, evaluate shell aliases/functions, or infer ownership from a
+similar folder name. Registry evidence follows Windows [application registration](https://learn.microsoft.com/en-us/windows/win32/shell/app-registration)
+and [uninstall-key fields](https://learn.microsoft.com/en-us/windows/win32/msi/uninstall-registry-key).
+
+One connected ASCII view retains command order, grouping reasons, full paths,
+versions and observed file lengths. Long paths retain their characters and
+connection margin. Folder measurements stop at 50,000 entries, depth 64 or two
+seconds per location; inaccessible files, links and partial results stay visible.
+Nested totals overlap. A large folder or duplicate name alone does not prove a
+conflict. `--still`, `--plain` and `DERT_MOTION=off` retain the same findings.
+
+Doctor currently supports identified npm-managed Codex. Multiple or incompletely
+discovered copies require an exact selection. It shares update's inventory,
+registry and dependency rehearsal logic, including same-version reinstall and
+refusal to downgrade. The review saves a proposal under `%LOCALAPPDATA%\DERT`;
+`DERT_STATE_HOME` can select an absolute local state folder. Follow the exact
+offered `--apply <token>` command after reviewing its selected path and requests.
+
+Before any manager execution, saved approval checks the reviewed source, Node,
+npm, launchers and package metadata. The transaction checks inventory again,
+flushes a receipt, uninstalls, reinstalls the pinned release and verifies inventory
+plus the launcher/JavaScript entrypoint. NVM-style prefix links are resolved and
+bound to the reviewed target; switching the link invalidates that review.
+Package scripts are disabled, following npm's [uninstall](https://docs.npmjs.com/cli/v11/commands/npm-uninstall/)
+and [install](https://docs.npmjs.com/cli/v11/commands/npm-install/) controls.
+Queries may write npm cache/logs; approved repair changes the selected package
+and its dependencies. Adjacent data folders are never deletion targets.
+
+Repair is not atomic. A failed phase stops subsequent work, retains its receipt
+and offers the pinned recovery request if changes began. No rollback is promised.
+Codex is not launched: native runtime, authentication and application health
+remain outside this verification. Other managers retain location evidence and
+an explanation that no repair adapter exists.
+
+The same operation binds from `.DERT`:
+
+```DERT
+STERT ; where ;; codex
+// why ; codex ;; Find the copy I actually use. //
+commands ; doctor ;;
+ƒin.
+```
+
+`DERT run file.DERT --preview` explains the request without searching. `run`
+performs its review and saves a source-bound proposal; it never approves itself.
+In MER select that source line, then `probe`, `copy N` when needed, `doctor`, and
+`details`. The exact CLI apply command carries the source binding. MER's `apply`
+continues to mean the currently selected source repair. The packaged
+`examples/where-my-tools.DERT` starts with location only.
+
+Location exits: `0` = findings without an attention condition; `1` = missing,
+ambiguous or incomplete evidence; `2` = invalid request/output failure; `130` =
+interrupted. Doctor review uses `0` for a ready proposal; approved execution uses
+`0` only after verification, and `1` for refused or failed repair.
+
 ### Rehearse the update for this copy
 
-Run `ERPDERT codex updateme`, or use the shipped `examples/update-my-tools.DERT`:
+Run `DERT update codex updateme`, or use the shipped `examples/update-my-tools.DERT`:
 
 ```dert
-STERT ; ERPDERT ;; codex
+STERT ; update ;; codex
 // why ; codex ;; Check this copy before changing anything. //
 commands ; updateme ;;
 ƒin.
@@ -414,9 +505,9 @@ Unrecognized release channels, unavailable managers, failed queries, unexpected
 output, and changed source installations are explained instead of guessed.
 
 When ready, **MANUAL UPDATE / CHANGES PACKAGES** contains the exact absolute
-Node/npm invocation, selected prefix, and pinned package version. ERPDERT does
+Node/npm invocation, selected prefix, and pinned package version. DERT does
 not execute it. Running it yourself can change packages and run package scripts;
-it is not an ERPDERT approval, snapshot guard, or reversible repair. Rehearse again
+it is not an DERT approval, snapshot guard, or reversible repair. Rehearse again
 if the installation or environment changes. Integrated update approval/execution
 and verified post-update results remain future work.
 
@@ -438,7 +529,7 @@ The adapter follows [npm inventory](https://docs.npmjs.com/cli/v11/commands/npm-
 
 ### Which Codex?
 
-Run `ERPDERT codex` (or the executable path above). No document is required.
+Run `DERT update codex` (or the executable path above). No document is required.
 The first PowerShell PATH match stays first even when a later package is newer
 or easier to identify. Three npm launchers referencing one package are shown
 together, not diagnosed as three conflicting installs. Competing groups,
@@ -497,8 +588,8 @@ and plain mode stays with copied approvals, undo, and subsequent actions.
 Use a note of your own, or a copy of the corpus:
 
 ```powershell
-.\.artifacts\win-x64\ERPDERT.exe repair '.\my notes.DERT'
-.\.artifacts\win-x64\ERPDERT.exe undo '.\my notes.DERT'
+.\.artifacts\win-x64\DERT.exe repair '.\my notes.DERT'
+.\.artifacts\win-x64\DERT.exe undo '.\my notes.DERT'
 ```
 
 The rehearsal shows the actual title, an exact `−`/`+` rule diff, and an English
@@ -508,26 +599,28 @@ line endings, and any UTF-8 BOM stay intact.
 
 Redirected output previews only. It prints a complete PowerShell command with
 `--apply <approval-token>` bound to that file and that exact edit. It uses the
-launched executable's path; installing ERPDERT on `PATH` is not required.
+launched executable's path; installing DERT on `PATH` is not required.
 Changed bytes, a replacement file, or a different undo selection invalidate it.
 
-Before editing, ERPDERT saves and verifies a full original under the sibling
+Before editing, DERT saves and verifies a full original under the sibling
 `.erpdert/repairs` folder. These are **unencrypted local copies** of your notes;
 keep them private and retain them for recovery. Writes are recoverable, not
 power-loss atomic. Undo refuses to overwrite later edits. Copying or replacing
 the file can disconnect automatic undo; the saved originals remain readable.
 
-This increment measures printable ASCII titles in strict UTF-8 documents and
-applies only to regular local Windows files. Unsupported title widths are
-explained, never guessed. Title repair does not change commas, targets, or note closures.
-See the [repair contract](docs/superpowers/specs/2026-09-06-title-repair-design.md).
+Title repair uses the shared Unicode cell policy in strict UTF-8 documents and
+applies only to regular local Windows files. Tabs, controls and unsupported
+unfinished sequences explain unavailable width while retaining the source.
+Title repair does not change commas, targets, or note closures. See the
+[repair contract](docs/superpowers/specs/2026-09-06-title-repair-design.md) and
+[width policy](docs/superpowers/specs/2026-09-09-unicode-title-width-design.md).
 
 ### Choose where an unfinished note ends
 
 Point at the opener or an entry of an unfinished reasoning block:
 
 ```powershell
-.\.artifacts\win-x64\ERPDERT.exe repair '.\my notes.DERT' --at 12
+.\.artifacts\win-x64\DERT.exe repair '.\my notes.DERT' --at 12
 ```
 
 The CLI shows the current recovered grouping and offers source-line boundaries.
@@ -538,7 +631,7 @@ Selection opens the rehearsal; a separate `y` approves the write.
 For a boundary offered by that report, you can go directly to its rehearsal:
 
 ```powershell
-.\.artifacts\win-x64\ERPDERT.exe repair '.\my notes.DERT' --at 12 --close-before 16
+.\.artifacts\win-x64\DERT.exe repair '.\my notes.DERT' --at 12 --close-before 16
 ```
 
 Use `eof` instead of a line number only when offered. Redirected choice reports
@@ -565,8 +658,8 @@ own; npm update rehearsals use the selected tool installation's Node/npm.
 Run these commands from the workspace root:
 
 ```powershell
-dotnet test ERPDERT.slnx
-dotnet build ERPDERT.slnx -c Release
+dotnet test DERT.slnx
+dotnet build DERT.slnx -c Release
 .\src\Publish-Windows.ps1
 .\tests\Invoke-PublishedSmoke.ps1
 .\tests\Invoke-RepairSmoke.ps1
@@ -576,6 +669,7 @@ dotnet build ERPDERT.slnx -c Release
 .\tests\Invoke-DiscoverySmoke.ps1
 .\tests\Invoke-DertRunSmoke.ps1
 .\tests\Invoke-UpdateSmoke.ps1
+.\tests\Invoke-WhereSmoke.ps1
 .\tests\Invoke-MerSmoke.ps1
 .\tests\Invoke-NotesSmoke.ps1
 .\tests\Invoke-SourceOnlySmoke.ps1
@@ -603,6 +697,11 @@ dispatch and copied commands; that fixture refuses installation. A separate opt-
 `tests/Invoke-LiveNpmRehearsal.ps1 -NodePrefix <existing-Node-folder>` checks genuine
 npm against a disposable copied installation and public-registry metadata. It never
 invokes the manual update and retains its cache and evidence under `.artifacts`.
+The location/doctor suite enables explicit repair simulation in that same owned
+process fixture to exercise saved CLI approval, filesystem changes and durable
+verification receipts. `tests/Invoke-LiveNpmDoctor.ps1 -ToolPrefix <Node-folder>`
+separately exercises real npm uninstall/reinstall against a local fixture tarball.
+Neither is a repair of a user's installed Codex.
 Add `-Mer` to exercise the source-window review commands through that same real
 npm rehearsal and verify installation file hashes afterward.
 The MER suite checks the shipped example, actual user input, damaged input,
@@ -634,7 +733,7 @@ Add `-AtLine 6` to capture a direct recorded-entry inspection.
 Add `-SourceView` with `-AtLine` to render that entry's source excerpt.
 The authoring tests exercise actual WPF editor controls on STA threads, including
 text-input/Enter/Undo routing, caret and selection, folding, title correction and
-save/reopen. Set `ERPDERT_AUTHORING_PROOF` to an output directory to capture wide
+save/reopen. Set `DERT_AUTHORING_PROOF` to an output directory to capture wide
 and narrow rendered WPF frames. These are control renders, not OS screenshots.
 The published notes suite opens and closes the packaged window directly and
 through `write`, with an empty PATH, disabled installed-runtime lookup, and
@@ -702,15 +801,18 @@ and recorded receipts in the CLI. MER's source window also
 carries comparison, explicit repair approval, verified saved results and undo,
 sharing the existing guarded repair service. Written update requests connect to
 copy selection, npm checks and a retained rehearsal in that same source window.
-The native authoring window now brings title treatment, reasoning inspection,
-deliberate list completion and the original florin goodbye to writing, with
-guarded save/reopen. The next proposed UDL increment is a shared, visually checked
-title-width policy for non-ASCII text. Remaining host
-validation and wider operation workflows stay in [TODO](TODO.md).
+The native authoring window now brings multilingual title treatment, reasoning
+inspection, deliberate list completion and the original florin goodbye to writing,
+with guarded save/reopen. Title width shares a checked policy across parser,
+repair and MER, with measured font alignment in Notes. The next proposed UDL
+increment is temporary reasoning inspection that returns to its resting view
+without hiding active edits. Remaining host validation and wider operation
+workflows stay in [TODO](TODO.md).
 
-Integrated update approval, execution and verified results remain operational
-work ahead, followed by additional managers and doctoring actions; the manual
-command is not a substitute for that full flow.
+Update-only approval, execution and verified results remain operational work
+ahead for updateme. Doctor now has its own guarded reinstall transaction;
+additional managers, native application health and reproduced conflict diagnosis
+remain ahead. The manual update command remains a separate action.
 
 The broader Windows proof still includes an ambiguous edit, supported command
 rehearsal and an optional result kept in the document.

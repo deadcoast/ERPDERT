@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Nodes;
 using Dert.Core;
-using Erpdert.Cli.Repairs;
+using Dert.Cli.Repairs;
 using Xunit;
 
 namespace Dert.Tests;

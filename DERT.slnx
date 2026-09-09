@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="src/Dert.Text/Dert.Text.csproj" />
+  <Project Path="src/Dert.Core/Dert.Core.csproj" />
+  <Project Path="src/Dert.Mer/Dert.Mer.csproj" />
+  <Project Path="src/Dert.Cli/Dert.Cli.csproj" />
+  <Project Path="src/Dert.Notes/Dert.Notes.csproj" />
+  <Project Path="tests/Dert.Tests/Dert.Tests.csproj" />
+  <Project Path="tests/Dert.Notes.Tests/Dert.Notes.Tests.csproj" />
+</Solution>

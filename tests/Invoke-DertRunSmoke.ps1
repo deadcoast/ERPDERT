@@ -3,7 +3,7 @@ param([string] $Executable)
 
 $ErrorActionPreference = 'Stop'
 $projectPath = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
-if (-not $Executable) { $Executable = Join-Path $projectPath '.artifacts/win-x64/ERPDERT.exe' }
+if (-not $Executable) { $Executable = Join-Path $projectPath '.artifacts/win-x64/DERT.exe' }
 $Executable = (Resolve-Path -LiteralPath $Executable).Path
 $shellPath = (Get-Process -Id $PID).Path
 $proofPath = Join-Path $projectPath ('.artifacts\dert-run-proof\' + [Guid]::NewGuid().ToString('N'))
@@ -74,10 +74,10 @@ try {
 
     $result = Invoke-Child $Executable @('run', $sample, '--plain')
     Assert-Result 'Packaged example drives the real discovery adapter' $result 0 @('DERT / RUN', 'CODEX / DISCOVERY', '8.7.6', '1 operation completed', '0 results need attention')
-    $direct = Invoke-Child $Executable @('codex', '--plain')
+    $direct = Invoke-Child $Executable @('update', 'codex', '--plain')
     Assert-Result 'Direct CLI sees the same fixture package' $direct 0 @('8.7.6', 'One installation group')
 
-    $path = Write-Fixture "Ryan’s '[red]tools.DERT" ([char]0xfeff + "STERT ; ERPDERT ;; codex`r`n// preserved context`r`n")
+    $path = Write-Fixture "Ryan’s '[red]tools.DERT" ([char]0xfeff + "STERT ; update ;; codex`r`n// preserved context`r`n")
     $sourceHash = (Get-FileHash -LiteralPath $path).Hash
     $preview = Invoke-Child $Executable @('run', $path, '--preview', '--plain')
     Assert-Result 'BOM and quoted filename preview' $preview 0 @('preserved context', 'No discovery was performed')
@@ -87,23 +87,23 @@ try {
     $copied = Invoke-Child $shellPath @('-NoProfile', '-NonInteractive', '-Command', $commands[0])
     Assert-Result 'Copied preview command works from another directory' $copied 0 @('CODEX / DISCOVERY', '8.7.6', '1 operation completed')
 
-    $two = Write-Fixture 'two.DERT' "STERT ; ERPDERT ;; codex`nfin.`nSTERT ; ERPDERT ;; codex"
+    $two = Write-Fixture 'two.DERT' "STERT ; update ;; codex`nfin.`nSTERT ; update ;; codex"
     $result = Invoke-Child $Executable @('run', $two, '--plain')
     Assert-Result 'Two source chains have two attributed results' $result 0 @('STEP 01 / RESULT', 'STEP 02 / RESULT', '2 operations completed')
 
-    $unsupported = Write-Fixture 'unsupported.DERT' "STERT ; ERPDERT ;; codex`nƒin.`nSTERT ; ERPDERT ;; claude"
+    $unsupported = Write-Fixture 'unsupported.DERT' "STERT ; update ;; codex`nƒin.`nSTERT ; update ;; claude"
     $result = Invoke-Child $Executable @('run', $unsupported, '--plain')
     Assert-Result 'Unsupported later operation prevents a partial run' $result 1 @('ERP6004', 'claude', 'No operations ran') @('CODEX / DISCOVERY', '8.7.6')
 
-    $notes = Write-Fixture 'notes.DERT' '// STERT ; ERPDERT ;; codex //'
+    $notes = Write-Fixture 'notes.DERT' '// STERT ; update ;; codex //'
     $result = Invoke-Child $Executable @('run', $notes, '--plain')
     Assert-Result 'An operation example inside a note remains a note' $result 0 @('No operations to run') @('CODEX / DISCOVERY')
 
-    $warning = Write-Fixture 'warning.DERT' "// TITLE WITHOUT A RULE`nSTERT ; ERPDERT ;; codex"
+    $warning = Write-Fixture 'warning.DERT' "// TITLE WITHOUT A RULE`nSTERT ; update ;; codex"
     $result = Invoke-Child $Executable @('run', $warning, '--plain')
     Assert-Result 'Formatting warning does not prevent discovery' $result 0 @('DERT2003', 'CODEX / DISCOVERY', '1 operation completed')
 
-    $unfinished = Write-Fixture 'unfinished.DERT' "STERT ; ERPDERT ;; codex`n// support ; conflicts ;;`n// one entry"
+    $unfinished = Write-Fixture 'unfinished.DERT' "STERT ; update ;; codex`n// support ; conflicts ;;`n// one entry"
     $result = Invoke-Child $Executable @('run', $unfinished, '--plain')
     Assert-Result 'Unfinished structure is cited before dispatch' $result 1 @('DERT1001', 'No operations ran') @('CODEX / DISCOVERY')
 

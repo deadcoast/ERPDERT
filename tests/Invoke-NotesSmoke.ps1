@@ -3,7 +3,7 @@ param([string] $Executable)
 
 $ErrorActionPreference = 'Stop'
 $projectPath = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
-if (-not $Executable) { $Executable = Join-Path $projectPath '.artifacts/win-x64/ERPDERT.exe' }
+if (-not $Executable) { $Executable = Join-Path $projectPath '.artifacts/win-x64/DERT.exe' }
 $Executable = (Resolve-Path -LiteralPath $Executable).Path
 $packagePath = Split-Path -Parent $Executable
 $proofPath = Join-Path $projectPath ('.artifacts/notes-publish-proof/' + [Guid]::NewGuid().ToString('N'))
@@ -40,7 +40,7 @@ public static class NotesWindowProbe {
         try {
             var entry = new Entry { Size = (uint)Marshal.SizeOf<Entry>() };
             if (Process32FirstW(snapshot, ref entry)) do {
-                if (entry.Parent == parent && entry.Exe.Equals("ERPDERT.Notes.exe", StringComparison.OrdinalIgnoreCase)) return (int)entry.Process;
+                if (entry.Parent == parent && entry.Exe.Equals("DERT.Notes.exe", StringComparison.OrdinalIgnoreCase)) return (int)entry.Process;
             } while (Process32NextW(snapshot, ref entry));
             return 0;
         } finally { CloseHandle(snapshot); }
@@ -70,7 +70,7 @@ function Start-Info([string] $Program, [string[]] $CommandArgs) {
     $start.Environment['PATH'] = ''
     $start.Environment['DOTNET_ROOT'] = (Join-Path $proofPath 'no-runtime')
     $start.Environment['DOTNET_MULTILEVEL_LOOKUP'] = '0'
-    $start.Environment['ERPDERT_MOTION'] = 'off'
+    $start.Environment['DERT_MOTION'] = 'off'
     foreach ($argument in $CommandArgs) { $start.ArgumentList.Add($argument) }
     return $start
 }
@@ -97,7 +97,7 @@ function Check-Window([string[]] $CommandArgs, [string] $Caption, [switch] $Thro
             if (-not $launcher.WaitForExit(5000) -or $launcher.ExitCode -ne 0) { throw 'CLI write did not return success after launch.' }
         }
         else {
-            $start = Start-Info (Join-Path $packagePath 'notes/ERPDERT.Notes.exe') $CommandArgs
+            $start = Start-Info (Join-Path $packagePath 'notes/DERT.Notes.exe') $CommandArgs
             $process = [Diagnostics.Process]::Start($start)
         }
         $deadline = [DateTime]::UtcNow.AddSeconds(15)
@@ -126,7 +126,7 @@ function Check-Window([string[]] $CommandArgs, [string] $Caption, [switch] $Thro
 }
 
 try {
-    foreach ($required in @('notes/ERPDERT.Notes.exe', 'notes/ICSharpCode.AvalonEdit.dll', 'notes/PresentationFramework.dll', 'notes/coreclr.dll', 'notes/AVALONEDIT-LICENSE.txt', 'Try Notes.cmd')) {
+    foreach ($required in @('notes/DERT.Notes.exe', 'notes/ICSharpCode.AvalonEdit.dll', 'notes/PresentationFramework.dll', 'notes/coreclr.dll', 'notes/AVALONEDIT-LICENSE.txt', 'UNICODE-LICENSE.txt', 'notes/UNICODE-LICENSE.txt', 'Try Notes.cmd')) {
         if (-not (Test-Path -LiteralPath (Join-Path $packagePath $required))) { throw "Missing packaged file: $required" }
     }
     $record.Add('PASS host, desktop runtime, editor dependency, license and first-launch shortcut packaged')
@@ -135,17 +135,17 @@ try {
     $process = [Diagnostics.Process]::Start($invalid)
     try {
         $output = $process.StandardOutput.ReadToEnd(); $errorOutput = $process.StandardError.ReadToEnd()
-        if (-not $process.WaitForExit(5000) -or $process.ExitCode -ne 2 -or -not $output.Contains('Use ERPDERT write') -or $errorOutput) { throw "CLI write argument validation failed: $output $errorOutput" }
+        if (-not $process.WaitForExit(5000) -or $process.ExitCode -ne 2 -or -not $output.Contains('Use DERT write') -or $errorOutput) { throw "CLI write argument validation failed: $output $errorOutput" }
         $record.Add('PASS CLI write rejects unsupported arguments before launch')
     }
     finally { $process.Dispose() }
-    Check-Window @('--still') 'Untitled.DERT / ERPDERT'
+    Check-Window @('--still') 'Untitled.DERT / DERT'
     $path = Join-Path $proofPath "my [notes] ' & literal.DERT"
     $source = "// MY WORDS`r`n// --`r`n// why ; keep ;; Every word stays. //`r`n"
     [IO.File]::WriteAllText($path, $source, [Text.UTF8Encoding]::new($true))
     $before = (Get-FileHash -LiteralPath $path).Hash
-    Check-Window @($path, '--still') ([IO.Path]::GetFileName($path) + ' / ERPDERT')
-    Check-Window @($path, '--still') ([IO.Path]::GetFileName($path) + ' / ERPDERT') -ThroughCli
+    Check-Window @($path, '--still') ([IO.Path]::GetFileName($path) + ' / DERT')
+    Check-Window @($path, '--still') ([IO.Path]::GetFileName($path) + ' / DERT') -ThroughCli
     if ((Get-FileHash -LiteralPath $path).Hash -ne $before) { throw 'Opening/reopening changed the original bytes.' }
     $record.Add('PASS mismatched title, BOM and original source unchanged across open/reopen')
     $listPath = Join-Path $proofPath "packing [list] ' & choices.DERT"
@@ -165,16 +165,23 @@ try {
     }
     finally { $process.Dispose() }
     $listBefore = (Get-FileHash -LiteralPath $listPath).Hash
-    Check-Window @($listPath, '--still') ([IO.Path]::GetFileName($listPath) + ' / ERPDERT') -ThroughCli
+    Check-Window @($listPath, '--still') ([IO.Path]::GetFileName($listPath) + ' / DERT') -ThroughCli
     if ((Get-FileHash -LiteralPath $listPath).Hash -ne $listBefore) { throw 'Opening the incomplete list changed its comma or annotation.' }
     $record.Add('PASS current-file authoring keeps the continuation comma and annotation untouched on open')
     $goodbyePath = Join-Path $proofPath "goodbye [fin] ' & florin.DERT"
     $goodbyeSource = "STERT`r`n// fin. stays a note`nfin. // Until tomorrow."
     [IO.File]::WriteAllText($goodbyePath, $goodbyeSource, [Text.UTF8Encoding]::new($true))
     $goodbyeBefore = (Get-FileHash -LiteralPath $goodbyePath).Hash
-    Check-Window @($goodbyePath, '--still') ([IO.Path]::GetFileName($goodbyePath) + ' / ERPDERT') -ThroughCli
+    Check-Window @($goodbyePath, '--still') ([IO.Path]::GetFileName($goodbyePath) + ' / DERT') -ThroughCli
     if ((Get-FileHash -LiteralPath $goodbyePath).Hash -ne $goodbyeBefore) { throw 'Opening the goodbye changed the literal source bytes.' }
     $record.Add('PASS goodbye opening preserves typed fin., BOM, mixed newlines and annotations')
+    $unicodePath = Join-Path $proofPath '日本語 café [notes].DERT'
+    $unicodeSource = "// café 日本語 👩‍💻`r`n// --------------`n// Keep these words."
+    [IO.File]::WriteAllText($unicodePath, $unicodeSource, [Text.UTF8Encoding]::new($true))
+    $unicodeBefore = (Get-FileHash -LiteralPath $unicodePath).Hash
+    Check-Window @($unicodePath, '--still') ([IO.Path]::GetFileName($unicodePath) + ' / DERT') -ThroughCli
+    if ((Get-FileHash -LiteralPath $unicodePath).Hash -ne $unicodeBefore) { throw 'Unicode title opening changed the source bytes.' }
+    $record.Add('PASS Unicode title opening preserves its spelling, cell-counted rule, BOM and mixed newlines')
     Write-Host ($record -join "`n")
     Write-Host "All $($record.Count) published notes checks passed. Evidence: $proofPath"
 }

@@ -3,6 +3,89 @@
 2026-09-06. This records implemented behavior, not a canonical language release.
 The original language notes and subsequent user decisions retain authority.
 
+## DERT ecosystem, update and where, 2026-09-09
+
+The latest user instruction makes DERT the executable/ecosystem and `update`
+the normalized original operation: `DERT update codex [updateme]`. Active .NET
+projects/namespaces, Windows launchers, CLI help and UDL bindings now share this
+identity. Original documents/corpus remain unchanged. `STERT ; ERPDERT ;; codex`
+is still accepted as an update binding; existing `.erpdert` recovery storage is
+preserved. `DERT_MOTION` takes precedence over its legacy environment name.
+
+`DERT where <application>` connects exact PATH and Windows registration evidence,
+verified Codex package roots and adjacent data candidates with bounded sizes.
+Names may contain spaces and Unicode letters; generated PowerShell arguments
+are quoted when needed. The location view retains paths, grouping reasons and
+partial findings; actual process/scan boundaries drive retained activity regions.
+
+`where codex --doctor` / `-dr` uses the same npm inventory/registry/dry-run adapter
+as update, then saves a snapshot-bound reinstall review. An exact `--apply` loads
+and verifies that saved proposal before starting a manager, rechecks inventory,
+flushes a receipt before mutation, uninstalls, reinstalls the pinned version and
+verifies inventory plus launcher/JavaScript entrypoint. Same-version repair is
+supported; downgrades and unsupported managers are refused. Captured NVM-style
+prefix links cannot silently retarget, including between uninstall and install.
+
+`STERT ; where ;; codex` and `commands ; doctor ;;` use existing language slots.
+MER keeps source line selection beside probe/copy/doctor review and offers its
+source-bound CLI apply command through details. Notes never execute operations;
+whole-plan eligibility remains separate from parser recovery. Source repairs
+invalidate prior application decisions.
+
+This is a non-atomic reinstall, with truthful failure receipts and an exact
+recovery request when changes began. It does not verify native Codex launch,
+authentication, health, arbitrary managers or an automatic conflict diagnosis.
+See [design, review and delivery evidence](superpowers/specs/2026-09-09-dert-ecosystem-design.md).
+
+Final source-only verification: **806 tests passed** (758 core/CLI/MER and 48
+native authoring), then fresh publish and **all eleven executable suites passed**.
+Wide/narrow source-connected views were inspected. Local discovery, simulated
+published doctor transactions and the separate real npm fixture transaction are
+recorded as distinct evidence in that design record. Earlier entries below retain
+the command/project names and evidence counts used when they were written.
+
+## Non-ASCII title-rule width, 2026-09-09
+
+The shared `Dert.Text` policy now connects parser diagnostics, exact title-rule
+repair and MER cell layout. It uses pinned Unicode 17.0.0 East Asian Width and
+emoji tables with .NET grapheme boundaries; ambiguous width is one cell. The
+checked-in generator verifies input hashes and retains Unicode's license in
+both published applications. Build/test/publish do not fetch Unicode data.
+This is a documented display policy, not a claim of universal terminal or
+independent Unicode segmentation conformance.
+
+Notes measures actual shaped title glyphs, including font fallback, and gives
+each authored dash the measured title width divided by the required cell count.
+Mismatches therefore remain proportionally short or long. Each dash keeps its
+source character position for caret, partial selection and editing. Changing
+fonts or window width remeasures without changing source or Undo history. A
+wrapped Unicode title keeps its source rule and explains the viewing limit.
+
+Accents (including decomposed spelling), CJK, Hebrew, Arabic, joined emoji,
+modifiers, flags, keycaps and variation selectors have explicit integration
+cases. Tabs, controls, orphan marks/joiners and unfinished Unicode retain their
+source with a specific unavailable-width explanation. Native Enter, imported
+preview, Apply, Undo/Redo, Save/reopen and CLI repair/undo preserve their existing
+effects and exact bytes. CLI escaping now shares MER's grapheme-preserving path,
+so joined emoji survives the comparison; hidden supplementary format characters
+remain visible as a single Unicode scalar escape.
+
+Verification: all 710 tests (662 core/CLI, 48 native) and all ten executable suites
+passed in fresh source-only inputs. The increment adds 26 core and 13 native
+cases; executable suites include 52 MER and 13 published Notes checks. Wide/narrow
+WPF frames were inspected, along with the refreshed executable's multilingual
+example output. These are actual rendered controls and executable transcripts,
+not OS desktop screenshots. Independent review found no actionable correctness
+issues; additional native mixed-script/font probes agreed within 0.033 DIP.
+
+Evidence: `.artifacts/unicode-source-only-final.log`,
+`.artifacts/source-only-proof/6130870814cd484d8050686910ba5c04`,
+`.artifacts/unicode-host-proof`, `.artifacts/unicode-publish-final.log` and
+`.artifacts/unicode-notes-published-final.log`. The Windows package includes
+`examples/world-notes.DERT`. See the [policy and inspected evidence](superpowers/specs/2026-09-09-unicode-title-width-design.md).
+OS clipboard/IME, accessibility tools, cross-terminal fonts and clean-account
+delivery remain separate evidence gaps on [TODO](../TODO.md).
+
 ## The original florin goodbye, 2026-09-09
 
 At a parsed chain ending, the Notes editor renders typed `fin.` as `ƒin.` with
@@ -761,18 +844,18 @@ or accessibility with screen readers; those need direct evaluation.
 
 ## Next complete interaction
 
-The next UDL recommendation is non-ASCII title width: establish a compatible
-visible-width policy across the Notes host, MER and title repair, then inspect
-combining marks, CJK, emoji and font fallback in the actual delivery surfaces.
+Non-ASCII title width is implemented as recorded above. The next UDL recommendation
+is reasoning that returns to its resting view after temporary inspection without
+hiding an active edit or losing the author's place.
 The florin goodbye, deliberate list completion and native title/free-note/reasoning
 host are implemented as recorded above. Clipboard/IME, dialog, long-note and
 clean-account validation remain. See [TODO](../TODO.md) for the broader order.
 
 Operational rehearsal already connects installation selection, manager inventory,
-registry evidence and dependency dry runs to the requesting source. Its remaining
-transaction includes separate approval, snapshot rechecks, execution and verified
-results; a manually copied update command does not implement that transaction.
+registry evidence and dependency dry runs to the requesting source. Doctor now
+adds an approved, guarded reinstall transaction. Update-only execution remains
+separate work; a manually copied updateme command does not implement that contract.
 
-This work does not authorize speculative comma removal, metadata reinterpretation,
-indentation, or package operations. The eventual adapters, editor integration,
+This work does not authorize speculative comma removal, metadata reinterpretation
+or indentation. The additional adapters, editor integration,
 installation experience, and note application remain separate product milestones.

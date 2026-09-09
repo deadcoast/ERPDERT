@@ -1,5 +1,5 @@
 using System.Text;
-using Erpdert.Cli;
+using Dert.Cli;
 using Spectre.Console;
 using Xunit;
 
@@ -65,7 +65,7 @@ public class CliTests
         var (exit, output) = Run("inspect", file.Path, "--expand", "--plain");
         Assert.Equal(0, exit);
         Assert.DoesNotContain(tag, output, StringComparison.Ordinal);
-        Assert.Contains("\\uDB40\\uDC01", output);
+        Assert.Contains("\\U000E0001", output);
         Assert.Contains(emoji, output, StringComparison.Ordinal);
     }
 
@@ -147,7 +147,7 @@ public class CliTests
         using var file = new InputFile("//");
         var (exit, output) = Run(command, file.Path, option, value);
         Assert.Equal(2, exit);
-        Assert.Contains("ERPDERT", output);
+        Assert.Contains("DERT", output);
         Assert.NotEmpty(output);
     }
 

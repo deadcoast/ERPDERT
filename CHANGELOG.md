@@ -1,5 +1,51 @@
 # Changelog
 
+## 2026-09-09 — DERT connects update, where and doctor
+
+- Normalized the ecosystem/executable to DERT and the original operation to
+  `DERT update codex`. Active projects, namespaces, launchers, UDL bindings and
+  generated commands share the identity. MER retains its targeted name; original
+  source artifacts and `.erpdert` recovery remain compatible.
+- Added `DERT where <application>`: shared exact PATH discovery, Windows
+  registration evidence, Codex package roots and adjacent folders, bounded sizes
+  and explicit partial findings in a connected ASCII view. Long paths retain
+  spaces and their connection margin; motion follows actual scan/process events.
+- Connected `--doctor` / `-dr` to update's npm checks and added a saved, exact
+  reinstall proposal, guarded approval, durable phase receipts and post-install
+  inventory/entrypoint verification. Source/manager changes and NVM prefix-link
+  retargeting stop the operation. Failed phases retain truthful recovery advice.
+- Bound the same requests to existing UDL slots and source-selected MER
+  probe/copy/doctor/details. Notes remain inert; source repair retains its own
+  approval and undo controls. Added a shipped where example and command guidance.
+- Evidence: **806 passing tests** (758 core/CLI/MER, 48 native authoring), a fresh
+  source-only build/publish and **all eleven executable suites**, including eight
+  location/doctor checks. Inspected wide/narrow rendered engine frames and actual
+  published local discovery. Real npm 11.13.0 separately completed a disposable
+  local-tarball uninstall/reinstall with scripts disabled. No user application
+  was changed; native Codex launch/auth health remains unverified.
+
+See the [design and delivery record](docs/superpowers/specs/2026-09-09-dert-ecosystem-design.md).
+
+## 2026-09-09 — titles keep their language
+
+- Connected parser findings, title repairs and MER to one grapheme/cell policy
+  using pinned Unicode 17.0.0 width and emoji data. Accents, CJK, right-to-left
+  text, joined emoji, flags and keycaps keep their exact source spelling.
+- Notes measures the actual font-shaped title and fits each source dash to its
+  share of that width. Incorrect counts remain visibly short or long. Enter,
+  previews, partial selection, Undo/Redo and guarded Save/reopen stay integrated.
+- Font changes remeasure without editing. Wrapped titles retain their rule and
+  explain the wrap; tabs, controls and incomplete characters explain unavailable
+  width without changing the source. Cross-terminal font conformance is not claimed.
+- Preserved joined emoji in CLI repair comparisons and added the packaged
+  `examples/world-notes.DERT`. Unicode data and its license ship locally, with a
+  hash-checked maintenance generator; builds need no Unicode download.
+- Inspected wide/narrow WPF frames and published MER output. All 710 tests and
+  ten executable suites passed from source-only inputs, including 26 new core
+  cases, 13 new native cases, 52 MER checks and 13 published Notes checks. The
+  Windows package is refreshed. [TODO](TODO.md) retains the remaining authoring
+  work and recommends temporary reasoning inspection/refolding next.
+
 ## 2026-09-09 — the original florin goodbye
 
 - Typed `fin.` automatically appears as `ƒin.` at a recognized chain ending in

@@ -47,10 +47,13 @@ new rule immediately after the title; never replace prose on the following line.
 Recognized correct rules are unchanged. Structured reasoning cannot become a
 title merely to supply a repair.
 
-The current ASCII display-width policy remains explicit. Non-ASCII/control
-characters in a title require a future measured width policy; this action must
-explain that limit and leave them unchanged. No silent transliteration, trimming
-of title words, or speculative Unicode width is permitted.
+The initial ASCII-only policy was extended at the user's direction on 2026-09-09
+by the [shared Unicode width policy](2026-09-09-unicode-title-width-design.md).
+Parser diagnostics, repair and MER now use one grapheme/cell count. Tabs,
+controls, orphan marks/joiners and unfinished Unicode retain their source and
+explain unavailable width. No silent transliteration, normalization or trimming
+of title words is permitted. The linked record distinguishes cell policy from
+native font measurements and carries the inspected evidence and remaining limits.
 
 Source newline style is local to the title. Insertions use its existing newline;
 a title ending at EOF without a newline uses CRLF, the declared Windows-first
@@ -113,7 +116,7 @@ or failed, including unavailable width. Invalid command options exit 2.
 ## Acceptance and proof
 
 Exercise absent/short/long/bare/correct rules; following prose and reasoning;
-CR/LF/CRLF, BOM, mixed line endings and EOF; unavailable Unicode width; stale
+CR/LF/CRLF, BOM, mixed line endings and EOF; supported and unavailable title widths; stale
 preview; canceled prompt; applied/undone receipts; edited-after-apply refusal;
 locked/read-only/hard-linked paths; corrupt receipts; failed writes and rollback.
 Use actual temporary files for file behavior. Inject only the commit step to

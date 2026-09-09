@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string] $Executable = (Join-Path $PSScriptRoot '..\.artifacts\win-x64\ERPDERT.exe')
+    [string] $Executable = (Join-Path $PSScriptRoot '..\.artifacts\win-x64\DERT.exe')
 )
 
 $ErrorActionPreference = 'Stop'

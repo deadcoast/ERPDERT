@@ -1,3 +1,5 @@
+using Dert.Text;
+
 namespace Dert.Core;
 
 public enum TitleRepairState { Ready, Aligned, NoTitle, Unavailable }
@@ -44,12 +46,11 @@ public static class TitleRuleRepair
         if (title is null)
             return new(source.Text, TitleRepairState.NoTitle,
                 "There is no main title to align. Notes and reasoning have been left alone.");
-        if (title.Content.Text.Any(c => c is < ' ' or > '~'))
+        if (!DisplayCells.TryMeasureTitle(title.Content.Text, out var width, out var reason))
             return new(source.Text, TitleRepairState.Unavailable,
-                "This title uses characters whose visible width this repair cannot yet measure reliably. Your words stay unchanged.",
+                reason,
                 title.LineNumber, title.LineNumber + 1);
 
-        var width = title.Content.Text.Length;
         var titleLine = source.Lines[title.LineNumber - 1];
         var next = source.Lines.ElementAtOrDefault(title.LineNumber);
         var existing = next is null ? "" : source.Slice(next.ContentSpan);

@@ -2,8 +2,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using Dert.Core;
-using Erpdert.Cli;
-using Erpdert.Cli.Repairs;
+using Dert.Cli;
+using Dert.Cli.Repairs;
 using Spectre.Console;
 using Xunit;
 
@@ -29,7 +29,7 @@ public class RepairFollowthroughTests
 
     private static string Hash(string source) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(source)));
     private static string[] Links(string output) => output.Split('\n')
-        .Where(l => (l.StartsWith("ERPDERT repair ", StringComparison.Ordinal) || l.StartsWith("& ", StringComparison.Ordinal))
+        .Where(l => (l.StartsWith("DERT repair ", StringComparison.Ordinal) || l.StartsWith("& ", StringComparison.Ordinal))
             && l.Contains("--from-lint", StringComparison.Ordinal))
         .Select(l => l.TrimEnd('\r')).ToArray();
     private static string Verified(string output)
@@ -50,13 +50,13 @@ public class RepairFollowthroughTests
         var result = Run(["repair", file.Path, "--plain"], _ => true);
         Assert.Equal(0, result.Exit); // Success belongs to this edit, not all lint findings.
         Assert.Equal(Encoding.UTF8.GetBytes(expected), File.ReadAllBytes(file.Path));
-        Assert.Equal($"ERPDERT repair '{file.Path}' --at 4 --from-lint {Hash(expected)} --plain", Assert.Single(Links(result.Output)));
+        Assert.Equal($"DERT repair '{file.Path}' --at 4 --from-lint {Hash(expected)} --plain", Assert.Single(Links(result.Output)));
         var verified = Verified(result.Output);
         Assert.Contains($"DERT1001 · ERROR · {file.Path}:4", verified);
         Assert.Contains("1 finding still present", verified);
         Assert.DoesNotContain("DERT2003", verified);
         Assert.DoesNotContain("--apply", verified);
-        Assert.Contains($"ERPDERT undo '{file.Path}' --plain", result.Output);
+        Assert.Contains($"DERT undo '{file.Path}' --plain", result.Output);
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class RepairFollowthroughTests
         Assert.Equal(0, result.Exit);
         Assert.Contains("NOTE BOUNDARY CLOSED", result.Output);
         Assert.Equal(expected, File.ReadAllText(file.Path));
-        Assert.Equal($"ERPDERT repair '{file.Path}' --at 4 --from-lint {Hash(expected)} --plain", Assert.Single(Links(result.Output)));
+        Assert.Equal($"DERT repair '{file.Path}' --at 4 --from-lint {Hash(expected)} --plain", Assert.Single(Links(result.Output)));
         Assert.Contains("the selected note boundary", Verified(result.Output));
     }
 
@@ -89,8 +89,8 @@ public class RepairFollowthroughTests
         Assert.Contains("in the restored original", verified);
         Assert.Equal(new[]
         {
-            $"ERPDERT repair '{file.Path}' --from-lint {Hash(source)} --plain",
-            $"ERPDERT repair '{file.Path}' --at 2 --from-lint {Hash(source)} --plain"
+            $"DERT repair '{file.Path}' --from-lint {Hash(source)} --plain",
+            $"DERT repair '{file.Path}' --at 2 --from-lint {Hash(source)} --plain"
         }, Links(verified));
         Assert.DoesNotContain("--apply", verified);
     }
@@ -108,7 +108,7 @@ public class RepairFollowthroughTests
         var list = Assert.Single(sections, s => s.StartsWith("DERT3003", StringComparison.Ordinal));
         Assert.Contains("Inline-note closure is not available", inline);
         Assert.Contains("CHOOSE / IN NOTES", list);
-        Assert.Contains($"ERPDERT write '{file.Path}'", list);
+        Assert.Contains($"DERT write '{file.Path}'", list);
         Assert.Empty(Links(inline));
         Assert.Empty(Links(list));
         Assert.Contains("--at 6", Assert.Single(Links(verified)));
@@ -117,7 +117,7 @@ public class RepairFollowthroughTests
     [Fact]
     public void Unsupported_title_width_is_not_advertised_as_a_followup_repair()
     {
-        using var file = new ScratchDocument("// café\n// why ; notes ;;\n// entry");
+        using var file = new ScratchDocument("// first\tsecond\n// why ; notes ;;\n// entry");
         var result = Run(["repair", file.Path, "--at", "2", "--close-before", "eof", "--plain"], _ => true);
         Assert.Equal(0, result.Exit);
         var verified = Verified(result.Output);
@@ -168,9 +168,9 @@ public class RepairFollowthroughTests
         var path = Path.Combine(file.DirectoryPath, "Ryan’s 'note\u200B[red]$`.DERT");
         File.Move(file.Path, path);
         var result = Run(["repair", Path.GetRelativePath(Environment.CurrentDirectory, path), "--plain"], _ => true,
-            width: 32, invocation: [@"C:\Program Files\dotnet\dotnet.exe", @"C:\my app\ERPDERT.dll"]);
+            width: 32, invocation: [@"C:\Program Files\dotnet\dotnet.exe", @"C:\my app\DERT.dll"]);
         var command = Assert.Single(Links(result.Output));
-        Assert.StartsWith("& 'C:\\Program Files\\dotnet\\dotnet.exe' 'C:\\my app\\ERPDERT.dll' repair ", command);
+        Assert.StartsWith("& 'C:\\Program Files\\dotnet\\dotnet.exe' 'C:\\my app\\DERT.dll' repair ", command);
         Assert.Contains("[char]0x2019", command);
         Assert.Contains("[char]0x200B", command);
         Assert.Contains("''note", command);
@@ -209,7 +209,7 @@ public class RepairFollowthroughTests
         if (kind == "undo") service.Apply(service.Preview(file.Path));
         string[] scope = kind == "note" ? ["--at", "2", "--close-before", "eof"] : [];
         var preview = Run([kind == "undo" ? "undo" : "repair", file.Path, .. scope, "--plain"]);
-        var command = Assert.Single(preview.Output.Split('\n'), l => l.StartsWith("ERPDERT ", StringComparison.Ordinal) && l.Contains("--apply", StringComparison.Ordinal));
+        var command = Assert.Single(preview.Output.Split('\n'), l => l.StartsWith("DERT ", StringComparison.Ordinal) && l.Contains("--apply", StringComparison.Ordinal));
         Assert.Contains(" --plain --apply ", command);
     }
 
@@ -222,7 +222,7 @@ public class RepairFollowthroughTests
         var result = Run(["repair", file.Path, "--plain"], _ => true, output: output);
         Assert.True(output.Changed);
         Assert.Equal(0, result.Exit);
-        Assert.Equal($"ERPDERT repair '{file.Path}' --at 3 --from-lint {Hash(expected)} --plain", Assert.Single(Links(result.Output)));
+        Assert.Equal($"DERT repair '{file.Path}' --at 3 --from-lint {Hash(expected)} --plain", Assert.Single(Links(result.Output)));
         Assert.Equal("// LATER WORDS", File.ReadAllText(file.Path));
         var stale = Run(["repair", file.Path, "--at", "3", "--from-lint", Hash(expected), "--plain"]);
         Assert.Equal(1, stale.Exit);

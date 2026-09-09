@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
-using Erpdert.Cli;
+using Dert.Cli;
 using Spectre.Console;
 using Xunit;
 
@@ -17,9 +17,9 @@ public class MerHandoffTests
         using var file = new ScratchDocument(source);
         var relative = Path.GetRelativePath(Environment.CurrentDirectory, file.Path);
         var result = Run(["mer", relative, replay ? "--replay" : "--still", "--plain", "--details"],
-            invocation: [@"C:\my app\ERPDERT.exe"]);
+            invocation: [@"C:\my app\DERT.exe"]);
         Assert.Equal(0, result.Exit);
-        Assert.Equal($"& 'C:\\my app\\ERPDERT.exe' repair '{file.Path}' --from-lint {Hash(source)} --plain", Assert.Single(Commands(result.Output)));
+        Assert.Equal($"& 'C:\\my app\\DERT.exe' repair '{file.Path}' --from-lint {Hash(source)} --plain", Assert.Single(Commands(result.Output)));
         Assert.Contains("REHEARSE / TITLE RULE", result.Output);
         Assert.DoesNotContain("--apply", result.Output);
         Assert.Equal(Encoding.UTF8.GetBytes(source), File.ReadAllBytes(file.Path));
@@ -61,7 +61,7 @@ public class MerHandoffTests
 
     [Theory]
     [InlineData("STERT\n// note\nƒin.", false)]
-    [InlineData("// café", true)]
+    [InlineData("// first\tsecond", true)]
     public void Clear_or_unsupported_source_never_advertises_an_unavailable_repair(string source, bool finding)
     {
         using var file = new ScratchDocument(source);
@@ -76,9 +76,9 @@ public class MerHandoffTests
     {
         const string source = "items ; list ;;\nsnacks,";
         using var file = new ScratchDocument(source);
-        var result = Run(["mer", file.Path, "--plain", "--details"], invocation: [@"C:\my app\ERPDERT.exe"]);
+        var result = Run(["mer", file.Path, "--plain", "--details"], invocation: [@"C:\my app\DERT.exe"]);
         Assert.Contains("CHOOSE / IN NOTES", result.Output);
-        Assert.Equal($"& 'C:\\my app\\ERPDERT.exe' write '{file.Path}'", Assert.Single(Commands(result.Output)));
+        Assert.Equal($"& 'C:\\my app\\DERT.exe' write '{file.Path}'", Assert.Single(Commands(result.Output)));
         Assert.DoesNotContain("--from-lint", result.Output);
         Assert.DoesNotContain("--apply", result.Output);
         Assert.Equal(source, File.ReadAllText(file.Path));
@@ -86,7 +86,7 @@ public class MerHandoffTests
 
     private static string Hash(string text) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text)));
     private static string[] Commands(string output) => output.Split('\n')
-        .Where(line => line.StartsWith("ERPDERT repair ", StringComparison.Ordinal) || line.StartsWith("& ", StringComparison.Ordinal))
+        .Where(line => line.StartsWith("DERT repair ", StringComparison.Ordinal) || line.StartsWith("& ", StringComparison.Ordinal))
         .Select(line => line.TrimEnd('\r')).ToArray();
 
     private static (int Exit, string Output) Run(string[] args, StringWriter? writer = null, string[]? invocation = null)
@@ -110,7 +110,7 @@ public class MerHandoffTests
         private bool changed;
         public override void Write(string? value)
         {
-            if (!changed && value?.Contains("ERPDERT", StringComparison.Ordinal) == true)
+            if (!changed && value?.Contains("DERT", StringComparison.Ordinal) == true)
             {
                 changed = true;
                 change();

@@ -43,7 +43,7 @@ public class TitleRuleRepairTests
     [InlineData("STERT\n// a note\nƒin.", TitleRepairState.NoTitle)]
     [InlineData("// HOW ; title ;; reason //", TitleRepairState.NoTitle)]
     [InlineData("", TitleRepairState.NoTitle)]
-    [InlineData("// café\n// --", TitleRepairState.Unavailable)]
+    [InlineData("// café\n// ----", TitleRepairState.Aligned)]
     [InlineData("// first\tsecond", TitleRepairState.Unavailable)]
     public void Non_candidates_remain_unchanged_and_explain_their_state(string text, TitleRepairState state)
     {

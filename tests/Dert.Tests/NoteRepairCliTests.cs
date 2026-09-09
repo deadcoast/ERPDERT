@@ -1,6 +1,6 @@
 using Dert.Core;
-using Erpdert.Cli;
-using Erpdert.Cli.Repairs;
+using Dert.Cli;
+using Dert.Cli.Repairs;
 using Spectre.Console;
 using Xunit;
 
@@ -98,7 +98,7 @@ public class NoteRepairCliTests
         Assert.Contains("UNDO REHEARSAL", preview.Output);
         Assert.Contains("original unfinished grouping", preview.Output);
         Assert.Matches(@"−\s+3 │ //", preview.Output);
-        var undoCommand = Assert.Single(preview.Output.Split('\n'), l => l.StartsWith("ERPDERT undo '"));
+        var undoCommand = Assert.Single(preview.Output.Split('\n'), l => l.StartsWith("DERT undo '"));
         Assert.DoesNotContain("--close-before", undoCommand);
         Assert.Equal(0, Run(["undo", file.Path, "--plain"], _ => true).Exit);
         Assert.Equal(Source, File.ReadAllText(file.Path));
@@ -205,7 +205,7 @@ public class NoteRepairCliTests
             var result = Run(args, width: 32);
             Assert.Equal(0, result.Exit);
             Assert.DoesNotContain('\u001b', result.Output);
-            var commands = result.Output.Split('\n').Where(l => l.StartsWith("ERPDERT repair '"));
+            var commands = result.Output.Split('\n').Where(l => l.StartsWith("DERT repair '"));
             Assert.Equal(selected ? 1 : 3, commands.Count());
             Assert.All(commands, c => Assert.Contains("Ryan''s [red]notes.DERT' --at 1 --close-before", c));
         }

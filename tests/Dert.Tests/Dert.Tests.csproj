@@ -10,7 +10,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <ProjectReference Include="../../src/Dert.Core/Dert.Core.csproj" />
-    <ProjectReference Include="../../src/Erpdert.Cli/Erpdert.Cli.csproj" />
+    <ProjectReference Include="../../src/Dert.Cli/Dert.Cli.csproj" />
     <None Include="../Fixtures/*.DERT" Link="Fixtures/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

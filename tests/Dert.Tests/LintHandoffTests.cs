@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using Dert.Core;
-using Erpdert.Cli;
+using Dert.Cli;
 using Spectre.Console;
 using Xunit;
 
@@ -28,7 +28,7 @@ public class LintHandoffTests
 
     private static string Hash(string text) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text)));
     private static string[] Commands(string output) => output.Split('\n')
-        .Where(l => l.StartsWith("ERPDERT repair ", StringComparison.Ordinal) || l.StartsWith("& ", StringComparison.Ordinal))
+        .Where(l => l.StartsWith("DERT repair ", StringComparison.Ordinal) || l.StartsWith("& ", StringComparison.Ordinal))
         .Select(l => l.TrimEnd('\r')).ToArray();
 
     [Theory]
@@ -44,7 +44,7 @@ public class LintHandoffTests
         Assert.Equal(0, result.Exit);
         Assert.Contains($"{file.Path}:{findingLine}", result.Output);
         Assert.Contains("REHEARSE / TITLE RULE", result.Output);
-        Assert.Equal($"ERPDERT repair '{file.Path}' --from-lint {Hash(source)} --plain", Assert.Single(Commands(result.Output)));
+        Assert.Equal($"DERT repair '{file.Path}' --from-lint {Hash(source)} --plain", Assert.Single(Commands(result.Output)));
         Assert.DoesNotContain("--apply", result.Output);
         Assert.Equal(Encoding.UTF8.GetBytes(source), File.ReadAllBytes(file.Path));
         Assert.Single(Directory.EnumerateFileSystemEntries(file.DirectoryPath));
@@ -59,16 +59,16 @@ public class LintHandoffTests
         Assert.Equal(1, result.Exit);
         Assert.Equal(new[]
         {
-            $"ERPDERT repair '{file.Path}' --at 2 --from-lint {Hash(source)} --plain",
-            $"ERPDERT repair '{file.Path}' --at 5 --from-lint {Hash(source)} --plain"
+            $"DERT repair '{file.Path}' --at 2 --from-lint {Hash(source)} --plain",
+            $"DERT repair '{file.Path}' --at 5 --from-lint {Hash(source)} --plain"
         }, Commands(result.Output));
         Assert.DoesNotContain("--close-before", result.Output);
         Assert.DoesNotContain("--apply", result.Output);
     }
 
     [Theory]
-    [InlineData("// café", "DERT2003", "width")]
-    [InlineData("// café\n// ----", "DERT3004", "width")]
+    [InlineData("// first\tsecond", "DERT2003", "width")]
+    [InlineData("// first\tsecond\n// ----", "DERT3004", "width")]
     [InlineData("// why ; t ;; unfinished", "DERT1002", "Inline-note")]
     public void Unsupported_findings_explain_the_missing_capability_without_a_dead_end_repair(string source, string code, string reason)
     {
@@ -90,7 +90,7 @@ public class LintHandoffTests
         Assert.Contains("CHOOSE / IN NOTES", result.Output);
         Assert.Contains("Add another item and Finish this list", result.Output);
         Assert.Contains("current file, which may differ", result.Output);
-        Assert.Contains($"ERPDERT write '{file.Path}'", result.Output);
+        Assert.Contains($"DERT write '{file.Path}'", result.Output);
         Assert.DoesNotContain("--from-lint", result.Output);
         Assert.DoesNotContain("--apply", result.Output);
         Assert.Equal(source, File.ReadAllText(file.Path));
@@ -137,9 +137,9 @@ public class LintHandoffTests
     {
         using var file = new ScratchDocument("// TITLE");
         var relative = Path.GetRelativePath(Environment.CurrentDirectory, file.Path);
-        var result = Run(["lint", relative, "--plain"], invocation: [@"C:\Program Files\dotnet\dotnet.exe", @"C:\my app\ERPDERT.dll"]);
+        var result = Run(["lint", relative, "--plain"], invocation: [@"C:\Program Files\dotnet\dotnet.exe", @"C:\my app\DERT.dll"]);
         var command = Assert.Single(Commands(result.Output));
-        Assert.StartsWith("& 'C:\\Program Files\\dotnet\\dotnet.exe' 'C:\\my app\\ERPDERT.dll' repair '", command);
+        Assert.StartsWith("& 'C:\\Program Files\\dotnet\\dotnet.exe' 'C:\\my app\\DERT.dll' repair '", command);
         Assert.Contains(file.Path, command);
         Assert.DoesNotContain($"repair '{relative}'", command);
     }
@@ -203,8 +203,8 @@ public class LintHandoffTests
         var choices = Run(["repair", file.Path, "--at", "1", "--from-lint", Hash(source), "--plain"]);
         Assert.Equal(new[]
         {
-            $"ERPDERT repair '{file.Path}' --at 1 --close-before 2 --from-lint {Hash(source)} --plain",
-            $"ERPDERT repair '{file.Path}' --at 1 --close-before eof --from-lint {Hash(source)} --plain"
+            $"DERT repair '{file.Path}' --at 1 --close-before 2 --from-lint {Hash(source)} --plain",
+            $"DERT repair '{file.Path}' --at 1 --close-before eof --from-lint {Hash(source)} --plain"
         }, Commands(choices.Output));
         var selected = Run(["repair", file.Path, "--at", "1", "--close-before", "eof", "--from-lint", Hash(source), "--plain"],
             interactive: true, confirm: _ => throw new InvalidOperationException("Selection from lint asked to write."));

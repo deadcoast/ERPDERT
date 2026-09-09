@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Erpdert.Cli.Operations;
+using Dert.Cli.Operations;
 using Xunit;
 
 namespace Dert.Tests;
@@ -10,7 +10,7 @@ public class UpdateRehearsalTests
     public void Narrow_output_keeps_target_evidence_on_one_copyable_logical_line()
     {
         using var fixture = new UpdateFixture();
-        var (exit, output) = UpdateCliTests.Invoke(["codex", "updateme", "--plain"], fixture.Prefix, fixture, width: 40);
+        var (exit, output) = UpdateCliTests.Invoke(["update", "codex", "updateme", "--plain"], fixture.Prefix, fixture, width: 40);
         Assert.Equal(0, exit);
         Assert.Contains("✓ TARGET FOLDER" + Environment.NewLine + "  " + fixture.Prefix + Environment.NewLine, output);
     }
@@ -170,7 +170,7 @@ public class UpdateRehearsalTests
     public void Dert_runs_the_same_rehearsal_and_attributes_the_request_to_its_statement()
     {
         using var fixture = new UpdateFixture();
-        using var file = new ScratchDocument("STERT ; ERPDERT ;; codex\n// keep my reasoning\ncommands ; updateme ;;\nƒin.");
+        using var file = new ScratchDocument("STERT ; update ;; codex\n// keep my reasoning\ncommands ; updateme ;;\nƒin.");
         var (exit, output) = UpdateCliTests.Invoke(["run", file.Path, "--plain"], fixture.Prefix, fixture);
         Assert.Equal(0, exit);
         Assert.Contains("keep my reasoning", output);
@@ -186,7 +186,7 @@ public class UpdateRehearsalTests
     {
         using var fixture = new UpdateFixture();
         var other = fixture.Files.Package("other", "8.0.0");
-        var (exit, output) = UpdateCliTests.Invoke(["codex", "updateme", "--path", Path.Combine(fixture.Prefix, "codex.ps1"), "--plain"], other + ";" + fixture.Prefix, fixture);
+        var (exit, output) = UpdateCliTests.Invoke(["update", "codex", "updateme", "--path", Path.Combine(fixture.Prefix, "codex.ps1"), "--plain"], other + ";" + fixture.Prefix, fixture);
         Assert.Equal(0, exit);
         Assert.Contains("1.0.0 → 2.0.0", output);
         Assert.All(fixture.Calls, call => Assert.Equal(fixture.Prefix, call.WorkingDirectory));
@@ -200,7 +200,7 @@ public class UpdateRehearsalTests
         using var fixture = new UpdateFixture();
         var selected = Path.Combine(fixture.Prefix, ".", "codex.ps1");
         if (forwardSlashes) selected = selected.Replace('\\', '/');
-        var (exit, output) = UpdateCliTests.Invoke(["codex", "updateme", "--path", selected, "--plain"], fixture.Prefix, fixture);
+        var (exit, output) = UpdateCliTests.Invoke(["update", "codex", "updateme", "--path", selected, "--plain"], fixture.Prefix, fixture);
         Assert.Equal(0, exit);
         Assert.Contains("REHEARSED / NOT APPLIED", output);
     }
@@ -234,7 +234,7 @@ internal sealed class UpdateFixture : ICommandRunner, IDisposable
         Metadata = Path.Combine(Prefix, "node_modules", "@openai", "codex", "package.json");
         Original = File.ReadAllText(Metadata);
     }
-    public (int Exit, string Output) Run() => UpdateCliTests.Invoke(["codex", "updateme", "--plain"], Prefix, this);
+    public (int Exit, string Output) Run() => UpdateCliTests.Invoke(["update", "codex", "updateme", "--plain"], Prefix, this);
     public CommandResult Run(CommandRequest request)
     {
         Calls.Add(request);

@@ -1,6 +1,6 @@
 using System.Text;
-using Erpdert.Cli.Authoring;
-using Erpdert.Cli.Repairs;
+using Dert.Cli.Authoring;
+using Dert.Cli.Repairs;
 using Xunit;
 
 namespace Dert.Tests;
