@@ -107,7 +107,8 @@ public class RepairFollowthroughTests
         var inline = Assert.Single(sections, s => s.StartsWith("DERT1002", StringComparison.Ordinal));
         var list = Assert.Single(sections, s => s.StartsWith("DERT3003", StringComparison.Ordinal));
         Assert.Contains("Inline-note closure is not available", inline);
-        Assert.Contains("List-completion repair is not available", list);
+        Assert.Contains("CHOOSE / IN NOTES", list);
+        Assert.Contains($"ERPDERT write '{file.Path}'", list);
         Assert.Empty(Links(inline));
         Assert.Empty(Links(list));
         Assert.Contains("--at 6", Assert.Single(Links(verified)));

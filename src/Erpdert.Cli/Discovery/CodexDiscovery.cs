@@ -2,14 +2,16 @@ namespace Erpdert.Cli.Discovery;
 
 public static class CodexDiscovery
 {
-    public static DiscoveryReport Scan(DiscoveryEnvironment environment)
+    public static DiscoveryReport Scan(DiscoveryEnvironment environment, CancellationToken cancellation = default)
     {
+        cancellation.ThrowIfCancellationRequested();
         var issues = new List<DiscoveryIssue>();
         var directories = new List<SearchDirectory>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var entries = environment.SearchPath.Split(';');
         for (var index = 0; index < entries.Length; index++)
         {
+            cancellation.ThrowIfCancellationRequested();
             var entry = entries[index].Trim();
             if (entry.Length == 0) continue;
             try
@@ -48,8 +50,10 @@ public static class CodexDiscovery
         var matches = new List<CommandMatch>();
         foreach (var directory in directories)
         {
+            cancellation.ThrowIfCancellationRequested();
             foreach (var extension in extensions)
             {
+                cancellation.ThrowIfCancellationRequested();
                 var path = Path.Combine(directory.Path, "codex" + extension);
                 try
                 {

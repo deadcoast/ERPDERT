@@ -5,18 +5,43 @@ using Spectre.Console;
 
 namespace Erpdert.Cli;
 
-internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain, string[]? invocation = null)
+internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain, string[]? invocation = null, bool still = false)
 {
     public void Help()
     {
         Banner("TOOLS + NOTES / WORKBENCH");
+        Line("ERPDERT demo", SemanticRole.Sinker);
+        Line("    Try five offline cases. Repeat, inspect step by step, compare motion/still/plain, and keep a personal review card. No file writes or installs.", SemanticRole.ContextNote);
+        Line("    --case title|context|unfinished|unicode|failure selects a case; --all runs without prompts; --step pauses at recorded evidence.", SemanticRole.ContextNote);
+        Line("");
+        Line("ERPDERT write [file.DERT] [--still]", SemanticRole.Sinker);
+        Line("    Write in the bundled Windows notes window. Titles align on Enter; source colors and reasoning folds follow your words. Ctrl+S saves; Ctrl+Z undoes buffer edits.", SemanticRole.ContextNote);
+        Line("    Opened mismatched titles offer a preview. Save retains original encoding/newlines and checks for external changes; Save as creates a new copy.", SemanticRole.ContextNote);
+        Line("");
+        Line("ERPDERT mer", SemanticRole.Sinker);
+        Line("    Open the bundled note in MER's ASCII source window, with a short edge trace as recorded connections appear.", SemanticRole.ContextNote);
+        Line("ERPDERT mer 'my notes.DERT' [--replay] [--still] [--plain] [--details | --review]", SemanticRole.Sinker);
+        Line("    Keep your numbered source beside its explanation. --replay is read-only; --still removes motion. Reading never changes your file.", SemanticRole.ContextNote);
+        Line("    After analysis: next/prev follows connections, at <line> inspects source, details opens the full record, repair shows previews, Enter finishes.", SemanticRole.ContextNote);
+        Line("    Notes: find <text> searches captured source literally; hit <number> selects a result; hits <page> lists matches. owner follows the actual parent; structure reveals fields and entries.", SemanticRole.ContextNote);
+        Line("    examples/weekend.DERT is ready for notes-only review. Try find quiet, hit 2, then owner. Search and inspection never execute text or change your file.", SemanticRole.ContextNote);
+        Line("    repair title previews the title rule. An unfinished note offers close <line|eof>. before/after compares; apply explicitly saves with verified undo storage; cancel leaves. undo previews the saved original.", SemanticRole.ContextNote);
+        Line("    At a supported Codex discovery request, probe reads local launchers and package metadata. copy <number> compares recorded installations. No programs are started.", SemanticRole.ContextNote);
+        Line("    At an updateme request, rehearse finds local copies; copy <number> chooses one. check starts npm inventory, registry and dependency dry-run queries, which may write npm cache/logs. No package update is applied.", SemanticRole.ContextNote);
+        Line("    --review accepts review commands even with redirected input, including explicit apply. Probing, update checks and repairs check the captured source revision.", SemanticRole.ContextNote);
+        Line("    --details prints the full record and source-bound PowerShell previews directly, including when output is redirected.", SemanticRole.ContextNote);
+        Line("");
         Line("ERPDERT codex", SemanticRole.Sinker);
         Line("    Discover Windows command routes, package evidence, and competing installations. Read-only.", SemanticRole.ContextNote);
+        Line("ERPDERT codex updateme", SemanticRole.Sinker);
+        Line("    Open an update rehearsal: check this npm's inventory, the latest release, and a dependency dry run. No package update is applied.", SemanticRole.ContextNote);
+        Line("    Multiple copies? Follow an offered --path command to select the exact one.", SemanticRole.ContextNote);
         Line("ERPDERT run my-tools.DERT", SemanticRole.Sinker);
         Line("    Let STERT ; ERPDERT ;; codex request discovery from your DERT, with its notes alongside the result.", SemanticRole.ContextNote);
         Line("ERPDERT run my-tools.DERT --preview", SemanticRole.Sinker);
         Line("    See what your DERT requests before searching. Your file is not changed.", SemanticRole.ContextNote);
         Line("The published folder includes examples/my-tools.DERT, ready to preview and run.", SemanticRole.ContextNote);
+        Line("Add commands ; updateme ;; inside that chain to request the same update rehearsal. examples/update-my-tools.DERT is ready to try.", SemanticRole.ContextNote);
         Line("");
         Line("Your notes already have structure. See what belongs where.", SemanticRole.Text);
         Line("");
@@ -38,10 +63,11 @@ internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain,
         Line("    Rehearse restoring the original bytes from the latest title or note-boundary repair.", SemanticRole.ContextNote);
         Line("");
         Line("--plain removes color. inspect and lint never write your source.", SemanticRole.ContextNote);
+        Line("--still removes motion from mer and update rehearsals (also through run). ERPDERT_MOTION=off disables motion for this environment.", SemanticRole.ContextNote);
         Line("Lint's --from-lint commands check the same source bytes and open previews without write prompts. They cannot be combined with --apply.", SemanticRole.ContextNote);
         Line("repair and undo wait for confirmation. Redirected output is preview-only unless you supply --apply <token> for a selected edit.", SemanticRole.ContextNote);
-        Line("Title repair: ASCII width, UTF-8 documents, regular local Windows files. No DERT operations are executed.", SemanticRole.ContextNote);
-        Line("Metadata interpretation and package operations are not implemented.", SemanticRole.ContextNote);
+        Line("Title repair: ASCII width, UTF-8 documents, regular local Windows files. Repairs never execute DERT operations.", SemanticRole.ContextNote);
+        Line("updateme runs the selected npm's queries/dry run and may write npm cache/logs. Package-changing execution inside ERPDERT and general metadata interpretation remain unimplemented.", SemanticRole.ContextNote);
         Line("ƒin.", SemanticRole.Boundary);
     }
 

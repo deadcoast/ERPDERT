@@ -22,18 +22,23 @@ internal sealed partial class DocumentRenderer
             if (node is ChainNode chain)
             {
                 Line("");
-                if (byLine.ContainsKey(chain.LineNumber))
-                    Line($"STEP {++number:00} / ERPDERT codex", SemanticRole.Reasoning);
+                if (byLine.TryGetValue(chain.LineNumber, out var step))
+                    Line($"STEP {++number:00} / {step.Command}", SemanticRole.Reasoning);
                 else
                     Line(chain.Header.Hook is null && chain.Header.Line is null
                         ? "CONTEXT CHAIN / no header operation requested"
                         : "CHAIN / no supported header operation", SemanticRole.ContextNote);
                 EvidencePath($"FROM {path}:{chain.LineNumber}");
                 OperationSource(document, chain);
-                if (byLine.ContainsKey(chain.LineNumber))
+                if (step is not null)
                 {
-                    Line("MEANS   Find local Codex command routes, packages, and dependency evidence.", SemanticRole.Target);
-                    Line("EFFECT  Read-only discovery. The notes explain this request; they do not choose an installer or run commands.", SemanticRole.ContextNote);
+                    Line(step.Kind == OperationKind.CodexDiscovery
+                        ? "MEANS   Find local Codex command routes, packages, and dependency evidence."
+                        : "MEANS   Prepare an update rehearsal for this Codex installation.", SemanticRole.Target);
+                    Line(step.Kind == OperationKind.CodexDiscovery
+                        ? "EFFECT  Read-only discovery. The notes explain this request; they do not choose an installer or run commands."
+                        : "EFFECT  Query the identified npm and registry; explain the exact proposed update. npm may write cache/logs. No package changes.", SemanticRole.ContextNote);
+                    if (step.RequestLine != chain.LineNumber) EvidencePath($"REQUEST {path}:{step.RequestLine}");
                 }
             }
             else OperationSource(document, node);
@@ -68,8 +73,8 @@ internal sealed partial class DocumentRenderer
     {
         Line("No discovery was performed. This preview only interprets your DERT.", SemanticRole.Reasoning);
         Line("Run the request:", SemanticRole.Text);
-        CopyCommand($"{Invocation()} run {PowerShellLiteral(path)}" + (plain ? " --plain" : ""));
-        Line("Your source was not changed. Running this supported request searches only; it does not install or update anything.", SemanticRole.ContextNote);
+        CopyCommand($"{Invocation()} run {PowerShellLiteral(path)}" + (plain ? " --plain" : "") + (still ? " --still" : ""));
+        Line("Your source was not changed. Running this request does not install or update packages; an update rehearsal queries npm and registry metadata.", SemanticRole.ContextNote);
         Line("ƒin.", SemanticRole.Boundary);
     }
 
@@ -81,12 +86,21 @@ internal sealed partial class DocumentRenderer
         Line("");
     }
 
-    public void OperationsCompleted(int completed, int attention)
+    public void UpdateSourceResult(PlannedOperation step, string path, int number)
+    {
+        Line($"STEP {number:00} / RESULT", SemanticRole.Title);
+        EvidencePath($"FROM {path}:{step.RequestLine}");
+        UpdateHeading(embedded: true);
+    }
+
+    public void OperationsCompleted(int completed, int attention, bool updateRehearsed = false)
     {
         Line("DERT / COMPLETE", SemanticRole.Title);
         Line($"{Count(completed, "operation")} completed · {attention} {(attention == 1 ? "result needs" : "results need")} attention",
             attention > 0 ? SemanticRole.Hook : SemanticRole.Line);
-        Line("Your DERT drove the discovery. No discovered program was launched; no installations or source files changed.", SemanticRole.ContextNote);
+        Line(updateRehearsed
+            ? "Your DERT requested an update rehearsal. No package update was executed; npm checks may write cache/logs. Your source was not changed."
+            : "Your DERT drove the discovery. No discovered program was launched; no installations or source files changed.", SemanticRole.ContextNote);
         Line("ƒin.", SemanticRole.Boundary);
     }
 

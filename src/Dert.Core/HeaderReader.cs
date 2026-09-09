@@ -56,6 +56,14 @@ internal static class HeaderReader
         return !quoted;
     }
 
+    internal static bool HasUnclosedQuote(string text, int start, int end)
+    {
+        var quoted = false;
+        for (var index = start; index < end; index++)
+            if (text[index] == '"' && !IsEscaped(text, index)) quoted = !quoted;
+        return quoted;
+    }
+
     private static bool IsEscaped(string text, int position)
     {
         var count = 0;

@@ -114,7 +114,7 @@ public class DertRunTests
     [InlineData("STERT ; SOMETHING ;; codex", "SOMETHING")]
     [InlineData("STERT ; ERPDERT", "STERT")]
     [InlineData("STERT ; ERPDERT ;;", "STERT")]
-    [InlineData("STERT ; ERPDERT ;; codex\ncommands ; updateme ;;", "updateme")]
+    [InlineData("STERT ; ERPDERT ;; codex\ncommands ; uninstallme ;;", "uninstallme")]
     [InlineData("STERT ; ERPDERT ;; codex\nrun this please", "run this please")]
     [InlineData("ERPDERT ;; codex", "ERPDERT")]
     public void Unimplemented_or_incomplete_content_is_cited_instead_of_partially_run(string source, string offendingText)

@@ -23,6 +23,5 @@ internal static class NodeWalk
     }
 
     public static NodeLocation? At(DertDocument document, int line) =>
-        All(document.Nodes).Where(n => n.Node.Span.Contains(document.Source.Lines[line - 1].Start))
-            .OrderBy(n => n.Node.Span.Length).FirstOrDefault();
+        new DertStructureIndex(document).AtLine(line) is { } location ? new(location.Node, location.Parent) : null;
 }

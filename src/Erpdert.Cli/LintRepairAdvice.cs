@@ -2,7 +2,7 @@ using Dert.Core;
 
 namespace Erpdert.Cli;
 
-internal enum LintRehearsal { None, TitleRule, NoteBoundary }
+internal enum LintRehearsal { None, TitleRule, NoteBoundary, AuthoringList }
 
 internal sealed record LintRepairAdvice(LintRehearsal Rehearsal, string Explanation, int? AtLine = null)
 {
@@ -29,7 +29,7 @@ internal sealed record LintRepairAdvice(LintRehearsal Rehearsal, string Explanat
             case "DERT1002":
                 return new(LintRehearsal.None, "Inline-note closure is not available as a repair. The block-boundary repair does not apply to this line.");
             case "DERT3003":
-                return new(LintRehearsal.None, "List-completion repair is not available. The comma stays; this tool will not decide when you are finished.");
+                return new(LintRehearsal.AuthoringList, "The notes window offers Add another item and Finish this list with exact previews. Opening it does not apply either choice.", finding.LineNumber);
             case "DERT3004":
                 return new(LintRehearsal.None, "This title's visible width cannot yet be measured reliably for repair. Your words stay unchanged.");
             default:

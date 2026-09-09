@@ -70,7 +70,6 @@ public class LintHandoffTests
     [InlineData("// café", "DERT2003", "width")]
     [InlineData("// café\n// ----", "DERT3004", "width")]
     [InlineData("// why ; t ;; unfinished", "DERT1002", "Inline-note")]
-    [InlineData("items ; list ;;\nsnacks,", "DERT3003", "List-completion")]
     public void Unsupported_findings_explain_the_missing_capability_without_a_dead_end_repair(string source, string code, string reason)
     {
         using var file = new ScratchDocument(source);
@@ -79,6 +78,21 @@ public class LintHandoffTests
         Assert.Contains("NO REPAIR OFFERED", result.Output);
         Assert.Contains(reason, result.Output);
         Assert.Empty(Commands(result.Output));
+        Assert.Equal(source, File.ReadAllText(file.Path));
+    }
+
+    [Fact]
+    public void List_notice_offers_current_file_authoring_without_a_repair_or_write_approval()
+    {
+        const string source = "items ; list ;;\nsnacks,";
+        using var file = new ScratchDocument(source);
+        var result = Run(["lint", file.Path, "--plain"]);
+        Assert.Contains("CHOOSE / IN NOTES", result.Output);
+        Assert.Contains("Add another item and Finish this list", result.Output);
+        Assert.Contains("current file, which may differ", result.Output);
+        Assert.Contains($"ERPDERT write '{file.Path}'", result.Output);
+        Assert.DoesNotContain("--from-lint", result.Output);
+        Assert.DoesNotContain("--apply", result.Output);
         Assert.Equal(source, File.ReadAllText(file.Path));
     }
 

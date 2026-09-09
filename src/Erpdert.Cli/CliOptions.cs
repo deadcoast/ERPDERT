@@ -27,6 +27,8 @@ internal sealed record CliOptions(string Command, string Path, bool Expand, int?
             {
                 case "--plain":
                     break;
+                case "--still" when args[0] == "run":
+                    break;
                 case "--preview" when args[0] == "run":
                     preview = true;
                     break;

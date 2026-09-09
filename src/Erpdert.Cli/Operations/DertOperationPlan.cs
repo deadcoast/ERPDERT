@@ -2,9 +2,12 @@ using Dert.Core;
 
 namespace Erpdert.Cli.Operations;
 
-internal enum OperationKind { CodexDiscovery }
+internal enum OperationKind { CodexDiscovery, CodexUpdateRehearsal }
 
-internal sealed record PlannedOperation(OperationKind Kind, ChainNode Source);
+internal sealed record PlannedOperation(OperationKind Kind, ChainNode Source, int RequestLine)
+{
+    public string Command => Kind == OperationKind.CodexDiscovery ? "ERPDERT codex" : "ERPDERT codex updateme";
+}
 
 // Binding belongs to the application, not the DERT grammar. An unsupported
 // operation is a missing application capability, not a forbidden language form.
@@ -26,7 +29,9 @@ internal sealed record DertOperationPlan(DertDocument Document,
                 {
                     // Notes retain their contextual role. Their headers, entries,
                     // and annotations are never traversed as command requests.
-                    if (child is StatementNode)
+                    if (child is StatementNode statement && IsUpdate(statement) && steps.LastOrDefault() is { Kind: OperationKind.CodexDiscovery } step && step.Source == chain)
+                        steps[^1] = step with { Kind = OperationKind.CodexUpdateRehearsal, RequestLine = statement.LineNumber };
+                    else if (child is StatementNode)
                         Problem("ERP6004", child,
                             "This statement has no operation handler in this build. It was not ignored or substituted with discovery.");
                     else if (child is TextNode)
@@ -69,8 +74,14 @@ internal sealed record DertOperationPlan(DertDocument Document,
                     $"The operation '{header.Payload.Text}' is not implemented here. This build supports codex discovery; it does not forward source text to a shell.");
                 return;
             }
-            steps.Add(new(OperationKind.CodexDiscovery, chain));
+            steps.Add(new(OperationKind.CodexDiscovery, chain, chain.LineNumber));
         }
+
+        static bool IsUpdate(StatementNode statement) =>
+            statement.Header.Head.Text.Equals("commands", StringComparison.OrdinalIgnoreCase) &&
+            statement.Header.Target?.Text.Equals("updateme", StringComparison.OrdinalIgnoreCase) == true &&
+            statement.Header.Line is not null && string.IsNullOrWhiteSpace(statement.Header.Payload?.Text) &&
+            statement.Values.Count == 0;
 
         void Problem(string code, DertNode node, string explanation) => findings.Add(new(
             code, DiagnosticSeverity.Error, explanation,

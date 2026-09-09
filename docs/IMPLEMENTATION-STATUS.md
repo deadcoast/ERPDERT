@@ -3,6 +3,224 @@
 2026-09-06. This records implemented behavior, not a canonical language release.
 The original language notes and subsequent user decisions retain authority.
 
+## Native notes authoring, 2026-09-09
+
+`ERPDERT write [file.DERT] [--still]` now opens a packaged WPF/AvalonEdit window.
+It reuses the parser, semantic highlights, source index and exact title repair
+plans. Source line numbers, live colors, closed reasoning handles and attached
+owned entries serve ordinary notes without running their text as commands. The
+wide view places context beside the source; the narrow view keeps it below.
+The [host comparison and interaction record](superpowers/specs/2026-09-09-notes-authoring-design.md)
+documents the reason for embedding the editor and its remaining requirements.
+
+Typing a title and pressing Enter produces one undoable title/rule edit. Renames
+update the existing rule; leaving the title line preserves caret/selection.
+Paste treatment runs after the inserted buffer settles. Imported mismatches
+offer an exact preview and Apply/Leave. Intentional deletion and Undo do not
+immediately reinsert the rule. Future edits still receive title treatment.
+Non-ASCII titles remain intact with an explanation of the current width limit.
+Folding never adds indentation or decorations to saved source. Expanded notes
+stay open until explicitly folded; automatic resting-state restoration is pending.
+
+Save checks both opened file identity and original bytes, retains a verified
+previous-byte copy in `.erpdert/drafts`, verifies the new bytes and attempts
+rollback on failure. Save as creates a new path exclusively and verifies the
+renamed file's identity before claiming success. External changes, same-byte
+file replacement and failed writes retain the buffer with an attention state.
+BOM and existing line endings survive saving/reopening. Undo history is for the
+current buffer session; recovery copies remain on disk unencrypted. Existing
+saves do not establish power-loss atomicity or automatic backup management.
+
+The publisher delivers the CLI and notes host together with their runtimes,
+AvalonEdit license and `Try Notes.cmd`. CLI launch uses the packaged path and
+literal arguments. Published Windows probes opened, closed and reopened notes
+directly and through the CLI, with empty PATH and installed-runtime lookup
+disabled. Mismatched title/BOM bytes remained unchanged. This is delivery evidence
+on this development PC, not a clean-account installer test.
+
+Verification: 590 core/CLI tests, 13 actual WPF host tests and all ten executable
+suites passed from fresh source-only inputs, including six published notes checks,
+50 MER checks and 20 update checks. Native text-input, Enter and Undo routing,
+title regressions, selection/folding, save/reopen and recovery failures were
+exercised. Wide/narrow rendered WPF controls were visually inspected and revised.
+Evidence: `.artifacts/notes-source-only-final.log`, `.artifacts/notes-publish-final.log`
+and `.artifacts/notes-host-proof`. Documentation remains outside test inputs.
+
+Clipboard paste is represented by inserted text plus a routed paste event;
+the harness does not modify OS clipboard contents. Native file dialogs and
+Save/Discard/Cancel are implemented but not automatically driven. IME, Unicode
+width, long-note performance, list completion, installation and the full note
+application remain on [TODO](../TODO.md).
+
+## UDL connections and notes navigation, 2026-09-09
+
+MER now gives ordinary statements, active sinkers, reasoning entries, free notes
+and prose their own source-attached inspection. `find <text>` performs literal,
+case-insensitive search of captured text, retaining exact match spans and grouping
+destinations by source line. `hit N` selects a result; `hits <page>` lists eight
+matching lines at a time. `owner` follows the actual parser parent or takes an
+ending back to its opener. `structure` shows the head, hook, line, entries and
+actual boundary alongside the numbered source; details retains complete text.
+
+The shared DertStructureIndex also corrects CLI source selection: blank spacing
+does not inherit an entry from an enclosing span, and interleaved free notes keep
+their direct parent. A target name is not an operation binding. Notes-only MER
+viewing omits unsolicited runner capability errors; the runner itself retains
+its existing strict operation checks. Saved repair/undo rebuilds the index and
+clears old hit numbers. Pending comparisons prevent navigation. Source inspection
+and search perform no external queries or writes.
+
+Review found misleading visual relationships: absent title rules were described
+as present, and ownership traces could cross unrelated notes or a recovered end.
+These were corrected with actual rule checks and bounded member-line information
+shared by review, live analysis and replay. Wide/narrow compositor frames were
+inspected, and the published Windows executable was exercised through literal
+search, hit selection, owner and structure in a PTY. These are source-review
+features, not a shipped editing host. `examples/weekend.DERT` demonstrates them
+without an operational chain.
+
+Verification: 578 tests and all nine executable suites passed in a fresh
+source-only build, including 50 MER and 20 update checks. The published Windows
+build is refreshed. Evidence: `.artifacts/udl-source-only-final.log`,
+`.artifacts/source-only-proof/700452429d3d444d8aa4a2cd946fcdcd`, and
+`.artifacts/udl-mer-smoke.log`. The [worked design](superpowers/specs/2026-09-09-udl-connections-design.md)
+records visual evidence. The [active TODO assessment](../TODO.md) recommends
+authorship as the next complete experience and retains the broader product work.
+
+## Earlier MER update rehearsal beside its source, 2026-09-08
+
+A supported written `updateme` request now reaches copy selection and the
+existing npm rehearsal inside the source window. `rehearse` reads local copies;
+`copy N` chooses one. Only `check` starts npm inventory, configured-registry and
+dependency dry-run queries, after their network/cache effects are explained.
+Real activity attaches confirmed target, inventory, release and proposed changes
+to the requesting line. Narrow terminals retain the same result below the source.
+The update has its own journal and timestamp. Details retains all paths, issues,
+checks and the separately labeled manual package-changing command.
+
+Current/ahead versions retain their actual meaning without fabricated dry-run
+success. Source bytes are checked before, between and after queries. Changed
+installation evidence requires a fresh choice; source repair discards prior
+rehearsal choices/results. Rechecking replaces that copy's earlier ready result,
+including on failure or cancellation. Fresh discovery issues remain visible.
+Replay cannot start npm queries; `apply` continues to mean source repair only.
+Integrated package-changing approval, execution and post-install verification
+remain unimplemented. See the [worked integration and evidence](superpowers/specs/2026-09-08-mer-update-connections-design.md).
+
+Verification: 563 tests and all nine executable suites passed in a fresh
+source-only build, including 20 update and 46 MER checks. The published Windows
+executable was exercised in a PTY through selection, rehearsal and explicit check.
+Wide/narrow compositor frames were inspected using the actual adapter and process
+fixture; those frames contain controlled versions and are not OS screenshots.
+Separately, real npm completed inventory, registry and dry-run queries through MER
+against a disposable installation; all 1,941 installation files retained their
+checksums. No manual package update was executed. Evidence is retained in
+`.artifacts/mer-update-source-only-final.log` and
+`.artifacts/mer-live-npm-verified.log`.
+
+## Earlier MER source repair and undo, 2026-09-08
+
+The source window now carries supported title and contextual-note repair through
+explicit comparison and save. `repair` acts on the selected supported source;
+`repair title` reaches the title from elsewhere. Notes require a `close <line>` /
+`close eof` boundary choice, showing kept/released entries and changed ownership.
+`before` / `after` compares exact captured versions. Only explicit `apply` on a
+non-replay session writes, through the existing RepairFileService. `cancel` and
+Enter never apply a pending proposal. `undo` previews the latest saved original
+and requires another apply. Scripted writes require --review plus apply.
+
+Proposals and verified saved/restored bytes have distinct window captions. A
+successful save starts fresh structural analysis from bytes captured under the
+writer's verified handle, preserves remaining findings and discards prior local
+inspections. Details scopes the subsequent analysis accurately and retains
+recovery locations. Stale source and actual write failures preserve their actual
+error and recovery evidence. Unavailable undo does not disable an unrelated repair.
+The writer's existing limits remain: local unencrypted backups, latest-repair undo
+and no power-loss atomicity claim. See the [worked interaction](superpowers/specs/2026-09-08-mer-repair-review-design.md).
+
+Verification: 542 tests and all nine executable suites passed from source-only
+inputs, including 46 MER checks. The published Windows executable was exercised
+through comparison, save and undo in a PTY. Wide and narrow compositor frames
+were inspected from actual guarded repair journeys on harness-owned files;
+they are rendered frames, not screenshots of a user's terminal. Fault injection
+tests cover verified rollback and failed recovery without claiming success.
+
+## Earlier MER local inspection and source polish, 2026-09-08
+
+The document review now integrates the existing operation binder and local
+Codex discovery. `next`/`prev` follows captured findings, notes and requests.
+At a supported discovery request, explicit `probe` checks unchanged source bytes
+and reads local launchers/package metadata. `copy <number>` compares captured
+installations. One attached diagram shows the chosen launcher's package, Node
+and adjacent npm evidence; full detail retains all routes and per-launcher
+dependencies. Multiple copies, incomplete searches and unverified ownership are
+explicit. The source-analysis journal and new inspection retain separate times.
+
+No subprocess, network query, file edit, or inferred note command is part of
+this integration. Unsupported plans block it; update requests are not silently
+changed into discovery. `--review` opts redirected input into review commands.
+The source margin now traces actual ownership and closure; title previews
+emphasize the specific changed marks. See the [worked integration](superpowers/specs/2026-09-08-mer-local-connections-design.md).
+
+Verification: 522 tests and all nine executable suites passed in a fresh
+source-only build, including 40 MER checks. The published Windows executable is
+refreshed. Its source navigation and local probe were exercised in a PTY; wide
+and narrow compositor frames were inspected. These establish the interaction
+and evidence flow, without certifying a subjective design standard or complete
+package-management integration.
+
+## Earlier MER source-window correction, 2026-09-08
+
+The user's screenshot rejected the default `mer` output below: its source had
+only a colored path for separation and completion expanded into a difficult
+check log. The earlier passing tests did not establish the requested UI.
+
+`mer` now retains a tabbed ASCII source window with original line numbers,
+blank lines and wrapped continuations. A short edge trace accompanies newly
+observed connections. One explanation attaches beside its source line in a wide
+terminal or below the document in a narrow one. The default final result keeps
+this window, with an explicit source range/excerpt and attention/failure status.
+
+At that increment, `at <line>`, `details`, and `repair` reviewed the same captured
+analysis without rereading source. The repair integration above supersedes that
+handoff. Enter finishes. `--details` explicitly prints the full record
+and supported source-bound preview commands, including in redirected output.
+See the [worked correction and evidence limits](superpowers/specs/2026-09-08-mer-document-window-design.md).
+
+Verification at that increment: 508 tests and all nine executable suites passed in a fresh
+source-only build, including 35 MER checks. The self-contained Windows build is
+refreshed. Wide/narrow rendered frames and the published command were inspected;
+user acceptance of the resulting UI remains unproven.
+
+## Earlier MER continuation, 2026-09-08
+
+The CLI now includes the subsequent discovery, DERT runner, npm rehearsal, and
+MER work described in the [README](../README.md) and [changelog](../CHANGELOG.md).
+The dated workbench sections below retain their narrower implementation history.
+
+MER's general evidence view now holds the active check in a stable position,
+retains recent settled explanations, and keeps the last observed source when
+the next check begins. The evidence trace runs once per new observation and
+settles; a failure stops it immediately. Overflow is disclosed and the receipt
+retains complete evidence. The existing focused title/ownership views continue
+to take precedence when appropriate.
+
+The earlier `mer <file>` followed its completed receipt with capability-aware
+repair links. These now appear through `repair` or `--details`. It captures the bytes once, retains their parsed
+document, and uses that same byte revision for live and replay results. A copied
+link opens the existing `--from-lint` preview-only flow; a changed file is refused
+before a repair is selected. Unsupported findings explain the limitation, and
+the in-memory demo does not offer commands against fictional paths. Repair
+selection, approval, and verified results retain their existing CLI surfaces.
+
+Verification: 492 tests and all nine published-executable suites passed in a
+fresh source-only build, including 32 MER checks. The build used already installed
+packages copied to a workspace-local NuGet cache after the sandbox blocked a
+remote restore. Wide/narrow rendered engine frames and the Windows PTY demo were
+inspected; independent review found no important issue. These checks do not
+establish author delight or clean-machine installation. See the [worked design
+and limits](superpowers/specs/2026-09-08-mer-evidence-handoff-design.md).
+
 ## What runs
 
 `ERPDERT -help`, `inspect <file>`, `lint <file>`, `repair <file>`, and `undo <file>`
@@ -14,7 +232,9 @@ policy. Incomplete folds carry `missing //` on their handles.
 
 The CLI reads UTF-8, including a UTF-8 BOM. Invalid encoding gets an English
 message instead of replacement characters or an automatic conversion. `inspect`
-and `lint` are read-only. No command dispatches DERT operations or package actions.
+and `lint` are read-only. These workbench commands do not dispatch DERT operations
+or package actions; the subsequent `run` and update-rehearsal capabilities are
+described in the current README.
 
 Exit 0 means no errors were found by the implemented checks; warnings/notices
 can remain. Exit 1 means a structural error was found. Exit 2 means the request
@@ -467,14 +687,17 @@ or accessibility with screen readers; those need direct evaluation.
 
 ## Next complete interaction
 
-Title-rule and author-selected unfinished-note rehearsals are implemented.
-Supported lint findings and verified repair results carry their source-bound
-preview commands. Development has moved to the actual tool-management use case:
-`ERPDERT codex` now performs read-only Windows PATH discovery, groups referenced
-packages, and reports competing routes and local dependency evidence. See the
-README's "Which Codex?" section for boundaries and the executable smoke check.
-Next operational work: establish installation ownership and rehearse an exact
-supported update before adding execution. Non-ASCII title width remains separate.
+The current UDL recommendation is deliberate list completion in the authoring
+host: keep a continuation comma while writing, then offer distinct Add another
+item and Finish this list actions with exact preview and undo. The native
+title/free-note/reasoning host is implemented as recorded above; clipboard/IME,
+dialog, long-note and clean-account validation remain. Non-ASCII title width is
+also separate. See [TODO](../TODO.md) for the broader development order.
+
+Operational rehearsal already connects installation selection, manager inventory,
+registry evidence and dependency dry runs to the requesting source. Its remaining
+transaction includes separate approval, snapshot rechecks, execution and verified
+results; a manually copied update command does not implement that transaction.
 
 This work does not authorize speculative comma removal, metadata reinterpretation,
 indentation, or package operations. The eventual adapters, editor integration,
