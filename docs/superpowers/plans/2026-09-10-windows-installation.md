@@ -42,10 +42,15 @@ and exercise real Windows installation and removal under a disposable target.
   acquire it for CLI and Notes process lifetimes, and have setup/remove refuse
   while the named mutex exists. Extend the executable test to open a real Notes
   window, observe refusal, close it normally, and proceed. No kill-based repair.
-- [ ] **4. Verify delivery.** Run the installer tests, inspect actual wizard and
+- [x] **4. Verify delivery within this machine's evidence limits.** Run the installer tests, inspect actual wizard and
   installed Notes, and run the full solution and published executable suites.
   Add compiler/source-copy support to `Invoke-SourceOnlySmoke.ps1` without making
   the ordinary build depend on an installed compiler. Preserve test artifacts.
-- [ ] **5. Reconcile docs.** Update README, TODO, implementation status and
+  Final: 1,252 tests, eleven existing executable suites, then 80 installation
+  assertions and six native interaction checks passed. Installed Notes opening
+  and normal close were verified; inactive-desktop WPF capture was black, so
+  visual evidence is limited to separate native control renders. Clean-account
+  and human first-contact acceptance remain open in TODO.
+- [x] **5. Reconcile docs.** Update README, TODO, implementation status and
   changelog with observed behavior, the concrete setup path and exact remaining
   evidence. Leave clean-account validation unchecked unless actually performed.

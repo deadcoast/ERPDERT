@@ -148,3 +148,55 @@ post a normal close, retain window-state diagnostics and distinguish posting,
 timeout and application-exit failures. No product code changed for this harness
 correction. The full run's failed installation result is retained, not relabeled
 as passing.
+
+Final targeted installation proof
+`.artifacts/installation-proof/5273d56e457c4fe19fdf7766ace8510a` passed **80
+delivery assertions and six native interaction checks** with the reviewed
+installer sources. Its `output.txt`, `interaction.txt`, setup/removal logs and
+`notes-window-state.txt` retain the evidence. The latter reproduces the helper
+issue: the inspected example HWND differs from .NET's unnamed main-window
+selection, and closing the inspected HWND exits normally. The interrupted-copy
+case kills only its own setup process during payload copying, then verifies
+retry, unchanged marker, working CLI, preserved authored files and removal.
+
+Inspected native wizard captures cover welcome, destination, connections, ready,
+running-work refusal, finish and removal confirmation. Start shortcut targets
+were read through `IShellLinkW`; Windows itself resolved the quoted Notes handler
+through `ShellExecuteEx`, preserving a literal filename containing Unicode,
+brackets, apostrophe, ampersand, percent and semicolon. The installed runtimes
+opened the unfinished note and retained its exact bytes without external runtime
+or editor lookup. Finish opened the retained editable example in the installed
+Notes process, which closed normally.
+
+The finish checkbox caption is visible in the earlier complete capture under
+`.artifacts/installation-proof/0c746abc1cbd42c7814df8b94acf54a4`; the final
+proof's immediate finish-page capture omits that caption. That final image alone
+does not establish its rendering, despite the successfully exercised handoff.
+
+The WPF client area is black in `PrintWindow` captures from the inactive test
+desktop; these images do **not** prove the installed editor's visual rendering.
+The native control render `.artifacts/installation-authoring-proof/notes-1180.png`
+was separately inspected: it shows the title, source, folded reasoning and
+inspector with readable controls. That is control-render evidence, distinct from
+the verified packaged window/filename/process handoff and from human usability.
+
+The production workspace executable and companion hash are at
+`.artifacts/installer/DERT-Setup.exe` and `.artifacts/installer/DERT-Setup.exe.sha256`,
+copied from the fresh source build. SHA-256:
+`349ECF22B36A0FF42DF7BC484B7ED6E0C33D13BF0395AE7BEC82D4052AD9FE5C`.
+The pinned compiler download's Authenticode signature was valid for Pyrsys B.V.;
+the resulting DERT package is unsigned. No release label was created.
+
+Tests used the existing developer account with a **non-elevated token**. It is
+an administrator account with its administrator group disabled in that token,
+not a fresh standard account. Windows Sandbox is not installed here. The TODO
+therefore remains open for a clean standard-account first launch, downloaded-file
+trust prompts, user default-app selection, first Save, second visit, and human
+keyboard/screen-reader inspection. Those results cannot be inferred from this
+account, an isolated desktop or self-contained runtime checks.
+
+Failed disposable installations were removed through their exact registered
+uninstallers; GUID-specific test connections were cleared. The final cleanup
+verified no test state keys, Start groups or Notes processes remained, and the
+actual user PATH value and type were unchanged. Logs and the interrupted-copy
+evidence remain. `.artifacts/installation-cleanup.txt` records that cleanup.

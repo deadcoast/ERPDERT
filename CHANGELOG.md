@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-09-10 — install, return to your notes, remove
+
+- Added an unsigned per-user Windows setup for the bundled CLI and Notes host.
+  Start entries and optional PATH/Open with connections make return visits
+  available; editable examples live outside application files and survive removal.
+- Reinstall preserves edited examples and reconciles integration choices. Setup
+  preserves other defaults and PATH entries, refuses running work and occupied
+  foreign folders, and reports late connection failures as partial completion.
+  A durable ownership marker permits retry after interrupted payload copying.
+- **1,252 tests and all eleven existing executable suites passed.** Final
+  installation checks passed **80 delivery assertions and six native interaction
+  checks**, covering Windows file opening, native cancellation/finish, repeat
+  installation, PATH edge cases, interruption and removal. Test-helper failures
+  and their corrected results are recorded separately.
+- Workspace artifact: `.artifacts/installer/DERT-Setup.exe`. Clean standard-account
+  first launch and downloaded-file trust prompts remain open; no public release
+  or installed-editor visual acceptance is claimed.
+  [Design, verification and limits](docs/superpowers/specs/2026-09-10-windows-installation-design.md).
+
 ## 2026-09-10 — connect a confirmed conflict to its correction
 
 - Added a supported broken npm PowerShell route hiding a later Codex copy as the

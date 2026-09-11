@@ -234,7 +234,7 @@ are recorded below. Unchecked entries retain their unimplemented scope.
   retained. See the [design and evidence](docs/superpowers/specs/2026-09-10-windows-installation-design.md).
   Test on a clean standard Windows account, including downloaded-file trust
   prompts, choosing the default app, a first Save and a second visit. The
-  non-administrator development-account checks do not establish that experience.
+  non-elevated development-account checks do not establish that experience.
 - [ ] **Repeated-use polish.** Retain focused selection through safe refresh,
   explain external edits with a source comparison, and preserve concise everyday
   navigation. Measure long notes and large searches, interrupt them, and inspect

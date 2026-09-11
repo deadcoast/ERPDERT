@@ -3,6 +3,37 @@
 2026-09-06. This records implemented behavior, not a canonical language release.
 The original language notes and subsequent user decisions retain authority.
 
+## Per-user Windows installation, 2026-09-10
+
+The workspace setup bundles CLI, Notes, runtimes, licenses and examples. It
+installs for the current account, provides direct Notes/retained-example Start
+entries, offers optional PATH and Open with integration, and registers Windows
+removal. It never makes itself the default handler or runs a document as an
+operation. Authored examples live outside the application folder and survive
+repeat installation and removal.
+
+PATH changes preserve order, spelling, value type and unrelated edits. Reinstall
+withdraws deselected connections. Running work and foreign occupied destinations
+refuse before copying; late integration errors report the installed files and
+the connection still needing attention. A flushed, destination-bound ownership
+marker makes interrupted copying retryable and is reused unchanged on retry.
+Unknown incomplete uninstall artifacts remain instead of being guessed at or
+deleted with unrelated files.
+
+The fresh source build passed **1,252 tests** and **all eleven existing executable
+suites**. After correcting installation test helpers, the final targeted suite
+passed **80 delivery assertions and six native interaction checks**. Native
+wizard controls were inspected; actual Windows association opening, literal
+filenames, first-example handoff, cancellation and normal close were exercised.
+Evidence distinguishes the helper failures from the final passing results.
+
+`.artifacts/installer/DERT-Setup.exe` is an unsigned workspace build. Testing used
+a non-elevated developer account, not a fresh standard account. Inactive-desktop
+WPF client captures are black, so installed Notes visual acceptance remains
+unproven; a separate native control render was inspected. Clean-account first
+Save/return, download trust prompts and user default-app selection remain open.
+[Exact design, evidence and limits](superpowers/specs/2026-09-10-windows-installation-design.md).
+
 ## Doctor actual conflicts, 2026-09-10
 
 The first confirmed case is a supported generated npm PowerShell launcher earlier
