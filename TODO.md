@@ -129,8 +129,9 @@ The update transaction is complete for the supported npm adapter, with exact
 review, rechecks, interruption handling and a verified observed result.
 The first reproduced doctor conflict now connects a broken earlier npm PowerShell
 route, its missing entry point and a later identified copy to guarded correction.
-Recommended next bounded increment: **a usable first launch and durable
-installation**, described below. Rehearsal/doctor result adapters remain further work;
+The next installation increment now has a per-user setup implementation and
+executable delivery checks; clean-account validation remains open below.
+Rehearsal/doctor result adapters remain further work;
 portable schemas and automatic agent delivery stay deferred.
 
 ## Deepen the language without inventing a dialect
@@ -223,11 +224,17 @@ are recorded below. Unchecked entries retain their unimplemented scope.
   repair; 1,252 tests and all eleven executable suites passed, including 18
   location/doctor checks. [Design and evidence](docs/superpowers/specs/2026-09-10-doctor-conflicts-design.md).
   Other conflict kinds and managers remain work; duplicates alone prove no damage.
-- [ ] **A usable first launch and durable installation.** Publish now bundles
-  CLI, authoring host, runtimes, license and examples together. Help, paths with
-  spaces and reopening are exercised. Complete normal-user installation,
-  file associations and removal. Test from a clean Windows
-  account. Current publish/smoke results do not establish that experience.
+- [ ] **A usable first launch and durable installation — clean-account proof remains.**
+  Per-user setup now bundles CLI, Notes, runtimes and licenses, supplies Start
+  entries, optional user PATH and an Open with handler, and registers ordinary
+  Windows removal. Editable examples live in Documents and survive reinstall
+  and removal. Changed integration choices reconcile owned connections; failures,
+  cancellation and running work retain their actual status. A recovery marker
+  permits retry after interrupted copying, with unknown old uninstall artifacts
+  retained. See the [design and evidence](docs/superpowers/specs/2026-09-10-windows-installation-design.md).
+  Test on a clean standard Windows account, including downloaded-file trust
+  prompts, choosing the default app, a first Save and a second visit. The
+  non-administrator development-account checks do not establish that experience.
 - [ ] **Repeated-use polish.** Retain focused selection through safe refresh,
   explain external edits with a source comparison, and preserve concise everyday
   navigation. Measure long notes and large searches, interrupt them, and inspect

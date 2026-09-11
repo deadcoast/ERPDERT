@@ -75,8 +75,8 @@ review, and opens the complete recorded detail on request. Interactive npm
 rehearsals use the same engine's operation view for real checks.
 
 The supported npm doctor can execute a reviewed reinstall and verify its result.
-This remains a bounded manager integration. DERT does not install itself or
-provide an editor extension or the full planned note application. The current
+This remains a bounded manager integration. A Windows setup package now installs
+DERT for one account. DERT does not provide an editor extension or the full planned note application. The current
 authoring window is a single-document Windows proof. No canonical v1.0 grammar is claimed.
 
 The [original syntax coverage map](docs/ORIGINAL-COVERAGE.md) records what each
@@ -97,6 +97,24 @@ document format are part of the longer design horizon.
 
 The [active TODO and product assessment](TODO.md) records the broader UDL,
 authoring and integration work, including what remains beyond the current CLI.
+
+For a durable installation, open **`.artifacts/installer/DERT-Setup.exe`**.
+It installs the bundled CLI and Notes under `%LOCALAPPDATA%\Programs\DERT`
+without requesting administrator rights. **DERT Notes** appears in Start;
+**Your DERT example** returns to `Documents\DERT examples\weekend.DERT`.
+Finish can open that editable example immediately. Repeat installation and
+removal preserve the examples, saved notes and recovery copies.
+
+Setup offers two connections: add DERT to your user PATH for new terminals,
+and offer Notes in **Open with** for `.DERT` files. Choose Notes in Windows'
+Open with menu to make it your default. Existing defaults stay selected.
+Changing these choices on a later setup run updates DERT's own connections.
+Remove DERT through **Windows Settings → Apps → Installed apps**.
+Close Notes and finish running DERT commands before installation or removal.
+
+This is an **unsigned workspace installer**. Clean-account first contact and
+download trust prompts remain unverified; the [installation design and evidence](docs/superpowers/specs/2026-09-10-windows-installation-design.md)
+record the tested scope. Keep the portable folder option below when useful.
 
 From this workspace in PowerShell, after publishing:
 
@@ -316,8 +334,9 @@ is limited to regular local Windows files; it is not a power-loss-atomic save or
 a cross-session editing history.
 
 Keep the published `notes` folder beside `DERT.exe`. The authoring host ships
-its own desktop runtime and editor dependency with its license. A normal-user
-installer, file associations, and clean-account validation remain TODO work.
+its own desktop runtime and editor dependency with its license. The Windows
+installer keeps these together and offers Start and file-opening integration.
+Clean-account validation remains TODO work.
 
 ### Try it, pause it, judge it
 
@@ -826,8 +845,8 @@ repaired by this command, and no parser grammar was changed to implement it.
 See the [note-boundary contract](docs/superpowers/specs/2026-09-06-note-boundary-design.md).
 
 The published `win-x64` folder includes its .NET runtime. Keep the **whole folder**
-together, not just the executable. This workspace build is not a signed installer
-or a public download, and clean-machine installation remains untested.
+together, not just the executable. The separate setup artifact is an unsigned
+workspace build, with no public release or clean-machine validation claimed.
 
 ### Build and verify
 
@@ -853,6 +872,33 @@ dotnet build DERT.slnx -c Release
 .\tests\Invoke-NotesSmoke.ps1
 .\tests\Invoke-SourceOnlySmoke.ps1
 ```
+
+Building setup additionally requires the pinned **Inno Setup 6.7.3** compiler
+from its [official download](https://jrsoftware.org/isdl.php). The compiler's
+own installer supports `/PORTABLE=1 /CURRENTUSER /NOICONS /DIR="<tool folder>"`
+for a workspace-local tool copy. Verify its publisher signature before running
+it. DERT's build does not download or install a compiler automatically.
+
+```powershell
+.\src\Build-Installer.ps1 -Compiler '.artifacts\tools\inno-6.7.3\ISCC.exe'
+.\tests\Invoke-InstallationSmoke.ps1 -Compiler '.artifacts\tools\inno-6.7.3\ISCC.exe'
+.\tests\Invoke-SourceOnlySmoke.ps1 -InstallerCompiler '.artifacts\tools\inno-6.7.3\ISCC.exe'
+```
+
+Setup and its SHA-256 file are written to `.artifacts/installer`. The installation
+suite builds an isolated test identity, uses a separate Windows desktop, and
+checks native controls, Windows file opening, reinstall, cancellation, PATH
+ownership, interruption and removal. Only test-specific registry values and
+Start entries are used. Logs and native window captures remain under
+`.artifacts/installation-proof`; they do not establish a clean Windows account.
+
+If setup is interrupted while copying, rerun the same installer and keep the
+same destination. Its verified ownership marker permits completion of that
+partial copy. Incomplete uninstall artifacts from the interrupted attempt may
+remain; removal does not guess ownership from a filename or delete unrelated
+files. Folders without a matching marker or installed registration still need
+an empty destination. User PATH changes made while DERT is installed are retained
+when its owned entry is removed.
 
 The executable checks use standalone DERT test inputs under `tests/Fixtures`,
 verify ownership, exercise damaged input and error exits, and check that inspected

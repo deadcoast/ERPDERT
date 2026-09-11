@@ -2,6 +2,7 @@ using System.Text;
 using Dert.Cli;
 using Spectre.Console;
 
+using var lifetime = ApplicationLifetime.Track();
 Console.OutputEncoding = new UTF8Encoding(false);
 var executable = Environment.ProcessPath;
 string[]? invocation = executable is null ? null :

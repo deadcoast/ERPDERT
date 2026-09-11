@@ -1,8 +1,9 @@
 [CmdletBinding()]
-param()
+param([string] $InstallerCompiler)
 
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
+if ($InstallerCompiler) { $InstallerCompiler = (Resolve-Path -LiteralPath $InstallerCompiler).Path }
 $projectPath = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 $proofPath = Join-Path $projectPath ('.artifacts\source-only-proof\' + [Guid]::NewGuid().ToString('N'))
 $copyPath = Join-Path $proofPath 'project'
@@ -19,7 +20,7 @@ $sourceRoots = @((Join-Path $projectPath 'src'), (Join-Path $projectPath 'tests'
 foreach ($file in Get-ChildItem -LiteralPath $sourceRoots -Recurse -File) {
     $relative = [IO.Path]::GetRelativePath($projectPath, $file.FullName)
     if ($relative -match '(^|[\\/])(bin|obj|TestResults|\.artifacts)([\\/]|$)') { continue }
-    if ($file.Extension -notin @('.cs', '.csproj', '.props', '.targets', '.json', '.ps1', '.cmd', '.DERT', '.xaml', '.js', '.mjs') -and $file.Name -notin @('AVALONEDIT-LICENSE.txt', 'UNICODE-LICENSE.txt')) { continue }
+    if ($file.Extension -notin @('.cs', '.csproj', '.props', '.targets', '.json', '.ps1', '.cmd', '.DERT', '.xaml', '.js', '.mjs', '.iss') -and $file.Name -notin @('AVALONEDIT-LICENSE.txt', 'UNICODE-LICENSE.txt')) { continue }
     $destination = Join-Path $copyPath $relative
     [void] (New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force)
     Copy-Item -LiteralPath $file.FullName -Destination $destination
@@ -46,6 +47,15 @@ try {
         Write-Host $output
     }
     Write-Host 'Source-only build, tests, publish, and all eleven executable suites passed without documentation.'
+    if ($InstallerCompiler) {
+        & (Join-Path $copyPath 'src/Build-Installer.ps1') -Compiler $InstallerCompiler
+        $installationId = [Guid]::NewGuid().ToString('N')
+        $installationRoot = Join-Path $proofPath ('installation/' + $installationId)
+        & (Join-Path $copyPath 'src/Build-Installer.ps1') -Compiler $InstallerCompiler -ProofId $installationId -ProofRoot $installationRoot -OutputDirectory $installationRoot
+        $output = (& (Join-Path $copyPath 'tests/Invoke-InstallationSmoke.ps1') -Setup (Join-Path $installationRoot "DERT-Proof-$installationId.exe") -ProofId $installationId -ProofRoot $installationRoot 6>&1 | Out-String)
+        $record.Add("Invoke-InstallationSmoke.ps1`n$output")
+        Write-Host $output
+    }
 }
 catch {
     $record.Add($_.ToString())

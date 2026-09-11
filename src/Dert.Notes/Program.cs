@@ -1,5 +1,6 @@
 using System.IO;
 using System.Windows;
+using Dert.Cli;
 using Dert.Cli.Authoring;
 using Dert.Cli.Results;
 using Dert.Core;
@@ -13,6 +14,7 @@ internal static class Program
     {
         try
         {
+            using var lifetime = ApplicationLifetime.Track();
             // The CLI and direct host use one validator. Building launch info
             // only normalizes arguments; it does not start another process.
             var normalized = AuthoringCommand.LaunchInfo(args, AppContext.BaseDirectory).ArgumentList.ToArray();
