@@ -54,7 +54,7 @@ public class UpdateRehearsalTests
         var (exit, output) = fixture.Run();
         Assert.Equal(0, exit);
         Assert.Contains("REHEARSED / NOT APPLIED", output);
-        Assert.Contains("@openai/codex@2.0.0", output);
+        Assert.Contains("@openai/codex 2.0.0", output);
     }
 
     [Theory]
@@ -66,7 +66,7 @@ public class UpdateRehearsalTests
         var (exit, output) = fixture.Run();
         Assert.Equal(1, exit);
         Assert.DoesNotContain(fixture.Calls, c => c.Arguments.Contains("install"));
-        Assert.DoesNotContain("MANUAL UPDATE / CHANGES PACKAGES", output);
+        Assert.DoesNotContain("APPLY THIS REVIEWED UPDATE", output);
     }
 
     [Fact]
@@ -77,10 +77,11 @@ public class UpdateRehearsalTests
         Assert.Equal(0, exit);
         Assert.Contains("1.0.0 → 2.0.0", output);
         Assert.Contains("REHEARSED / NOT APPLIED", output);
-        Assert.Contains("@openai/codex@2.0.0", output);
-        Assert.Contains("--engine-strict", output);
-        Assert.Contains("--include=optional", output);
-        Assert.Contains("--prefix", output);
+        Assert.Contains("@openai/codex 2.0.0", output);
+        Assert.Contains("APPLY THIS REVIEWED UPDATE", output);
+        Assert.Contains("--apply", output);
+        Assert.Contains("--path", output);
+        Assert.DoesNotContain("'install'", output);
         Assert.Contains(fixture.Prefix.Replace("'", "''"), output);
         Assert.Equal(new[] { "root", "ls", "view", "install" }, fixture.Calls.Select(c => c.Arguments[1]));
         Assert.All(fixture.Calls, c =>
@@ -153,7 +154,7 @@ public class UpdateRehearsalTests
         Assert.Equal(1, exit);
         Assert.Contains("ERP520", output);
         Assert.DoesNotContain("REHEARSED / NOT APPLIED", output);
-        Assert.DoesNotContain("MANUAL UPDATE / CHANGES PACKAGES", output);
+        Assert.DoesNotContain("APPLY THIS REVIEWED UPDATE", output);
     }
 
     [Fact]
@@ -163,7 +164,7 @@ public class UpdateRehearsalTests
         var (exit, output) = fixture.Run();
         Assert.Equal(1, exit);
         Assert.Contains("changed", output);
-        Assert.DoesNotContain("MANUAL UPDATE / CHANGES PACKAGES", output);
+        Assert.DoesNotContain("APPLY THIS REVIEWED UPDATE", output);
     }
 
     [Fact]

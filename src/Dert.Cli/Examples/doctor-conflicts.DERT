@@ -1,0 +1,11 @@
+// WHERE THE COMMAND GOES
+// ----------------------
+
+STERT ; where ;; codex
+// support doctoring ; conflicts ;;
+// possible_conflicts, // Several copies deserve a closer look.
+// conflicts, // Show the route and the missing file before calling it broken.
+// fixme // Keep the reason beside the exact correction I choose.
+//
+commands ; doctor ;;
+ƒin.

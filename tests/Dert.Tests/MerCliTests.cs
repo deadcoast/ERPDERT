@@ -124,9 +124,10 @@ public class MerCliTests
             Out = new AnsiConsoleOutput(writer)
         });
         var exit = CliApplication.Run(["update", "codex", "updateme", "--still"], console,
-            discoveryEnvironment: new(fixture.Prefix, ".EXE;.CMD"), commandRunner: fixture);
+            discoveryEnvironment: new(fixture.Prefix, ".EXE;.CMD"), commandRunner: fixture,
+            doctorStateDirectory: Path.Combine(fixture.Files.Root, "state"));
         var output = System.Text.RegularExpressions.Regex.Replace(writer.ToString(), "\u001b\\[[0-9;]*m", "");
-        Assert.Equal(expectedExit, exit);
+        Assert.True(expectedExit == exit, output);
         Assert.Contains(expectedStage, output);
         Assert.Contains("/ mer", output);
         Assert.DoesNotContain("✓ TARGET FOLDER", output);

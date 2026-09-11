@@ -1,0 +1,16 @@
+// CONTEXT IS A CHOICE
+// -------------------
+
+// support doctoring ; conflicts ;;
+// possible_conflicts, // Keep uncertainty visible.
+// conflicts, // Ask for evidence before calling this a conflict.
+// fixme // Show the exact proposal before changing the machine.
+//
+
+// HOW ; conflicts ;; Keep the current installation until its route is verified. //
+// alternate view ; conflicts ;; A clean reinstall may be appropriate after evidence. //
+
+// Inspect line 4 and choose Context selection. Its annotations travel with it.
+// Open Left out to see what the selection leaves behind. Include another note deliberately.
+// Copy preview or export a new text file. Your original words stay here.
+// MER: at 4, context, context include 10, context details.

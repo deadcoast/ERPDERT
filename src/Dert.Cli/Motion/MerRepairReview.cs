@@ -133,6 +133,8 @@ internal sealed partial class MerReview
                 if (note is not null)
                 {
                     noteChoices = repairService.InspectNote(path, note.Block.LineNumber, Revision());
+                    referenceAnnotation = null;
+                    contextAnnotation = null;
                     selected = note.Block.LineNumber;
                     var choices = noteChoices.Analysis.Boundaries.Select(boundary => InkLine.Plain(
                         $"close {boundary.Key} / {boundary.KeptCount} kept / {boundary.ReleasedCount} released", Ink.Muted)).ToArray();
@@ -188,6 +190,8 @@ internal sealed partial class MerReview
         beforeRepair = NoteScore.Source(DertParser.Parse(preview.Before), path) with { State = DocumentSourceState.BeforeEdit };
         afterRepair = NoteScore.Source(DertParser.Parse(preview.After), path) with { State = DocumentSourceState.Proposed };
         showBefore = false;
+        referenceAnnotation = null;
+        contextAnnotation = null;
         selected = RepairLine(preview);
         PreviewAnnotation();
         Show();

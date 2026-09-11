@@ -40,13 +40,18 @@ public static class CliApplication
             return MerCommand.Run(args, console, renderer, merInput ?? Console.In, discoveryEnvironment, commandRunner, doctorStateDirectory);
         if (args[0].Equals("write", StringComparison.OrdinalIgnoreCase))
             return Authoring.AuthoringCommand.Run(args.Skip(1).ToArray(), renderer);
+        if (args[0].Equals("context", StringComparison.OrdinalIgnoreCase))
+            return Authoring.ContextCommand.Run(args, console, renderer);
+        if (args[0].Equals("result", StringComparison.OrdinalIgnoreCase))
+            return Results.ResultCommand.Run(args, console, renderer);
         if (args[0].Equals("update", StringComparison.OrdinalIgnoreCase) || args[0].Equals("where", StringComparison.OrdinalIgnoreCase))
         {
             if (!Applications.ApplicationRequest.TryRead(args, out var request, out var reason))
             { renderer.Failure(reason + (args[0].Equals("update", StringComparison.OrdinalIgnoreCase) ? " DERT update codex is read-only; add updateme to request a rehearsal." : "")); return 2; }
             return request!.Action is Applications.ApplicationAction.Where or Applications.ApplicationAction.Doctor
                 ? Applications.WhereCommand.Run(request, renderer, console, discoveryEnvironment, commandRunner, args.Contains("--plain"), stateDirectory: doctorStateDirectory, still: args.Contains("--still"))
-                : Applications.UpdateCommand.Run(request, renderer, discoveryEnvironment, commandRunner);
+                : Applications.UpdateCommand.Run(request, renderer, discoveryEnvironment, commandRunner, console,
+                    args.Contains("--plain"), doctorStateDirectory, args.Contains("--still"));
         }
         if (!CliOptions.TryRead(args, out var options, out var message))
         {
@@ -55,6 +60,8 @@ public static class CliApplication
         }
         if (options!.Command is "repair" or "undo")
             return RepairCommand.Run(options, console, renderer, confirmRepair, chooseBoundary);
+        if (options.Receipt is not null)
+            return Results.ResultRunCommand.Run(options, renderer, discoveryEnvironment);
         try
         {
             // Decode strictly and retain a UTF-8 BOM in SourceText. Inspection never writes the file.

@@ -26,6 +26,9 @@ internal sealed partial class MerReview
     {
         structureIndex = analysis.Document is { } parsed ? new(parsed) : null;
         showStructure = false;
+        if (referenceSet is not null) Say("References cleared after the source changed. Use refs again on the verified text.", Ink.Muted);
+        referenceSet = null; referenceAnnotation = null;
+        ClearContextAfterEdit();
         if (searchText is not null) Say("Search cleared after the source changed. Use find again on the verified text.", Ink.Muted);
         searchHits = [];
         searchText = null;
@@ -55,7 +58,7 @@ internal sealed partial class MerReview
             case "structure":
                 if (!answer.Equals("structure", StringComparison.OrdinalIgnoreCase)) Say("Use structure to inspect the selected source line.", Ink.Muted);
                 else if (selected is null) Select(structureIndex.Locations.FirstOrDefault()?.Node.LineNumber ?? 1, true);
-                else { showStructure = true; repairAnnotation = null; Show(); }
+                else { showStructure = true; repairAnnotation = null; referenceAnnotation = null; contextAnnotation = null; Show(); }
                 break;
             case "owner":
                 if (answer.Equals("owner", StringComparison.OrdinalIgnoreCase) && selected is int line && structureIndex.OwnerLine(line) is int parent)

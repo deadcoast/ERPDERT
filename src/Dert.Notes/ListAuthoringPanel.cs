@@ -128,8 +128,10 @@ public sealed class ListAuthoringPanel : StackPanel
         punctuation.Text = "";
         if (CurrentPlan is { IsReady: true } plan)
         {
-            diff.Inlines.Add(new Run($"- {plan.LastLine} | {plan.BeforeLine}\n") { Foreground = Palette.Copper });
-            for (var index = 0; index < plan.AfterLines.Count; index++)
+            var firstChangedLine = plan.Action == ListAction.Add && plan.AfterLines[0] == plan.BeforeLine ? 1 : 0;
+            if (firstChangedLine == 0)
+                diff.Inlines.Add(new Run($"- {plan.LastLine} | {plan.BeforeLine}\n") { Foreground = Palette.Copper });
+            for (var index = firstChangedLine; index < plan.AfterLines.Count; index++)
             {
                 diff.Inlines.Add(new Run($"+ {plan.LastLine + index} | ") { Foreground = Palette.Good });
                 if (index == 1 && LiteralPreview is { } quoted) LiteralAuthoringPanel.AppendQuoted(diff, quoted.Text, quoted.InsertedQuotes);

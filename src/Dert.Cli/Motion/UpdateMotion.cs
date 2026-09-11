@@ -44,7 +44,7 @@ internal sealed class UpdateMotion(Action<MotionEvent> publish) : IDisposable
         }
         var detail = report.State switch
         {
-            UpdateState.Ready => "Rehearsed, not applied. The proposed command and its limits follow.",
+            UpdateState.Ready => "Rehearsed, not applied. The saved proposal and exact approval follow.",
             UpdateState.Current => "Already current. No install rehearsal was needed.",
             UpdateState.ChooseCopy => "Choose a copy below. No npm was queried.",
             UpdateState.Ahead => "Installed version is ahead of latest. No downgrade proposed.",

@@ -40,8 +40,10 @@ internal sealed record ApplicationRequest(ApplicationDefinition Application, App
         }
         if (action is ApplicationAction.UpdateDiscovery or ApplicationAction.UpdateRehearsal && application.NpmPackage is null)
         { reason = $"'{application.DisplayName}' has no update adapter in this build. DERT where can still locate it."; return false; }
-        if (approval is not null && action != ApplicationAction.Doctor || source is not null && action != ApplicationAction.Doctor)
-        { reason = "--apply and --from-source belong to an exact doctor proposal. Add --doctor to review that operation."; return false; }
+        if ((approval is not null || source is not null) && action is not (ApplicationAction.Doctor or ApplicationAction.UpdateRehearsal))
+        { reason = "--apply and --from-source belong to an exact update or doctor proposal. Use updateme for update, or --doctor for reinstall."; return false; }
+        if (approval is not null && selected is null)
+        { reason = "--apply needs the reviewed --path. Copy the complete command from the proposal."; return false; }
         if (selected is not null && action is ApplicationAction.UpdateDiscovery or ApplicationAction.Where)
         { reason = "Use updateme with --path to select a copy for update rehearsal, or where with --doctor to inspect a repair."; return false; }
         request = new(application, action, selected, approval, source);

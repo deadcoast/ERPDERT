@@ -20,6 +20,13 @@ public sealed class AuthoringSession
     private bool autoTitle;
     private bool titleChanged;
     private bool boundaryQueued;
+    private int boundaryEpoch;
+    private bool holdAutomaticBoundary;
+    internal bool HoldAutomaticBoundary
+    {
+        get => holdAutomaticBoundary;
+        set { if (holdAutomaticBoundary == value) return; holdAutomaticBoundary = value; boundaryEpoch++; }
+    }
     private string savedText = "";
     public bool IsDirty => Editor.Text != savedText;
     public string NewLine { get; private set; } = "\r\n";
@@ -37,9 +44,11 @@ public sealed class AuthoringSession
             if (!applying && titleChanged && !boundaryQueued)
             {
                 boundaryQueued = true;
+                var epoch = boundaryEpoch;
                 Editor.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     boundaryQueued = false;
+                    if (epoch != boundaryEpoch) return;
                     if (titleChanged && Editor.TextArea.Caret.Line != TitleLine()) CompleteBoundary();
                 }), System.Windows.Threading.DispatcherPriority.Background);
             }
@@ -147,7 +156,7 @@ public sealed class AuthoringSession
 
     public void CompleteBoundary()
     {
-        if (applying || !autoTitle || !titleChanged) return;
+        if (applying || HoldAutomaticBoundary || !autoTitle || !titleChanged) return;
         applying = true;
         try { using (Editor.Document.RunUpdate()) ApplyTitle(TitleRuleRepair.Plan(DertParser.Parse(Editor.Text))); titleChanged = false; }
         finally { applying = false; }
@@ -228,6 +237,25 @@ public sealed class AuthoringSession
         finally { applying = false; }
         Refresh();
         LiteralEdited?.Invoke("Quote marks added to your source. Undo restores the original source; Save keeps this spelling on disk.");
+        return true;
+    }
+
+    public bool ApplyResultPreview(ResultNotePlan preview)
+    {
+        if (applying || preview.Source != Editor.Text || preview.Edit is not { } edit) return false;
+        applying = true;
+        try
+        {
+            using (Editor.Document.RunUpdate()) Editor.Document.Replace(edit.Span.Start, edit.Span.Length, edit.After);
+            Reasoning.Reset();
+            Editor.Select(preview.AddedSpan.Start, preview.AddedSpan.Length);
+            Editor.CaretOffset = preview.AddedSpan.End;
+        }
+        finally { applying = false; }
+        Refresh();
+        foreach (var fold in Folds.AllFoldings.Where(fold => fold.StartOffset < preview.AddedSpan.End && fold.EndOffset > preview.AddedSpan.Start))
+            fold.IsFolded = false;
+        Editor.ScrollToLine(Editor.Document.GetLineByOffset(preview.AddedSpan.Start).LineNumber);
         return true;
     }
 

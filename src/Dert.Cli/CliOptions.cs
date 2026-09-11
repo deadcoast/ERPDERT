@@ -3,7 +3,8 @@ using System.Globalization;
 namespace Dert.Cli;
 
 internal sealed record CliOptions(string Command, string Path, bool Expand, int? At, string? ApplyToken = null,
-    bool Plain = false, string? CloseBefore = null, string? FromLint = null, bool Preview = false)
+    bool Plain = false, string? CloseBefore = null, string? FromLint = null, bool Preview = false, bool References = false,
+    string? Receipt = null)
 {
     public static bool TryRead(string[] args, out CliOptions? options, out string message)
     {
@@ -18,13 +19,20 @@ internal sealed record CliOptions(string Command, string Path, bool Expand, int?
         var expand = false;
         var preview = false;
         int? at = null;
+        var references = false;
         string? revision = null;
         string? closeBefore = null;
         string? fromLint = null;
+        string? receipt = null;
         for (var i = 2; i < args.Length; i++)
         {
             switch (args[i])
             {
+                case "--receipt" when args[0] == "run" && receipt is null:
+                    if (++i >= args.Length || string.IsNullOrWhiteSpace(args[i]) || args[i].StartsWith("--", StringComparison.Ordinal))
+                    { message = "--receipt needs a new .json path for one observed discovery result."; return false; }
+                    receipt = args[i];
+                    break;
                 case "--plain":
                     break;
                 case "--still" when args[0] == "run":
@@ -34,6 +42,9 @@ internal sealed record CliOptions(string Command, string Path, bool Expand, int?
                     break;
                 case "--expand" when args[0] == "inspect":
                     expand = true;
+                    break;
+                case "--references" when args[0] == "inspect" && !references:
+                    references = true;
                     break;
                 case "--at" when args[0] is "inspect" or "repair":
                     if (at is not null || ++i >= args.Length || !int.TryParse(args[i], NumberStyles.None, CultureInfo.InvariantCulture, out var number) || number < 1)
@@ -90,7 +101,14 @@ internal sealed record CliOptions(string Command, string Path, bool Expand, int?
             message = "A --from-lint handoff opens a preview only. It cannot be combined with --apply. Open the rehearsal first, then choose its separate approval command.";
             return false;
         }
-        options = new(args[0], args[1], expand, at, revision, args.Contains("--plain"), closeBefore, fromLint, preview);
+        if (references && at is null)
+        {
+            message = "Choose the note: DERT inspect notes.DERT --at 12 --references";
+            return false;
+        }
+        if (preview && receipt is not null)
+        { message = "A source preview has no observed result to retain. Leave out --receipt, or deliberately run the discovery."; return false; }
+        options = new(args[0], args[1], expand, at, revision, args.Contains("--plain"), closeBefore, fromLint, preview, references, receipt);
         return true;
     }
 }

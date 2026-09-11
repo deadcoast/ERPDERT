@@ -30,6 +30,9 @@ application display names. Generic location works independently of manager adapt
 and saves an exact reinstall proposal. Its offered `--apply` command rechecks the
 reviewed copy, uninstalls, reinstalls the pinned version and verifies inventory
 and the launcher/JavaScript entrypoint. Codex itself is not launched.
+It also diagnoses a supported generated npm PowerShell launcher whose missing
+entry point hides a later identified copy on external PATH. Its connected evidence
+view distinguishes a confirmed failure from possible overlap or incomplete reads.
 
 The language workbench works: a source-preserving lexer/parser and a Windows
 CLI for inspecting, linting, and rehearsing reversible title-rule and note-boundary
@@ -54,6 +57,9 @@ without searching. A runnable example ships with the executable.
 `DERT update codex updateme` now rehearses an npm-managed update: select the copy,
 confirm its manager's inventory, check the latest release, and inspect npm's
 dependency dry run. The same operation is available inside DERT.
+The saved proposal offers an exact `--path ... --apply <token>` command that
+rechecks the reviewed copy, installs the pinned version without uninstalling
+first, and records verification. A proposal from a note also binds its source.
 
 `DERT mer` now keeps the authored source in an ASCII document window, with
 line numbers, a short animated edge trace, and an explanation attached to the
@@ -151,8 +157,99 @@ proposals keep their Apply/Leave choices. Try `DERT write examples/weekend.DERT`
 from the published folder. The [interaction and evidence](docs/superpowers/specs/2026-09-09-reasoning-return-design.md)
 record the supported return behavior.
 
+**HOW keeps its whole explanation. Similarities shows its written items.**
+Inspect either note with **Ctrl+Space**. Commas inside quotes stay with their
+words; duplicate names remain separate occurrences. Selecting an item selects
+that exact source range, including an empty place where you can type. An expanded
+similarities nest keeps one item per authored entry and retains its annotations.
+
+**Raw fields / Read context** switches the view without editing the note. Unknown
+note kinds retain their prose and fields. Targets remain names as written; listing
+things together does not verify an application relationship. Missing endings and
+unfinished quotes remain visible. Try **`examples/context-notes.DERT`**; CLI
+`inspect --at` and MER's `structure` use the same named readings. See the
+[context reading record](docs/superpowers/specs/2026-09-09-context-reading-design.md).
+
+**References follows named places between notes in the same document.** Open a
+reasoning note with **Ctrl+Space**, then choose **References**. Content names,
+targets and similarities items show each matching occurrence with its line,
+column, role and actual parent. Choose one to select those exact words. Multiple
+visits keep your original return point; **Return to note / Escape** takes you back
+with edits and Undo retained. Results are paged, and names without a match remain
+visible. Try **`examples/referenced-notes.DERT`**.
+
+Matching uses whole written names, ignores case and keeps quotes literal. It does
+not infer names from free prose or resolve application bindings. This is a
+single-document navigation feature; cross-file identity and portable schemas
+remain deferred. See the [reference design and evidence](docs/superpowers/specs/2026-09-09-note-references-design.md).
+
 Active sinkers stay expanded. Colors and folding never write decorations or
 indentation into the document, and written operations are text inside this window.
+
+**Choose what travels with your words.** Inspect a reasoning note with
+**Ctrl+Space**, then choose **Context selection…**. The dedicated review starts
+with that note and its own annotations. Include another note deliberately;
+matching names do not select it for you. **Left out** shows all excluded source,
+including other explanations and any surrounding operations.
+
+**Copy preview** (or **Ctrl+C** inside the review) copies the complete selected
+text. **Export…** writes a new UTF-8 `.txt` file and verifies its bytes. The text
+retains original excerpts, missing-boundary status, actual parents, source ranges
+and the captured revision. **Back to note / Escape** preserves your original
+selection and Undo. Changed source or identity requires a fresh selection.
+An embedded NUL character requires file export because Windows clipboard text
+would stop there. No agent receives anything automatically.
+
+Try `examples/context-selection.DERT`, starting at line 4. From the CLI:
+
+```powershell
+DERT context examples/context-selection.DERT --at 4 --include 10 --details
+```
+
+`--include` accepts another reasoning note's opener and can be repeated. The
+preview prints a complete export command with **`--from-preview`**; changed source
+or selected notes refuses that old review. Choose a new `.txt` destination.
+**`--text`** emits only the reviewed text for deliberate copying/redirection.
+In MER, use **`context`**, **`context include 10`**, **`context notes 2`** to page
+choices, **`context left`**, and **`context details`**. **`context clear`** leaves
+the selection; saved repairs clear it automatically.
+
+This is a human-readable source handoff. Portable schemas, cross-file identity
+and automatic agent delivery remain deferred. See the [context-selection design
+and evidence](docs/superpowers/specs/2026-09-09-context-selection-design.md).
+
+**Bring an observed result back to your words.** A source-bound Codex discovery
+can retain its result in a new local file:
+
+```powershell
+DERT run examples/observed-results.DERT --receipt first-look.json
+DERT result first-look.json --details
+```
+
+The review shows what was observed, when, its evidence and the captured source.
+It compares that source with the current document and previews a folded result
+note. Follow **Keep result in this note**, add **`--write`**, or choose **Keep
+result…** in Notes. **Apply** adds the reviewed note as one undoable buffer edit;
+**Save** keeps it on disk. Canceling preserves the source and selection. A pending
+edit, changed file identity or stale buffer refuses an old Apply.
+
+The original source revision remains with the observation. An exact chain can
+be recognized after a line move; duplicates remain ambiguous. **`--at N`** chooses
+a current chain to compare explicitly. Changed words, line endings and BOM state
+stay distinguishable. Keeping history never repeats the operation or claims that
+the current installation has been verified.
+
+In MER, **`probe`**, then **`keep first-look.json`** retains the observation already
+shown. Spaces belong to that path; MER does not need shell quotes. Later,
+**`DERT result second-look.json --compare first-look.json`** compares the two saved
+observations, including evidence added or removed. Use **`--into file.DERT`** to
+review another destination; its original source identity is retained as history.
+
+This first producer supports one read-only `STERT ; update ;; codex` request.
+Update-rehearsal and doctor-journal adapters remain further work. Local `.json`
+records are private persistence, with no portable schema or authenticity claim.
+Portable schemas and automatic agent delivery remain deferred. See the
+[result-return design and evidence](docs/superpowers/specs/2026-09-09-results-to-notes-design.md).
 
 For an expanded list, select its header or an active item. **Add another item…**
 lets you enter the actual words and optional `//` annotation, then previews their
@@ -171,6 +268,26 @@ Lint and MER's detailed findings offer a copyable `write` command for DERT3003.
 It opens the **current file**, which may differ from the analysis, and does not
 apply a choice. Repair commands retain their separate source-byte checks.
 
+To put punctuation in the item itself, choose **Keep punctuation as text** in
+Add another item. Your draft remains exactly as typed. The preview underlines
+only the added quote marks, so a literal `//` stays with the words and a final
+comma can belong to the item. **Use DERT source** restores the ordinary input
+reading, including an optional annotation. Neither choice applies the proposal.
+
+For existing source, select a value or part of its words and choose **Literal
+text…** (**Ctrl+Shift+L**). The preview names its source line and shows the
+before/after boundary meaning. Apply uses one Undo step and keeps selection
+direction. It refuses an edit that would detach another item, absorb an
+annotation or change an application field. Changed source withdraws the preview.
+
+Ordinary Windows paths need no quote marks. A path containing punctuation may
+be shown as `"C:\notes; old"\`: its final backslash stays outside the new quote.
+Existing quotes remain verbatim. Quote marks are retained in saved source; this
+convenience adds no decoding or new escape language. Unfinished quotes explain
+what remains open and receive no guessed ending. Try **`examples/literal-words.DERT`**.
+The [literal authoring record](docs/superpowers/specs/2026-09-09-literal-authoring-design.md)
+contains the tested cases and remaining boundaries.
+
 Type `fin.` to close a `STERT` chain: Notes automatically displays `ƒin.`.
 The source still contains `fin.`; Copy and Save keep that typed spelling.
 Select the ending's line to see its opening line and **Show typed spelling**.
@@ -185,8 +302,8 @@ the source spelling; this automatic appearance belongs to the Notes editor.
 **Ctrl+S** saves; **Ctrl+Shift+S** creates a new copy; **Ctrl+Z / Ctrl+Y** undo and
 redo buffer edits. New, Open and Close offer Save, Discard or Cancel when needed.
 `--still`, `DERT_MOTION=off`, and Windows reduced-motion settings suppress the
-short accent that follows an actual title alignment, accepted list edit or
-accepted florin source edit. Displaying the florin alone adds no animation or edit.
+short accent that follows an actual title alignment, accepted list edit,
+literal quote edit or florin source edit. Displaying the florin alone adds no animation or edit.
 
 Existing-file saves check the opened file's identity and original bytes, preserve
 its BOM and literal line endings, keep verified previous bytes in the adjacent
@@ -296,6 +413,17 @@ another line. An unfinished note offers `close <line>` or `close eof`, with the
 number of entries kept and released. Choosing an ending opens a proposal and
 shows the resulting ownership; it never guesses a boundary.
 
+On a reasoning note, **`refs`** shows up to four numbered destinations. **`refs 2`**
+opens the second page; **`ref 3`** visits that exact occurrence; **`ref back`** returns
+to the note where the set was captured. **`details`** retains full names, field
+roles and actual ownership. The source margin continues to trace structural
+ownership. Saved repairs/undo clear old reference numbers; pending comparisons
+keep their own choices. For a direct, read-only report:
+
+```powershell
+DERT inspect examples/referenced-notes.DERT --at 4 --references
+```
+
 `before` and `after` compare captured source with the exact proposal. **`apply`
 saves that displayed edit**, using the existing guarded writer and verified local
 undo copy. `cancel` leaves the preview; Enter exits without applying it. The
@@ -345,7 +473,7 @@ registry query and dependency dry run. These queries may write npm cache/logs.
 The source stays visible as actual results connect its request to the installed
 version, confirmed target folder, registry release and proposed dependency changes.
 Current and ahead versions explain why no install dry run is needed. `details`
-retains every check and the separately labeled manual update command. No package
+retains every check and the separately labeled saved update approval. No package
 update is applied inside MER; `apply` remains a source-repair control.
 
 The file must still match the captured bytes before a new probe or rehearsal
@@ -493,6 +621,29 @@ In MER select that source line, then `probe`, `copy N` when needed, `doctor`, an
 continues to mean the currently selected source repair. The packaged
 `examples/where-my-tools.DERT` starts with location only.
 
+**When the first route is broken, show the relationship before changing it.**
+`DERT where codex --doctor` can confirm one specific Windows conflict: a known
+generated npm PowerShell launcher earlier on PATH targets a definitely missing
+`bin/codex.js`, while a later distinct identified copy has a readable entry point.
+The diagnosis connects **First external route → Missing entry point → Later
+identified copy**. `FIXME` offers a command to review the broken first copy;
+choosing it still requires the separate saved `--apply` approval.
+
+That approval binds the exact PATH/PATHEXT, earlier command slots, later-copy
+evidence and source alongside the selected package and manager. Changed evidence
+refuses the old approval. After reinstall, the receipt records the repaired
+external-route condition only after verifying it again. The later installation
+and PATH stay outside the repair target. Selecting the later copy does not claim
+to repair the first route. Multiple intact installations remain possible overlap.
+
+Custom launcher bodies and incomplete or unreadable evidence cannot earn the
+confirmed label. This check concerns external PATH file resolution; parent-shell
+aliases, functions, cmdlets, execution policy and Codex runtime health are outside
+its scope. Try the source-bound review in `examples/doctor-conflicts.DERT`.
+Its `support doctoring`, `possible_conflicts`, `conflicts` and `fixme` entries are
+the author's context; their words do not assert runtime findings or authorize repair.
+See [the conflict design and evidence](docs/superpowers/specs/2026-09-10-doctor-conflicts-design.md).
+
 Location exits: `0` = findings without an attention condition; `1` = missing,
 ambiguous or incomplete evidence; `2` = invalid request/output failure; `130` =
 interrupted. Doctor review uses `0` for a ready proposal; approved execution uses
@@ -522,12 +673,21 @@ receive an installation command, and an older `latest` tag never proposes a down
 Unrecognized release channels, unavailable managers, failed queries, unexpected
 output, and changed source installations are explained instead of guessed.
 
-When ready, **MANUAL UPDATE / CHANGES PACKAGES** contains the exact absolute
-Node/npm invocation, selected prefix, and pinned package version. DERT does
-not execute it. Running it yourself can change packages and run package scripts;
-it is not an DERT approval, snapshot guard, or reversible repair. Rehearse again
-if the installation or environment changes. Integrated update approval/execution
-and verified post-update results remain future work.
+When ready, **APPLY THIS REVIEWED UPDATE** offers a complete DERT command with
+the selected launcher and saved proposal token. Running that command rechecks
+the reviewed installation, Node/npm files and source snapshot, then installs
+the pinned version without uninstalling first. Package scripts stay disabled.
+Update and doctor share a lock for the selected installation, durable phase
+journals, cancellation and verification. Changed evidence refuses old approval.
+
+The result verifies package metadata, the selected launcher/JavaScript entry
+point and npm's inventory. It does not launch Codex or certify native runtime,
+authentication or application health. An interrupted install can leave this
+copy partial; the local operation receipt preserves the recorded phases and
+explicit recovery request. No automatic rollback is promised. Private proposal
+and receipt files live under `%LOCALAPPDATA%\DERT` (or `DERT_STATE_HOME`).
+The canonical npm prefix also contains a persistent `.dert-npm-transaction.lock`
+file so update and doctor coordinate even with different state folders.
 
 Unlike discovery, a rehearsal launches npm and contacts its configured registry;
 npm may write cache/logs. It does not launch Codex, change packages, or rewrite notes.
@@ -535,8 +695,9 @@ npm may write cache/logs. It does not launch Codex, change packages, or rewrite 
 Stable three-part versions and npm's legacy-object/current singleton-array registry
 responses are supported. Historical installer ownership is not claimed.
 
-Exit codes for `updateme`: `0` = ready rehearsal or already current; `1` = a choice,
+Exit codes for `updateme`: `0` = ready rehearsal, already current, or verified approved update; `1` = a choice,
 unavailable check, ahead-of-latest version, or selected-copy finding needs attention;
+an apply-time refusal, failed install, failed verification or receipt failure also returns `1`.
 `2` = unsupported usage/platform or unavailable output; `130` = interrupted.
 A selected copy can be checked successfully while
 unrelated PATH warnings remain visible.
@@ -711,10 +872,14 @@ The repair-followthrough suite checks copied actions after title repair, note
 closure, and undo, including shifted lines and stale links. Evidence stays in
 `.artifacts/followthrough-proof`.
 The update suite uses a separate test-only executable to exercise real child-process
-dispatch and copied commands; that fixture refuses installation. A separate opt-in
+dispatch, saved approval, simulated update-only mutation and failure receipts. A separate opt-in
 `tests/Invoke-LiveNpmRehearsal.ps1 -NodePrefix <existing-Node-folder>` checks genuine
 npm against a disposable copied installation and public-registry metadata. It never
-invokes the manual update and retains its cache and evidence under `.artifacts`.
+applies an update and retains its cache and evidence under `.artifacts`.
+`tests/Invoke-LiveNpmUpdate.ps1 -ToolPrefix <Node-folder>` exercises real npm
+updating a disposable test package from a loopback registry and checks the journal,
+installed version, disabled scripts and stale approval. It does not update the
+user's Codex installation.
 The location/doctor suite enables explicit repair simulation in that same owned
 process fixture to exercise saved CLI approval, filesystem changes and durable
 verification receipts. `tests/Invoke-LiveNpmDoctor.ps1 -ToolPrefix <Node-folder>`
@@ -827,10 +992,11 @@ increment is temporary reasoning inspection that returns to its resting view
 without hiding active edits. Remaining host validation and wider operation
 workflows stay in [TODO](TODO.md).
 
-Update-only approval, execution and verified results remain operational work
-ahead for updateme. Doctor now has its own guarded reinstall transaction;
-additional managers, native application health and reproduced conflict diagnosis
-remain ahead. The manual update command remains a separate action.
+Update-only execution and doctor reinstall share guarded approval, execution and
+verification. Doctor now connects one supported broken external-route conflict
+to its guarded repair. Additional managers, native application health and other
+conflict kinds remain ahead. Rehearsal/doctor result-to-notes adapters remain
+further work; portable schemas and automatic agent delivery stay deferred.
 
 The broader Windows proof still includes an ambiguous edit, supported command
 rehearsal and an optional result kept in the document.

@@ -47,13 +47,25 @@ internal static class StructureConnection
                     compact.Add(InkLine.Plain(TerminalText.Clip(entry.Annotation?.Text ?? "No entry explanation", 56), Ink.Signal));
                     break;
                 case ReasoningNoteNode note:
+                    var contextReading = Context(note);
                     Fields(note.Header);
-                    Add("Reason / " + note.Header.Payload?.Text);
+                    if (contextReading?.Reader == ContextReader.Similarities)
+                        foreach (var item in contextReading.Items) Add($"{item.Number:00} / " + (item.Value.Text.Length == 0 ? "words not written" : item.Value.Text));
+                    else Add("Reason / " + note.Header.Payload?.Text);
                     Add("Target names as written / no resolved binding", Ink.Muted);
                     break;
                 case ReasoningBlockNode block:
+                    var blockReading = Context(block);
                     Fields(block.Header);
-                    Entries(block.Entries);
+                    if (blockReading?.Reader == ContextReader.Similarities)
+                    {
+                        foreach (var item in blockReading.Items)
+                        {
+                            Add($"  {item.Number:00} / line {item.LineNumber} / " + (item.Value.Text.Length == 0 ? "words not written" : item.Value.Text));
+                            if (item.Annotation is { } annotation) Add("     // " + annotation.Text, Ink.Muted);
+                        }
+                    }
+                    else Entries(block.Entries);
                     Add("Target names as written / no resolved binding", Ink.Muted);
                     break;
                 case StatementNode statement:
@@ -91,7 +103,9 @@ internal static class StructureConnection
             var label = boundary is ChainNode chain ? DertSourceReading.ChainExtent(index, chain)
                 : closing is { } nl ? $"Closed by // on line {nl}" : "Closing // missing";
             var boundaryInk = closing is null && boundary is not ChainNode ? Ink.Copper : Ink.Muted;
-            Add(label, boundaryInk);
+            // Keep the actual boundary ahead of entries even when the full
+            // connection is taller than the terminal's available space.
+            lines.Insert(1, InkLine.Plain(label, boundaryInk));
             // The source extent survives a crowded compact view. Any displaced
             // field still appears in the source and in full structure detail.
             compact.Insert(1, InkLine.Plain(label, boundaryInk));
@@ -108,6 +122,17 @@ internal static class StructureConnection
         return new(line, lines, compact) { Ownership = ownership };
 
         void Add(string text, Ink ink = Ink.Text) => lines.Add(InkLine.Plain(text, ink));
+
+        ContextReading? Context(DertNode contextNode)
+        {
+            var reading = ContextReading.Read(index.Document, contextNode);
+            if (reading is null || reading.Reader == ContextReader.Written) return reading;
+            var ink = reading.Issues.Count == 0 ? Ink.Signal : Ink.Copper;
+            lines.Insert(1, InkLine.Plain(reading.Summary, ink));
+            compact.Insert(1, InkLine.Plain(reading.Summary, ink));
+            foreach (var issue in reading.Issues.Where(issue => issue.Kind != ContextIssueKind.MissingClosing)) Add(issue.Message, Ink.Copper);
+            return reading;
+        }
 
         void Fields(Header header)
         {

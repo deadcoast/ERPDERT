@@ -109,9 +109,11 @@ public class UpdateCliTests
     internal static (int Exit, string Output) Invoke(string[] args, string path, ICommandRunner? runner = null, int width = 200)
     {
         using var writer = new StringWriter();
+        using var state = new ScratchDocument("");
         var console = AnsiConsole.Create(new AnsiConsoleSettings { Ansi = AnsiSupport.No, ColorSystem = ColorSystemSupport.NoColors, Out = new AnsiConsoleOutput(writer) });
         console.Profile.Width = width;
-        var exit = CliApplication.Run(args, console, invocation: ["DERT.exe"], discoveryEnvironment: new(path, ".EXE;.CMD"), commandRunner: runner);
+        var exit = CliApplication.Run(args, console, invocation: ["DERT.exe"], discoveryEnvironment: new(path, ".EXE;.CMD"), commandRunner: runner,
+            doctorStateDirectory: state.DirectoryPath);
         return (exit, writer.ToString());
     }
 }

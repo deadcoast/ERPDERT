@@ -150,7 +150,13 @@ public class LiteralAuthoringTests
         window.UpdateLayout(); ReasoningInspectionTests.Pump();
         ReasoningInspectionTests.Capture(window, $"literal-{(adding ? "add" : "source")}-{width}");
         Assert.True(window.Editor.ActualHeight > 150);
-        Assert.Contains(ReasoningInspectionTests.Descendants<Button>(window), button => Equals(button.Content, "Apply") && button.IsVisible && button.IsEnabled);
+        var apply = Assert.Single(ReasoningInspectionTests.Descendants<Button>(window), button => Equals(button.Content, "Apply") && button.IsVisible && button.IsEnabled);
+        DependencyObject? ancestor = apply;
+        while (ancestor is not null && ancestor is not ScrollViewer) ancestor = System.Windows.Media.VisualTreeHelper.GetParent(ancestor);
+        var scroll = Assert.IsType<ScrollViewer>(ancestor);
+        var buttonBottom = apply.TranslatePoint(new Point(0, apply.ActualHeight), window).Y;
+        var viewportBottom = scroll.TranslatePoint(new Point(0, scroll.ActualHeight), window).Y;
+        Assert.True(buttonBottom <= viewportBottom, $"Apply ends at {buttonBottom}, below the visible context at {viewportBottom}.");
         window.Lists.Reset(); window.Literals.Reset();
     });
 }

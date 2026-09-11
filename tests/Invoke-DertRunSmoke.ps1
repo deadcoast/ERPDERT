@@ -110,6 +110,23 @@ try {
     $result = Invoke-Child $Executable @('run', $sample, '--apply', '--plain')
     Assert-Result 'Run does not accept a repair approval flag' $result 2 @('--apply') @('CODEX / DISCOVERY')
 
+    $resultSource = Write-Fixture "result origin [日本語]'s.DERT" ([char]0xfeff + "STERT ; update ;; codex`r`n// HOW ; codex ;; Keep my explanation. //`nƒin.`r`n")
+    $resultHash = (Get-FileHash -LiteralPath $resultSource).Hash
+    $resultRecord = Join-Path $proofPath "observation's [日本語].json"
+    $retained = Invoke-Child $Executable @('run', $resultSource, '--receipt', $resultRecord, '--plain')
+    Assert-Result 'Retain real discovery as a local result' $retained 0 @('Result retained', 'bytes verified', ' result ')
+    $result = Invoke-Child $Executable @('result', $resultRecord, '--into', $resultSource, '--details', '--plain')
+    Assert-Result 'Review result with captured source and exact inert insertion' $result 0 @('RESULT TO NOTE', 'Proposed / not saved', 'Keep my explanation.', 'observed result', '--result')
+    $commands = @($retained.Output -split '\r?\n' | Where-Object { $_.StartsWith('& ') -and $_.Contains(' result ') })
+    if ($commands.Count -ne 1) { throw 'Result retention did not offer one intact PowerShell review command.' }
+    $copied = Invoke-Child $shellPath @('-NoProfile', '-NonInteractive', '-Command', $commands[0])
+    Assert-Result 'Copied result review command preserves quoted Unicode paths' $copied 0 @('RESULT TO NOTE', 'source unchanged')
+    $result = Invoke-Child $Executable @('run', $resultSource, '--receipt', $resultRecord, '--plain')
+    Assert-Result 'Result record refuses an existing destination' $result 2 @('already exists') @('CODEX / DISCOVERY')
+    $result = Invoke-Child $Executable @('result', $resultRecord, '--into', $resultSource, '--compare', $resultRecord, '--plain')
+    Assert-Result 'Compare recorded observations without another operation' $result 0 @('Historical', 'evidence') @('CODEX / DISCOVERY')
+    if ((Get-FileHash -LiteralPath $resultSource).Hash -ne $resultHash) { throw 'Retaining or reviewing a result changed source bytes.' }
+
     if ((Get-FileHash -LiteralPath $sample).Hash -ne $sampleHash -or (Get-FileHash -LiteralPath $path).Hash -ne $sourceHash) {
         throw 'Running or previewing DERT changed a source file.'
     }

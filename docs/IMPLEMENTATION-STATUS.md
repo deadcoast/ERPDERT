@@ -3,6 +3,244 @@
 2026-09-06. This records implemented behavior, not a canonical language release.
 The original language notes and subsequent user decisions retain authority.
 
+## Doctor actual conflicts, 2026-09-10
+
+The first confirmed case is a supported generated npm PowerShell launcher earlier
+on external PATH whose declared JavaScript entry point is definitely missing,
+hiding a later distinct identified copy with readable evidence. CLI, source-bound
+DERT run and MER show this relationship before copy selection. Duplicate intact
+copies remain possible overlap; custom wrappers, redirected paths and incomplete
+or unreadable evidence cannot earn confirmation. Authored doctoring notes remain
+context, with no new grammar or implicit command binding.
+
+The chosen reinstall carries exact PATH/PATHEXT, route identities, original bytes,
+earlier slot absences and later-copy evidence in its saved approval. Shared npm
+checks enforce these before queries, across mutation and after final inventory.
+Equivalent paths and sibling launchers in the selected prefix retain the guard.
+New foreign launcher occupants after uninstall stop installation before overwrite.
+Final source/package checks follow the final route scan; the receipt records
+resolution only after durable verification. Older saved proposals require review
+again under the extended private persistence format.
+
+MER retains the source frame and line numbers. The compact margin preserves
+choice and interruption; the wide margin keeps useful folder names while complete
+paths remain in details. CLI unfolds all three facts in one ASCII evidence rail.
+The copyable action keeps DERT's approval, and the installed/proposed versions are
+visible. A reinstall of the later copy does not claim to repair the first route.
+
+Final source-only verification passed **1,252 tests** (1,098 core/CLI/MER, 154
+native) and **all eleven executable suites**, including **18 location/doctor**,
+**29 update**, **60 MER** and **24 published Notes checks**. All **278** source/test
+inputs match the fresh verification copy. Real npm **11.13.0**, Node **v25.8.1**
+and fresh PowerShell **7.6.6** passed **15 live checks**: the same earlier route
+failed before repair and invoked the benign fixture afterward; the entire later
+prefix remained unchanged. Final 110/58-column engine frames and receipts were
+inspected, and the local Windows package was refreshed.
+
+These are test-owned packages, not the user's Codex. Parent-shell aliases,
+functions, cmdlets, execution policy, native Codex health and human usability are
+outside that proof. Cached restore is not a fresh vulnerability audit. Other
+conflicts, result adapters, portable schemas and automatic agent delivery remain
+further work. [Exact design, evidence and limits](superpowers/specs/2026-09-10-doctor-conflicts-design.md).
+
+## Complete the update transaction, 2026-09-09
+
+Update rehearsal now saves an exact local proposal and offers a DERT approval
+command. CLI, DERT run and MER share the same service; originating source remains
+bound through copy selection, rehearsal and approval. Approval rechecks the
+reviewed source, installation and Node/npm evidence before running the pinned
+install. Update does not uninstall first. Doctor's existing facade delegates its
+reinstall sequence to the same transaction engine.
+
+The engine shares a canonical-prefix lock across both operations, independent of
+state folders. Operation-specific tokens and deterministic request validation
+prevent crossing update/doctor approvals or rewriting them into arbitrary process
+requests. Durable journals precede mutation and retain completion, interruption
+and partial failure. Final verification checks package/launcher/entry-point and
+manager inventory, then verifies the newly installed evidence again. Codex itself
+is not launched; native runtime or authentication health is not inferred.
+
+Independent review and adversarial tests caught source loss in copy-selection
+commands, disconnected cancellation, stale discovery/current readings, and changes
+during final inventory. All received fixes and regressions. Final source-only
+verification passed **1,191 tests** (1,037 core/CLI/MER, 154 native) and **all eleven
+executable suites**, including **29 update**, **8 location/doctor**, **60 MER** and
+**24 published Notes checks**. All **265** source/test inputs match that proof.
+
+Real npm **11.13.0**, using Node **v25.8.1**, updated a disposable test package
+**1.0.0 → 2.0.0** from a loopback registry and retained a verified DERT journal.
+There was one install, no uninstall, package scripts or Codex launch. A reused
+approval refused before new npm work. Final MER adapter frames at 110/58 columns
+and published CLI result transcripts were inspected. The local Windows package
+was refreshed. [Exact evidence and limits](superpowers/specs/2026-09-09-update-transaction-design.md).
+
+No user Codex installation changed. Cached restore does not establish a fresh
+vulnerability audit. One reproduced conflict is the next recommendation;
+rehearsal/doctor result adapters remain further work, while portable schemas and
+automatic agent delivery stay deferred.
+
+## Results return to useful notes, 2026-09-09
+
+Source-bound Codex discovery now retains an explicit local observation through
+`run --receipt new.json`. MER `keep` retains its selected existing probe without
+repeating discovery. Immutable evidence, observed time, action, outcome, effects,
+captured chain and source revision remain distinct from later source comparison.
+The first producer supports one read-only discovery request. Local JSON storage
+is private persistence, with no portable interchange or authenticity claim.
+
+`DERT result` shows the observation, source comparison and proposed note, offers
+a complete quoted Notes handoff, and compares two retained observations through
+`--compare`. Notes **Keep result…** opens an owned review with Observation, Source
+comparison and Insertion readings. Apply appends an existing annotated reasoning
+form in one undo group; Save/reopen preserves original BOM and mixed line endings.
+Parser ownership checks prevent an unfinished owner from absorbing the result.
+An inserted result remains available to context selection without becoming an
+operation request.
+
+Comparison keeps the original origin when source moves, changes, duplicates or
+belongs to another document. Current chain selection is explicit when needed;
+no stable identity note is invented. Source, pending-proposal and file-identity
+checks refuse stale native Apply. New-only record writes verify bytes before
+reporting success, while interrupted writes retain a truthful incomplete-file
+explanation. Imported records always remain historical producer reports.
+
+Review fixed a BOM mismatch between real CLI capture and the native buffer,
+toolbar focus causing title alignment before cancellation, long imported headings
+hiding actions, and ambiguous invisible-character comparisons. Details and exact
+evidence remain in scrolling readings; primary actions stay visible at inspected
+widths. See the [design and verification evidence](superpowers/specs/2026-09-09-results-to-notes-design.md).
+
+Final source-only verification passed **1,151 tests** (997 core/CLI/MER, 154 native)
+and **all eleven executable suites**, including **17 DERT-to-operation**, **60 MER**
+and **24 published Notes checks**. This adds 55 core/CLI/MER and 17 native cases.
+All **258** source/test inputs match the verified copy. The Windows package was
+refreshed; published result capture, copied review and native cancellation preserve
+source bytes. Native 1180/780 and MER 110/58 views were inspected. Dependency
+restore used the existing local cache; this was not a fresh online vulnerability
+audit. OS clipboard/IME, screen-reader and human usability acceptance remain
+unproven by these control and executable checks.
+
+Rehearsal and doctor-journal adapters (including failed verification), stable
+source keys and edited-receipt reconciliation remain further work. Portable
+schemas and automatic agent delivery remain deferred. The next recommended
+bounded task at that point was completing the update transaction, now recorded above.
+
+## Author-and-agent context selection, 2026-09-09
+
+One captured source revision supplies explicit reasoning-note choices, exact
+selected excerpts and the complete complement of omitted ranges. The primary
+note retains its own annotations and boundary; additional notes are deliberate
+choices. Matching names only identify related notes. The human-readable report
+preserves provenance, source ranges, missing closers, relevant findings and the
+full-source SHA-256. Portable schemas and reference grammar are unchanged.
+
+Notes opens a dedicated **Context selection** review from the reasoning inspector.
+Paged choices, Preview and **Left out** keep the source intact. Copy delivers the
+complete reviewed text; Export creates and verifies a new UTF-8 `.txt`. Changed
+source, changed identity and pending proposals refuse old actions. Copy/Export
+require returning from Left out to Preview. Focused-editor Ctrl+C uses the same
+guard; embedded NUL refuses native Copy while remaining available to exact export.
+
+CLI `context --at N --include N` uses the established source window. `--details`
+shows the complete report; `--text` emits it exactly. `--output new.txt
+--from-preview ID` verifies the entire reviewed selection before creating a file.
+MER exposes `context`, explicit include/exclude, paged notes, left, details and
+clear. Saved repair/undo clears captured choices; pending comparisons retain their
+own actions. Nothing is automatically delivered to an agent or executed.
+
+Final source-only verification passed **1,079 tests** (942 core/CLI/MER, 137 native)
+and **all eleven executable suites**, including **60 MER** and **21 published Notes
+checks**. All **243** current source/test inputs match that proof. Independent
+review found two native clipboard issues; focused regressions and follow-up
+review confirm their fixes. Actual native views at 1180/780 pixels and MER frames
+at 110/58 columns were inspected. The Windows package was refreshed; published
+Notes smoke and bundled-example lint/context selection pass with unchanged source
+bytes. A generated export command creates exactly the text emitted by `--text`.
+
+This delivers deliberate local copy/export. External-agent behavior, receipt
+import, OS clipboard round trips, IME and screen-reader acceptance remain
+unproven. The next recommended TODO is returning results to useful notes; portable
+schemas remain deferred. See the [design and evidence](superpowers/specs/2026-09-09-context-selection-design.md).
+
+## Cross-note references, 2026-09-09
+
+One revision-bound name index connects reasoning content names, targets and
+similarities items across notes in the same document. Whole names match without
+case sensitivity; quotes, source spelling, duplicate ranges and actual parents
+remain intact. Empty, unfinished and unmatched names stay visible. Unknown note
+kinds work without a registered schema; prose and application operations do not
+become inferred named-note destinations.
+
+Notes **References** offers paged source visits and an anchored Return/Escape
+across multiple destinations, edits and Undo. Removing or reclassifying a visited
+opener retains the original return point without adopting its neighbor. Pending
+proposals and stale controls preserve their selection. Repeated visits and
+guarded Save/reopen retain the UTF-8 BOM and mixed line endings.
+
+CLI `inspect --at N --references` and MER `refs`/`refs N`/`ref N`/`ref back` use the
+same projection. All choices on each offered page remain visible at tested wide
+and narrow sizes; full details preserve complete names and ownership. Missing
+boundaries stay visible. A repair changing source clears the captured set, while
+canceling a preview keeps display and navigation on the same line.
+
+Final source-only verification passed **1,014 tests** (890 core/CLI/MER, 124 native)
+and **all eleven executable suites**, including **54 MER** and **19 published Notes
+checks**. This adds 13 core, 13 CLI/MER and 14 native cases. All 229 copied
+source/test inputs match the final workspace. Independent review findings were
+fixed with regressions; follow-up review found no remaining material issues.
+Native control and MER engine renders were inspected. Root publish/Notes smoke
+passed; lint, inspection and MER navigation preserve the bundled example's bytes.
+
+Portable schemas, cross-document identity, application resolution, persistent
+backlinks and rename-all remain separate work. This delivers same-document name
+navigation, not portable reference semantics. See the [design and evidence](superpowers/specs/2026-09-09-note-references-design.md).
+
+## Structured context inspection, 2026-09-09
+
+The shared context reading distinguishes inline HOW prose from explicitly named
+similarities items. Quotes, exact source ranges, duplicate occurrences, empty
+places and nest annotations remain available alongside the parser's raw fields.
+Unknown note kinds retain their written view. These are inspection projections,
+not application bindings or a portable typed schema.
+
+Notes adds **Raw fields / Read context** within the existing reasoning inspector.
+Item actions select exact source occurrences; ordinary typing, Return, native
+Undo and guarded Save/reopen remain connected. Pending proposals refuse stale
+inspection actions. CLI inspect and MER use the same named reading; crowded
+MER and native views keep missing-boundary status above entries. The shipped
+`examples/context-notes.DERT` is usable without an operational chain.
+
+Fresh source-only verification passed **974 tests** (864 core/CLI/MER, 110 native)
+and **all eleven executable suites**, including **17 published Notes checks**.
+This adds 26 core/CLI/MER and 16 native cases. Review findings and a long-context
+MER visibility regression were fixed; wide/narrow native and MER renders were
+inspected. The Windows package was refreshed and its example inspected/linted
+with unchanged bytes. See the [design, evidence and limits](superpowers/specs/2026-09-09-context-reading-design.md).
+
+## Literal punctuation authoring, 2026-09-09
+
+Notes offers **Literal text… / Ctrl+Shift+L** for source selections and **Keep
+punctuation as text** in list composition. Both preview exact quote insertions
+using current parser behavior. Raw Windows paths, existing quoted spans and
+typed characters stay intact; a final odd backslash run stays outside a new
+quote. Saved fields retain their quote spelling, with no new decoder or portable
+escape grammar. Unfinished quotation receives an explanation and no guessed edit.
+
+Existing-source convenience is limited to readable values and preserves parsed
+ownership, annotations and application fields. List literal mode deliberately
+treats the whole draft, including `//`, as its words. Apply/Undo, selection
+direction, stale proposals and Save/reopen use the native host's existing flow.
+Inspect, MER and Notes share punctuation explanations. The bundled
+`examples/literal-words.DERT` works as a notes-only example.
+
+Fresh source-only verification passed **932 tests** (838 core/CLI/MER, 94 native)
+and **all eleven executable suites**, including **15 published Notes checks**.
+This increment adds 31 core/CLI and 13 native tests, including a 576-combination
+quote-retention case. Independent review findings and the inspected narrow
+Apply clipping were corrected and retested. Wide/narrow native and MER frames
+were inspected; the Windows package was refreshed. See the
+[interaction and evidence](superpowers/specs/2026-09-09-literal-authoring-design.md).
+
 ## Original example coverage and consistent readings, 2026-09-09
 
 The [coverage map](ORIGINAL-COVERAGE.md) now accounts for C01-C13 and T01-T24 with
@@ -899,8 +1137,9 @@ clean-account validation remain. See [TODO](../TODO.md) for the broader order.
 
 Operational rehearsal already connects installation selection, manager inventory,
 registry evidence and dependency dry runs to the requesting source. Doctor now
-adds an approved, guarded reinstall transaction. Update-only execution remains
-separate work; a manually copied updateme command does not implement that contract.
+adds an approved, guarded reinstall transaction. Update-only execution now shares
+that infrastructure, as recorded above; the former raw npm handoff has been
+replaced by saved DERT approval and verified results.
 
 This work does not authorize speculative comma removal, metadata reinterpretation
 or indentation. The additional adapters, editor integration,

@@ -187,7 +187,7 @@ internal static class NpmUpdateRehearsal
     private static bool HasProblems(JsonElement item) => Property(item, "problems") is { ValueKind: JsonValueKind.Array } problems && problems.GetArrayLength() > 0 || Property(item, "invalid").ValueKind == JsonValueKind.True || Property(item, "missing").ValueKind == JsonValueKind.True;
     private static int Count(JsonElement item, string name) => Property(item, name) is { ValueKind: JsonValueKind.Number } value && value.TryGetInt32(out var count) && count >= 0
         ? count : throw new IOException("npm's dry-run response is missing a valid " + name + " count.");
-    private static bool StableVersion(string? text, out Version version)
+    internal static bool StableVersion(string? text, out Version version)
     {
         version = new(0, 0, 0);
         if (text is null || text.Length > 128) return false;

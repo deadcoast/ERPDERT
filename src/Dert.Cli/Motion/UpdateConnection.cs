@@ -80,10 +80,13 @@ internal sealed class UpdateConnection(int sourceLine, DiscoveryReport discovery
             if (active is not null) lines.Add(InkLine.Plain("  '-- " + active.Stage.Purpose, Ink.Copper));
             if (report?.State is UpdateState.Current or UpdateState.Ahead) lines.Add(InkLine.Plain("No install dry run was needed.", Ink.Muted));
             if (report?.State == UpdateState.Ready)
+            {
                 lines.Add(InkLine.Plain(report.Checks.LastOrDefault()?.Detail ?? "Dry run accepted.", Ink.Muted));
+            }
             if (report?.Issues.FirstOrDefault() is { } issue)
             { lines.Add(InkLine.Plain(issue.Code, Ink.Copper)); lines.Add(InkLine.Plain(issue.Explanation)); }
-            lines.Add(InkLine.Plain("details keeps the full evidence.", Ink.Muted));
+            lines.Add(InkLine.Plain(report?.ProposalPath is not null ? "details: evidence and saved approval." : "details keeps the full evidence.",
+                report?.ProposalPath is not null ? Ink.Signal : Ink.Muted));
             lines.Add(InkLine.Plain("No update applied / cache may change", Ink.Muted));
         }
         var issues = reportedDiscovery.Issues.Count + reportedRoute.Issues.Count + (report?.Issues.Count ?? 0);
@@ -91,7 +94,8 @@ internal sealed class UpdateConnection(int sourceLine, DiscoveryReport discovery
         var compact = new[] { InkLine.Plain(heading, ink), InkLine.Plain(copy), InkLine.Plain(version, Ink.Signal),
             InkLine.Plain(issues > 0 ? $"{issues} issues / details" : motion is null ? Chosen ? "check queries npm and the registry" : "Choose with copy <number>" :
                 Passed("Inventory") ? "npm inventory confirmed" : "Inventory not confirmed", issues > 0 ? Ink.Copper : Ink.Muted),
-            InkLine.Plain(motion is null ? "Cache/logs may change; no update runs." : "details: evidence / no update applied", Ink.Muted) };
+            InkLine.Plain(motion is null ? "Cache/logs may change; no update runs." : report?.ProposalPath is not null
+                ? "details: saved approval / not applied" : "details: evidence / no update applied", Ink.Muted) };
         return new(SourceLine, lines, compact) { Action = new("Update rehearsal", state, motion is null ? "no npm queries" : "no update applied") };
 
         bool Passed(string id) => motion?.Stages.Any(stage => stage.Stage.Id == id && stage.State == StageState.Passed) == true;

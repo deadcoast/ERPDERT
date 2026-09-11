@@ -134,6 +134,11 @@ The exact quote/escape grammar needs definition; the highlighter and repair
 surface must help author a literal without requiring a separate lesson first.
 Do not invent a large escape language before testing the actual source cases.
 
+The [literal authoring increment](superpowers/specs/2026-09-09-literal-authoring-design.md)
+now exercises this recommendation through explicit, parser-checked quote previews.
+It preserves raw characters and existing quote spelling; this implementation does
+not promote the candidate literal mechanism into a canonical escape grammar.
+
 ## English, lists, and data density
 
 Free notes preserve their complete prose. Closed reasoning notes preserve raw
@@ -151,6 +156,24 @@ Schema selection, versioning, and portable typed interpretation remain a design
 decision before machine interchange. The authoring surface should show the
 current interpretation on inspection. A schema mismatch should explain what
 the receiving operation needs without turning arbitrary personal notes invalid.
+
+Implemented prototype, 2026-09-09: the requested structured-context TODO now has
+two explicit inspection readers. Complete HOW heads keep inline prose whole;
+complete similarities heads expose quote-aware inline items or existing nest
+entries. Matching is case-insensitive; extended, quoted and unknown heads retain
+the written-field view. Native Raw fields preserves the parser's original fields,
+and CLI/MER share the reading. This is a bounded presentation/data projection
+under the recommendation above, not a new canonical grammar or interchange
+schema. See [the decision and evidence](superpowers/specs/2026-09-09-context-reading-design.md).
+
+Implemented navigation prototype, 2026-09-09: the user's cross-note TODO adds
+whole-name matching between reasoning content names, targets and similarities
+items in one document. Matching ignores case but preserves quotes, source ranges,
+duplicate occurrences, actual parents and unmatched or unfinished names. This is
+a navigation recommendation implemented behind Notes References and CLI/MER;
+it introduces no reference punctuation, portable identity or application binding.
+Free prose stays available through literal search. Portable schemas remain
+explicitly deferred. See [the reference design and evidence](superpowers/specs/2026-09-09-note-references-design.md).
 
 For active vertical payloads, the original "no comma on last string item"
 provides a stronger clue: a terminal comma indicates another item is expected.

@@ -25,18 +25,7 @@ internal sealed partial class MerReview
         var line = operation.RequestLine;
         if (locationProblems.TryGetValue(line, out var problem)) return problem;
         if (doctors.TryGetValue(line, out var doctor))
-        {
-            var ready = doctor.State == DoctorState.Ready && doctor.Proposal is not null;
-            var lines = new List<InkLine> { InkLine.Plain("Doctor / " + operation.Request.Application.DisplayName, Ink.Signal),
-                InkLine.Plain(ready ? "Reinstall proposal / awaiting choice" : "Manager checks need attention", ready ? Ink.Text : Ink.Copper) };
-            if (doctor.Proposal is { } proposal)
-            { lines.Add(InkLine.Plain(proposal.SelectedPath)); lines.Add(InkLine.Plain("npm / reviewed version " + proposal.Version, Ink.Signal)); }
-            else if (doctor.Issues.FirstOrDefault() is { } issue) lines.Add(InkLine.Plain(issue.Explanation));
-            lines.Add(InkLine.Plain("details: exact proposal and apply command", Ink.Muted));
-            lines.Add(InkLine.Plain("No uninstall or reinstall has run", Ink.Muted));
-            return new(line, lines, lines.Take(2).Concat(lines.TakeLast(2)).ToArray())
-            { Action = new("Doctor proposal", ready ? StageState.Waiting : StageState.Attention, "no package changes") };
-        }
+            return new DoctorConnection(doctor).Annotation(line, operation.Request.Application.DisplayName);
         if (locations.TryGetValue(line, out var found)) return found.Annotation(locationCopies.GetValueOrDefault(line));
         return new(line, [InkLine.Plain("Where / " + operation.Request.Application.DisplayName, Ink.Signal),
             InkLine.Plain("Source -> command routes -> related folders"),
@@ -91,20 +80,23 @@ internal sealed partial class MerReview
             var explicitCopy = locationCopies.TryGetValue(line, out var chosen);
             var oldRoute = location.CopyCount > 0 && (explicitCopy || location.CopyCount == 1)
                 ? location.Report.Discovery.Installations[explicitCopy ? chosen : 0][0] : null;
-            var fresh = CodexDiscovery.Scan(environment ?? DiscoveryEnvironment.Capture(), cancellation);
+            var scanEnvironment = environment ?? DiscoveryEnvironment.Capture();
+            Func<DiscoveryEnvironment>? environmentReader = environment is null ? null : () => environment;
+            var fresh = CodexDiscovery.Scan(scanEnvironment, cancellation);
             if (!explicitCopy && fresh.Issues.Count > 0)
             { Problem("The PATH search is incomplete. Probe again and explicitly choose a copy before checking its manager."); return true; }
             if (!explicitCopy && fresh.Installations.Count != location.CopyCount)
             { Problem("The available copies changed since they were located. Probe again before choosing a manager."); return true; }
             if (oldRoute is not null && !fresh.Commands.Any(route => route.Path.Equals(oldRoute.Path, StringComparison.OrdinalIgnoreCase) && SameRoute(oldRoute, route)))
             { Problem("The selected copy changed since it was located. Probe again before checking its manager."); return true; }
-            Say("Doctor queries this copy's npm and registry, then saves a local reviewed proposal. npm may write cache/logs; no uninstall or reinstall runs.", Ink.Muted);
+            Say(oldRoute is null ? "Doctor reads the route relationship before a copy is chosen. No npm queries run." :
+                "Doctor queries this copy's npm and registry, then saves a local reviewed proposal. npm may write cache/logs; no uninstall or reinstall runs.", Ink.Muted);
             var reportDoctor = DoctorService.Inspect(fresh, oldRoute?.Path,
                 new SourceCheckedRunner(commandRunner ?? new SystemCommandRunner(cancellation), () => MatchingSource(out var issue) ? null : issue, cancellation),
-                cancellation: cancellation, source: DoctorSource.Capture(path));
+                cancellation: cancellation, source: DoctorSource.Capture(path), environment: scanEnvironment, environmentReader: environmentReader);
             if (!MatchingSource(out problem)) { Problem(problem); return true; }
             if (reportDoctor.State == DoctorState.Ready) renderer.DoctorProposalStored(DoctorService.SaveProposal(reportDoctor,
-                doctorStateDirectory is null ? null : Path.Combine(doctorStateDirectory, "doctor-proposals")));
+                doctorStateDirectory is null ? null : Path.Combine(doctorStateDirectory, "doctor-proposals"), environmentReader));
             doctors[line] = reportDoctor;
             Show();
         }

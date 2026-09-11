@@ -1,5 +1,145 @@
 # Changelog
 
+## 2026-09-10 — connect a confirmed conflict to its correction
+
+- Added a supported broken npm PowerShell route hiding a later Codex copy as the
+  first confirmed doctor conflict. CLI, DERT run and MER preserve authored context
+  and distinguish observed damage from duplicate overlap or incomplete evidence.
+- Saved repair approvals now bind the external PATH relationship through manager
+  checks, uninstall, reinstall and durable verification. Changed source, route
+  evidence or new foreign launcher occupants stop the operation. Equivalent paths
+  retain the same guard; repairing another copy cannot claim this conflict resolved.
+- Added a targeted ASCII evidence rail and bounded source margin, preserving
+  line numbers, pending choice, interruption and full paths in details. Manager
+  arguments remain inspection evidence; the primary action uses guarded approval.
+- **1,252 tests and all eleven executable suites passed**, including **18
+  location/doctor checks**. The final real npm/PowerShell fixture passed **15 checks**
+  with observed failure before repair, successful invocation afterward and the
+  later prefix unchanged. All 278 source/test inputs match the source-only proof.
+  The local Windows package was refreshed.
+- [Design and evidence](docs/superpowers/specs/2026-09-10-doctor-conflicts-design.md).
+  Result adapters, portable schemas and automatic agent delivery remain deferred.
+
+## 2026-09-09 — carry the reviewed update through
+
+- Replaced the raw npm update handoff with a saved, operation-specific DERT
+  approval. CLI, DERT run and MER retain the chosen copy and source snapshot.
+  Copy-selection commands keep the source origin, and changed evidence refuses
+  old approvals before manager execution.
+- Extracted one npm transaction engine beneath update and doctor: shared prefix
+  lock, deterministic requests, immutable evidence, durable phase journal,
+  interruption handling and verified results. Update installs the pinned version
+  directly; doctor keeps its explicit uninstall/reinstall sequence.
+- Reproduced and fixed stale discovery, already-current source changes and
+  changes during final inventory. MER retains its source frame/line numbers and
+  a compact saved-approval hint. Success and partial failure remain distinct.
+- **1,191 tests and all eleven executable suites passed**, including **29 update
+  checks**. Real npm 11.13.0 verified a disposable 1.0.0 → 2.0.0 update and refused
+  reused approval, with no uninstall, package scripts or Codex launch. All 265
+  current source/test inputs match the source-only proof. The local Windows
+  package was refreshed; no user Codex installation changed.
+- [Design and evidence](docs/superpowers/specs/2026-09-09-update-transaction-design.md)
+  retain scope limits. Rehearsal/doctor result adapters, portable schemas and
+  automatic agent delivery remain deferred.
+
+## 2026-09-09 — bring the result back to the words
+
+- Added source-bound Codex discovery records with `run --receipt new.json`, and
+  MER `keep <new.json path>` for the probe already shown. Records retain action,
+  time, outcome, effects, evidence and the exact originating chain/revision.
+- Added `DERT result` review, explicit comparison of two saved observations and
+  a copied Notes handoff. Notes **Keep result…** previews an inert folded result
+  note, then Apply, Undo and guarded Save/reopen preserve author choice.
+- Source comparisons distinguish moved words, changed requests, duplicate
+  matches, different documents, BOM and line endings. Stale buffers, pending
+  proposals, changed file identity and duplicate insertion receive guarded
+  refusal. Existing files are never overwritten by record retention.
+- Added `examples/observed-results.DERT`. Native and MER renders were inspected;
+  independent review findings received regressions and fixes. The first producer
+  covers one read-only discovery request. Rehearsal/doctor record adapters,
+  portable schemas and automatic agent delivery remain separate work.
+- **1,151 tests and all eleven executable suites passed**, including **17
+  DERT-to-operation**, **60 MER** and **24 published Notes checks**. All 258 current
+  source/test inputs match the final source-only proof; Windows package refreshed.
+  [Design, review and verification](docs/superpowers/specs/2026-09-09-results-to-notes-design.md).
+
+## 2026-09-09 — choose what travels with your words
+
+- Added author-and-agent context selection across Notes, CLI and MER. Choose a
+  reasoning note with its own annotations, deliberately include other notes,
+  and review the exact text alongside a separate **Left out** reading. Shared
+  names never select notes automatically or claim agreement.
+- Notes provides a dedicated review with paged choices, full-preview Copy,
+  verified new-file Export and return to the original source. Changed source or
+  pending proposals refuse stale actions. Native Copy handles the focused editor
+  route and refuses embedded NUL with exact-file export guidance.
+- Added `DERT context file.DERT --at N --include N`, exact `--text` output and
+  export bound to the reviewed selection. MER adds `context` review and explicit
+  include/exclude, notes, left, details and clear actions. Source ranges, missing
+  closers, omitted ranges and revision identity travel with the selected words.
+- Added `examples/context-selection.DERT`. **1,079 tests and all eleven executable
+  suites passed**, including **60 MER** and **21 published Notes checks**. Inspected
+  native and MER views, resolved independent review findings and refreshed the
+  Windows package. Portable schemas and automatic agent delivery remain deferred.
+  [Design, review and evidence](docs/superpowers/specs/2026-09-09-context-selection-design.md).
+
+## 2026-09-09 — follow a name, keep your place
+
+- Added cross-note References within one document. Content names, targets and
+  similarities items retain exact occurrences, quotes, duplicates, unfinished
+  names and actual parents. Whole-name matches never bind application operations.
+- Notes offers paged destinations, exact source selection and Return/Escape to
+  the original place across visits and edits. Deleted visited notes retain Return;
+  pending and stale controls cannot redirect selection. Undo and guarded
+  BOM/mixed-newline Save/reopen remain connected.
+- Added `inspect --at N --references` and MER `refs`, `refs N`, `ref N`, `ref back`.
+  Wide/narrow frames keep numbered choices visible; full details retain names and
+  ownership. Saved repairs clear captured reference numbers; canceled previews
+  keep display and navigation aligned.
+- Added `examples/referenced-notes.DERT`. **1,014 tests and all eleven executable
+  suites passed** from fresh source/test inputs, including **54 MER** and **19
+  published Notes checks**. Inspected native and MER views; refreshed the Windows
+  package. Portable schemas and cross-document identity remain deferred.
+  [Design, review and evidence](docs/superpowers/specs/2026-09-09-note-references-design.md).
+
+## 2026-09-09 — read the context, keep the words
+
+- Added named HOW/similarities inspection across Notes, CLI inspect and MER.
+  HOW keeps whole prose; similarities exposes ordered items with exact source
+  ranges, quoted commas, duplicate occurrences and annotated nest entries.
+- Added **Raw fields / Read context** inside the existing reasoning inspector.
+  Select an item to edit its exact words or fill an empty place; Return, native
+  Undo and guarded Save/reopen retain their existing behavior. Unknown note kinds
+  remain useful; these readings do not resolve targets or execute operations.
+- Preserved unfinished quoted punctuation and blocked stale inspection actions
+  during pending proposals. Missing closers stay above long content in Notes and
+  MER; the narrow continuation hint keeps the `details` command visible.
+- Added `examples/context-notes.DERT`. **974 tests and all eleven executable
+  suites passed** from fresh source/test inputs, including **17 published Notes
+  checks**. Added 26 core/CLI/MER and 16 native cases; inspected wide/narrow renders
+  and refreshed the Windows package. Portable schema interchange remains deferred.
+  [Design, evidence and limits](docs/superpowers/specs/2026-09-09-context-reading-design.md).
+
+## 2026-09-09 — every mark is yours
+
+- Added **Literal text… / Ctrl+Shift+L** for selected source values and **Keep
+  punctuation as text** in the existing new-sinker composer. Exact previews
+  underline only added quote marks and show the resulting boundary meaning.
+- Preserved ordinary paths, existing quotes, raw characters and trailing
+  backslashes without inventing decoding or slash escapes. A literal final
+  comma can stay with the words; source quoting cannot detach other items,
+  absorb annotations or change application fields.
+- Integrated one-step Undo, reverse selection, stale-preview refusal, pending
+  choice handling and guarded Save/reopen. Inspect, MER and Notes share quote
+  and path explanations; the package includes `examples/literal-words.DERT`.
+- Fixed both annotation-boundary findings from review and a rendered narrow
+  preview that clipped Apply. List diffs now omit unchanged lines; a viewport
+  regression checks the button's real bounds.
+- **932 tests and all eleven executable suites passed** from fresh source/test
+  inputs, including 15 published Notes checks. Added 31 core/CLI and 13 native
+  tests; one exercises 576 punctuation combinations. Windows package refreshed.
+  [Design, evidence and limits](docs/superpowers/specs/2026-09-09-literal-authoring-design.md).
+
 ## 2026-09-09 — the original forms, accounted for
 
 - Reconciled all 13 original source families and 24 challenge cases into an

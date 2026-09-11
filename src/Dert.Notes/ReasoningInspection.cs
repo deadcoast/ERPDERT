@@ -14,10 +14,12 @@ public sealed class ReasoningInspection
     private Selection? originSelection;
     private Type? ownerType;
     private double horizontal, vertical, withinTopLine;
-    private bool moving, holdOpen;
+    private bool moving, holdOpen, followingReference;
     private int epoch;
     public DertNode? Owner { get; private set; }
     public bool IsEditing { get; private set; }
+    public int? ReferenceOriginLine => followingReference && originCaret is { IsDeleted: false } ? originCaret.Location.Line : null;
+    public bool CanReturn => Owner is not null || ReferenceOriginLine is not null;
 
     internal ReasoningInspection(AuthoringSession session, Action changed)
     {
@@ -30,7 +32,7 @@ public sealed class ReasoningInspection
             if (marker is not { IsDeleted: false } || Owner is null) return;
             if (change.RemovalLength > 0 && change.Offset < marker.Offset + 1 &&
                 change.Offset + change.RemovalLength > marker.Offset - 1 ||
-                change.InsertionLength > 0 && change.Offset == marker.Offset) Reset();
+                change.InsertionLength > 0 && change.Offset == marker.Offset) WithdrawOwner();
         };
         session.Editor.Document.Changed += (_, change) =>
         {
@@ -38,30 +40,48 @@ public sealed class ReasoningInspection
         };
     }
 
-    public bool Begin(int? line = null)
+    public bool Begin(int? line = null) => BeginAt(line, false);
+
+    private bool BeginAt(int? line, bool keepOrigin)
     {
         var editor = session.Editor;
         var owner = AtLine(line ?? editor.TextArea.Caret.Line);
         if (owner is null) return false;
         if (Owner == owner) return true;
         epoch++;
+        if (!keepOrigin || Owner is null)
+        {
+            followingReference = false;
+            originCaret = Anchor(editor.CaretOffset);
+            originSelection = editor.TextArea.Selection;
+            horizontal = editor.HorizontalOffset; vertical = editor.VerticalOffset;
+            var top = editor.TextArea.TextView.VisualLinesValid ? editor.TextArea.TextView.VisualLines.FirstOrDefault() : null;
+            viewport = Anchor(top?.FirstDocumentLine.Offset ?? 0);
+            withinTopLine = vertical - (top?.VisualTop ?? 0);
+        }
         Owner = owner; ownerType = owner.GetType();
         marker = Anchor(owner.Span.Start + 1, false);
-        originCaret = Anchor(editor.CaretOffset);
-        originSelection = editor.TextArea.Selection;
-        horizontal = editor.HorizontalOffset; vertical = editor.VerticalOffset;
-        var top = editor.TextArea.TextView.VisualLinesValid ? editor.TextArea.TextView.VisualLines.FirstOrDefault() : null;
-        viewport = Anchor(top?.FirstDocumentLine.Offset ?? 0);
-        withinTopLine = vertical - (top?.VisualTop ?? 0);
         IsEditing = Fold(owner)?.IsFolded == false;
         changed();
         return true;
     }
 
+    public bool FollowReference(DertDocument revision, NoteName origin, NoteName destination)
+    {
+        RefreshSource();
+        if (holdOpen || !ReferenceEquals(revision, session.Parsed) || !ReferenceEquals(Owner, origin.Note)) return false;
+        var group = new NoteReferenceIndex(revision).ForNote(Owner!).FirstOrDefault(group => group.Origin == origin);
+        var match = group?.Matches.FirstOrDefault(match => ReferenceEquals(match.Note, destination.Note) && match == destination);
+        if (match is null) return false;
+        followingReference = true;
+        if (!BeginAt(match.Note.LineNumber, true)) return false;
+        return EditRange(match.Note, match.Value.Span);
+    }
+
     public bool EditLine(int line)
     {
         RefreshSource();
-        if (Owner is null) return false;
+        if (Owner is null || holdOpen) return false;
         var entry = Owner is ReasoningBlockNode block ? block.Entries.FirstOrDefault(entry => entry.LineNumber == line) : null;
         var span = entry?.Value.Span ?? (line == Owner.LineNumber ? Owner switch
         {
@@ -70,12 +90,31 @@ public sealed class ReasoningInspection
             _ => Owner.Span
         } : (TextSpan?)null);
         if (span is null) return false;
+        return SelectRange(span.Value, line);
+    }
+
+    public bool EditRange(DertNode expectedOwner, TextSpan range)
+    {
+        RefreshSource();
+        if (holdOpen || !ReferenceEquals(Owner, expectedOwner) || range.Start < 0 || range.Length < 0 ||
+            range.Start > session.Parsed.Source.Text.Length - range.Length) return false;
+        var header = Owner switch { ReasoningNoteNode note => note.Header, ReasoningBlockNode block => block.Header, _ => null };
+        if (header is null) return false;
+        var fields = new[] { header.Head, header.Target, header.Payload }.OfType<TextField>();
+        if (Owner is ReasoningBlockNode nested) fields = fields.Concat(nested.Entries.Select(entry => entry.Value));
+        if (!fields.Any(field => range.Start >= field.Span.Start && range.End <= field.Span.End) &&
+            ContextReading.Read(session.Parsed, Owner!)?.Items.Any(item => item.Value.Span == range) != true) return false;
+        return SelectRange(range, new DertStructureIndex(session.Parsed).LineOf(range.Start));
+    }
+
+    private bool SelectRange(TextSpan span, int line)
+    {
         moving = true; epoch++;
         try
         {
             IsEditing = true;
-            if (Fold(Owner) is { } fold) fold.IsFolded = false;
-            session.Editor.Select(span.Value.Start, span.Value.Length);
+            if (Fold(Owner!) is { } fold) fold.IsFolded = false;
+            session.Editor.Select(span.Start, span.Length);
             session.Editor.ScrollToLine(line);
             session.Editor.Focus();
         }
@@ -88,7 +127,7 @@ public sealed class ReasoningInspection
     public bool Return()
     {
         RefreshSource();
-        if (Owner is null || holdOpen) return false;
+        if (!CanReturn || holdOpen) return false;
         var owner = Owner;
         var top = viewport;
         var x = horizontal; var y = vertical; var delta = withinTopLine;
@@ -103,7 +142,7 @@ public sealed class ReasoningInspection
             }
             // A return that began inside an expanded edit keeps that original
             // selection visible. Navigation away will restore the resting fold.
-            if (Fold(owner) is { } fold && !SelectionIntersects(fold.StartOffset, fold.EndOffset) &&
+            if (owner is not null && Fold(owner) is { } fold && !SelectionIntersects(fold.StartOffset, fold.EndOffset) &&
                 !(editor.CaretOffset > fold.StartOffset && editor.CaretOffset < fold.EndOffset)) fold.IsFolded = true;
             Reset();
             editor.Focus();
@@ -126,7 +165,15 @@ public sealed class ReasoningInspection
 
     internal void Reset()
     {
-        epoch++; Owner = null; IsEditing = false; marker = originCaret = viewport = null; originSelection = null;
+        epoch++; Owner = null; IsEditing = followingReference = false; marker = originCaret = viewport = null; originSelection = null;
+    }
+
+    private void WithdrawOwner()
+    {
+        if (!followingReference) { Reset(); return; }
+        // A removed destination cannot acquire its neighbor's identity. Keep
+        // only the independent return anchors from before the first visit.
+        epoch++; Owner = null; marker = null; ownerType = null; IsEditing = false;
     }
 
     internal void RefreshSource()
@@ -135,7 +182,7 @@ public sealed class ReasoningInspection
         var node = marker is { IsDeleted: false } ? new DertStructureIndex(session.Parsed).Locations
             .Select(location => location.Node).FirstOrDefault(node => node.GetType() == ownerType &&
                 node.Span.Start < marker.Offset && marker.Offset <= session.Parsed.Source.Lines[node.LineNumber - 1].ContentEnd) : null;
-        if (node is null) Reset();
+        if (node is null) WithdrawOwner();
         else { Owner = node; IsEditing |= Fold(node)?.IsFolded == false; }
     }
 

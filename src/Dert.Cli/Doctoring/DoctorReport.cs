@@ -1,7 +1,7 @@
 using Dert.Cli.Discovery;
 using Dert.Cli.Operations;
 using Dert.Cli.Updates;
-using System.Security.Cryptography;
+using Dert.Cli.Transactions;
 
 namespace Dert.Cli.Doctoring;
 
@@ -20,16 +20,8 @@ internal sealed record DoctorFile(string Path, string Identity, string? Sha256)
 {
     internal static DoctorFile Capture(string path)
     {
-        path = System.IO.Path.GetFullPath(path);
-        var identity = DiscoveryFiles.ResolveLocal(path);
-        try
-        {
-            using var file = new FileStream(identity, FileMode.Open, FileAccess.Read, FileShare.Read);
-            if (file.Length > 256 * 1024 * 1024) throw new IOException("A doctor evidence file exceeds the 256 MiB inspection limit.");
-            return new(path, identity, Convert.ToHexString(SHA256.HashData(file)));
-        }
-        catch (Exception failure) when (failure is FileNotFoundException or DirectoryNotFoundException)
-        { return new(path, identity, null); }
+        var file = NpmFile.Capture(path);
+        return new(file.Path, file.Identity, file.Sha256);
     }
 }
 internal sealed record DoctorProposal(string SelectedPath, string Prefix, string Version,
@@ -37,6 +29,7 @@ internal sealed record DoctorProposal(string SelectedPath, string Prefix, string
 {
     public string Token { get; init; } = "";
     public string InstalledVersion { get; init; } = "";
+    public NpmRouteGuard? RouteGuard { get; init; }
 }
 internal sealed class DoctorReport(DiscoveryReport discovery)
 {
@@ -45,6 +38,7 @@ internal sealed class DoctorReport(DiscoveryReport discovery)
     public UpdateReport? Update { get; set; }
     public List<DiscoveryIssue> Issues { get; } = [];
     public DoctorProposal? Proposal { get; set; }
+    public DoctorDiagnosis Diagnosis { get; set; } = DoctorDiagnosis.NotInspected;
 }
 internal sealed record DoctorPhase(string Name, bool Succeeded, string Detail);
 internal sealed record DoctorApplyResult(DoctorApplyState State, string Message, string? ReceiptPath,

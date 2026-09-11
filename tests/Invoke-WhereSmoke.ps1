@@ -7,6 +7,7 @@ if (-not $Executable) { $Executable = Join-Path $workspace '.artifacts/win-x64/D
 $Executable = (Resolve-Path -LiteralPath $Executable).Path
 $proof = Join-Path $workspace ('.artifacts/where-proof/' + [guid]::NewGuid().ToString('N'))
 $prefix = Join-Path $proof "Ryan's tools"
+$searchPath = $prefix
 $state = Join-Path $proof 'state'
 $record = [Collections.Generic.List[string]]::new()
 $checks = 0
@@ -23,7 +24,7 @@ function Invoke-Dert([string[]] $CommandArgs, [string] $InputText = '') {
     $start.RedirectStandardError = $true
     $start.RedirectStandardInput = $true
     $start.WorkingDirectory = $proof
-    $start.Environment['PATH'] = $prefix
+    $start.Environment['PATH'] = $script:searchPath
     $start.Environment['PATHEXT'] = '.EXE;.CMD'
     $start.Environment['CODEX_HOME'] = Join-Path $proof 'fixture-data'
     $start.Environment['DERT_STATE_HOME'] = $state
@@ -85,6 +86,59 @@ try {
     Write-Fixture 'scenario.json' '{"latest":"1.0.0","fault":"root-cancelled","simulateRepair":true}'
     Check 'Cancelled manager query retains exit 130' (Invoke-Dert @('where','codex','--doctor','--plain')) 130 @('Doctor checks stopped')
     Check 'Packaged where example binds without findings' (Invoke-Dert @('run',(Join-Path (Split-Path $Executable) 'examples/where-my-tools.DERT'),'--preview','--plain')) 0 @('DERT where codex')
+    $second = Join-Path $proof 'later copy'
+    [void][IO.Directory]::CreateDirectory($second)
+    foreach ($file in Get-ChildItem -LiteralPath $fixtureBuild -File) { Copy-Item -LiteralPath $file.FullName -Destination $second }
+    Copy-Item -LiteralPath (Join-Path $prefix 'node_modules') -Destination (Join-Path $second 'node_modules') -Recurse
+    Copy-Item -LiteralPath (Join-Path $prefix 'npm.cmd') -Destination (Join-Path $second 'npm.cmd')
+    $generatedShim = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'Fixtures/NpmDoctorConflict/codex.ps1'))
+    Write-Fixture 'codex.ps1' $generatedShim
+    [IO.File]::WriteAllText((Join-Path $second 'codex.ps1'), $generatedShim)
+    Write-Fixture 'scenario.json' '{"latest":"1.0.0","fault":null,"simulateRepair":true}'
+    [IO.File]::WriteAllText((Join-Path $second 'scenario.json'), '{"latest":"1.0.0","fault":null,"simulateRepair":true}')
+    $script:searchPath = $prefix + ';' + $second
+    $laterBefore = @(Get-ChildItem -LiteralPath $second -Recurse -File | ForEach-Object { $_.FullName + ':' + (Get-FileHash -LiteralPath $_.FullName).Hash })
+    $intact = Invoke-Dert @('where','codex','--doctor','--plain')
+    Check 'Two intact copies remain possible overlap without a confirmed failure' $intact 1 @('POSSIBLE CONFLICT / evidence only')
+    if ($intact.Output.Contains('CONFLICT CONFIRMED / external PATH')) { throw 'Duplicate installations were mislabeled as a confirmed conflict.' }
+    $missing = [IO.Path]::GetFullPath((Join-Path $prefix 'node_modules/@openai/codex/bin/codex.js'))
+    if (-not $missing.StartsWith([IO.Path]::GetFullPath($proof) + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) { throw 'Broken entrypoint fixture escaped its workspace.' }
+    Remove-Item -LiteralPath $missing
+    $beforeConflict = (Get-FileHash -LiteralPath $calls).Hash
+    Write-Fixture 'codex.ps1' ($generatedShim + "`nWrite-Output 'custom wrapper behavior'`n")
+    $custom = Invoke-Dert @('where','codex','--doctor','--plain')
+    Check 'Custom target-bearing wrapper remains incomplete evidence' $custom 1 @('CONFLICT CHECK INCOMPLETE')
+    if ($custom.Output.Contains('CONFLICT CONFIRMED / external PATH')) { throw 'A custom wrapper was assumed to be an npm-generated route.' }
+    Write-Fixture 'codex.ps1' $generatedShim
+    $script:searchPath = '"' + $prefix + '";' + $second
+    $quoted = Invoke-Dert @('where','codex','--doctor','--plain')
+    Check 'Unsupported quoted PATH preserves an incomplete conflict check' $quoted 1 @('CONFLICT CHECK INCOMPLETE')
+    if ($quoted.Output.Contains('CONFLICT CONFIRMED / external PATH')) { throw 'An unsupported PATH shape earned a confirmed diagnosis.' }
+    $script:searchPath = $prefix + ';' + $second
+    $conflict = Invoke-Dert @('where','codex','--doctor','--plain')
+    Check 'Broken earlier generated route receives concrete conflict evidence before selection' $conflict 1 @('CONFLICT CONFIRMED / external PATH','First external route','Missing entry point','Later identified copy','FIXME / review the broken first copy')
+    if ($beforeConflict -ne (Get-FileHash -LiteralPath $calls).Hash) { throw 'Conflict diagnosis started npm before copy selection.' }
+    $conflictSource = Join-Path $proof "author's conflicts.DERT"
+    [IO.File]::WriteAllText($conflictSource, "STERT ; where ;; codex`n// support doctoring ; conflicts ;;`n// possible_conflicts, // Several copies deserve a closer look.`n// conflicts, // Show the missing file before calling it broken.`n// fixme // Keep this reason beside the correction I choose.`n//`ncommands ; doctor ;;`nƒin.")
+    $conflictSourceHash = (Get-FileHash -LiteralPath $conflictSource).Hash
+    Check 'Authored conflict notes retain their words beside the source-bound correction' (Invoke-Dert @('run',$conflictSource,'--plain')) 1 @('CONFLICT CONFIRMED / external PATH','Keep this reason','--from-source')
+    $selected = Invoke-Dert @('where','codex','--doctor','--path',$launcher,'--from-source',$conflictSource,'--plain')
+    Check 'Selecting the broken first copy retains its conflict in an exact proposal' $selected 0 @('CONFLICT CONFIRMED / external PATH','REINSTALL PROPOSAL','--from-source','--apply')
+    $approval = [regex]::Match($selected.Output,'--apply\s+''?([A-Fa-f0-9]{64})''?')
+    if (-not $approval.Success) { throw 'The conflict proposal did not expose an exact approval token.' }
+    $beforeStale = (Get-FileHash -LiteralPath $calls).Hash
+    $script:searchPath = $second + ';' + $prefix
+    Check 'Reordered PATH refuses the old conflict approval before npm starts' (Invoke-Dert @('where','codex','--doctor','--path',$launcher,'--from-source',$conflictSource,'--apply',$approval.Groups[1].Value,'--plain')) 1 @('changed')
+    if ($beforeStale -ne (Get-FileHash -LiteralPath $calls).Hash) { throw 'Stale conflict approval started npm.' }
+    $script:searchPath = $prefix + ';' + $second
+    Check 'Approved earlier-copy repair verifies its external-route condition' (Invoke-Dert @('where','codex','--doctor','--path',$launcher,'--from-source',$conflictSource,'--apply',$approval.Groups[1].Value,'--plain')) 0 @('REINSTALL VERIFIED','EXTERNAL ROUTE / REPAIR VERIFIED','Operation receipt')
+    $repeated = Invoke-Dert @('where','codex','--doctor','--plain')
+    Check 'Repeated diagnosis drops confirmed conflict after repair' $repeated 1 @('POSSIBLE CONFLICT / evidence only')
+    if ($repeated.Output.Contains('CONFLICT CONFIRMED / external PATH')) { throw 'A completed repair retained a stale confirmed conflict.' }
+    $laterAfter = @(Get-ChildItem -LiteralPath $second -Recurse -File | ForEach-Object { $_.FullName + ':' + (Get-FileHash -LiteralPath $_.FullName).Hash })
+    if (Compare-Object $laterBefore $laterAfter) { throw 'Repair changed or queried the unselected later copy.' }
+    if ($conflictSourceHash -ne (Get-FileHash -LiteralPath $conflictSource).Hash) { throw 'Conflict review or repair changed authored source.' }
+    $checks++; Write-Host 'PASS Other installation and authored source preserved'
     Write-Host "$checks location/doctor executable checks passed. Evidence retained at $proof"
 } finally {
     [void][IO.Directory]::CreateDirectory($proof)

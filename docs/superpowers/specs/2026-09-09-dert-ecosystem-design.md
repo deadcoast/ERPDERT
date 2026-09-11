@@ -178,6 +178,12 @@ read-only review reported no remaining blockers in the reviewed scope.
   No installed user application was uninstalled or reinstalled during development.
 
 Native Codex runtime/auth health, actual-version repairs of user installations,
-additional manager adapters, exhaustive filesystem discovery, confirmed conflict
-diagnosis, clean-account installation and update-only integrated execution remain
-specific future work. The established notes experience remains independent.
+additional manager adapters, exhaustive filesystem discovery, other conflict kinds
+and clean-account installation remain specific future work. The user's 10 September
+increment adds a supported generated npm PowerShell launcher with a missing entry
+point hiding a later identified copy; see its [diagnosis and guarded correction
+record](2026-09-10-doctor-conflicts-design.md). This does not reinterpret authored
+`support doctoring` notes as executable findings. Update-only
+integrated execution is now implemented and verified in the
+[update transaction increment](2026-09-09-update-transaction-design.md), preserving
+the separate operation approvals. The established notes experience remains independent.

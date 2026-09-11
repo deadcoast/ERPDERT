@@ -30,8 +30,8 @@ function New-Package([string] $Root) {
     Write-Fixture (Join-Path $Root 'scenario.json') '{"latest":"2.0.0","fault":null}'
 }
 
-function Set-Scenario([string] $Latest, [string] $Fault = '') {
-    Write-Fixture (Join-Path $prefix 'scenario.json') (@{ latest = $Latest; fault = $Fault } | ConvertTo-Json -Compress)
+function Set-Scenario([string] $Latest, [string] $Fault = '', [bool] $SimulateRepair = $false) {
+    Write-Fixture (Join-Path $prefix 'scenario.json') (@{ latest = $Latest; fault = $Fault; simulateRepair = $SimulateRepair } | ConvertTo-Json -Compress)
 }
 
 function Invoke-Child([string] $Program, [string[]] $CommandArgs, [string] $ReviewInput = '') {
@@ -44,6 +44,7 @@ function Invoke-Child([string] $Program, [string[]] $CommandArgs, [string] $Revi
     $start.WorkingDirectory = $proofPath
     $start.Environment['PATH'] = $script:searchPath
     $start.Environment['PATHEXT'] = '.EXE;.CMD'
+    $start.Environment['DERT_STATE_HOME'] = Join-Path $proofPath 'state'
     foreach ($argument in $CommandArgs) { $start.ArgumentList.Add($argument) }
     $process = [Diagnostics.Process]::Start($start)
     try {
@@ -68,6 +69,35 @@ function Assert-Result([string] $Name, $Result, [int] $Exit, [string[]] $Expecte
     Write-Host "PASS $Name"
 }
 
+function Get-Approval($Result) {
+    $commands = @($Result.Output -split '\r?\n' | Where-Object { $_.StartsWith('& ') -and $_.Contains(' --apply ') })
+    if ($commands.Count -ne 1) { throw 'Expected one intact DERT approval command.' }
+    $token = [regex]::Match($commands[0], '--apply\s+''?([A-Fa-f0-9]{64})''?')
+    if (-not $token.Success) { throw 'Approval command did not retain its exact proposal token.' }
+    if ($commands[0].Contains("'install'") -or -not $commands[0].Contains('updateme')) { throw 'Approval escaped DERT into a raw package-manager command.' }
+    return [pscustomobject]@{ Command = $commands[0]; Token = $token.Groups[1].Value }
+}
+
+function Get-Calls {
+    $path = Join-Path $prefix 'calls.jsonl'
+    if (Test-Path -LiteralPath $path) { Get-Content -LiteralPath $path | ForEach-Object { ,($_ | ConvertFrom-Json) } }
+}
+
+function Assert-Journal([string] $State, [bool] $Verified = $false) {
+    $folder = Join-Path $proofPath 'state/update-receipts'
+    $file = Get-ChildItem -LiteralPath $folder -File -Filter '*.jsonl' | Sort-Object LastWriteTimeUtc | Select-Object -Last 1
+    if (-not $file) { throw 'The update did not retain an operation journal.' }
+    $events = @(Get-Content -LiteralPath $file.FullName | ForEach-Object { $_ | ConvertFrom-Json })
+    foreach ($phase in @('prepared', 'install-started', 'install-finished', 'result')) {
+        if ($events.phase -notcontains $phase) { throw "Journal omitted $phase : $($file.FullName)" }
+    }
+    if (@($events.phase | Where-Object { $_ -like 'uninstall*' }).Count -gt 0) { throw 'Update used a doctor uninstall phase.' }
+    if ($events[-1].detail.state -ne $State) { throw "Journal recorded $($events[-1].detail.state), expected $State." }
+    if ($Verified -ne ($events.phase -contains 'verified')) { throw 'Journal verification did not match the actual outcome.' }
+    $script:checks++
+    Write-Host "PASS Durable $State journal / no uninstall"
+}
+
 try {
     $buildOutput = (& dotnet publish (Join-Path $PSScriptRoot 'CommandFixture') -c Release -o $fixtureBuild 2>&1 | Out-String)
     if ($LASTEXITCODE -ne 0) { throw $buildOutput }
@@ -78,13 +108,26 @@ try {
     $metadata = Join-Path $prefix 'node_modules/@openai/codex/package.json'
     $originalHash = (Get-FileHash -LiteralPath $metadata).Hash
     $result = Invoke-Child $Executable @('update', 'codex', 'updateme', '--plain')
-    Assert-Result 'Newer release completes the real child-process rehearsal' $result 0 @('REHEARSED / NOT APPLIED', '1.0.0', '2.0.0', '@openai/codex@2.0.0')
-    $manual = @($result.Output -split '\r?\n' | Where-Object { $_.StartsWith('& ') -and $_.Contains("'install'") })
-    if ($manual.Count -ne 1) { throw 'Expected one intact manual update command.' }
-    $copied = Invoke-Child $shellPath @('-NoProfile', '-NonInteractive', '-Command', ($manual[0] + '; exit $LASTEXITCODE'))
-    Assert-Result 'Copied manual command reaches only the non-installing fixture' $copied 73 @('Manual invocation captured')
-    $lastCall = Get-Content -LiteralPath (Join-Path $prefix 'calls.jsonl') | Select-Object -Last 1 | ConvertFrom-Json
-    if ($lastCall -notcontains $prefix -or $lastCall -notcontains '@openai/codex@2.0.0' -or $lastCall -contains '--dry-run') { throw 'Copied manual arguments were corrupted.' }
+    Assert-Result 'Newer release retains a reviewed DERT proposal' $result 0 @('REHEARSED / NOT APPLIED', '1.0.0', '2.0.0', 'UPDATE PROPOSAL', ' --apply ') @('MANUAL UPDATE / CHANGES PACKAGES')
+    $approval = Get-Approval $result
+    if ($originalHash -ne (Get-FileHash -LiteralPath $metadata).Hash) { throw 'Rehearsal changed the installed package.' }
+    $beforeApply = @(Get-Calls).Count
+    Set-Scenario '2.0.0' '' $true
+    $copied = Invoke-Child $shellPath @('-NoProfile', '-NonInteractive', '-Command', ($approval.Command + '; exit $LASTEXITCODE'))
+    Assert-Result 'Copied DERT approval updates only the reviewed process fixture' $copied 0 @('UPDATE / VERIFIED', 'Operation receipt')
+    $appliedCalls = @(Get-Calls | Select-Object -Skip $beforeApply)
+    $mutations = @($appliedCalls | Where-Object { $_[1] -eq 'install' -and $_ -notcontains '--dry-run' })
+    if ($mutations.Count -ne 1 -or @($appliedCalls | Where-Object { $_[1] -eq 'uninstall' }).Count -ne 0) { throw 'Update must run one install and no uninstall.' }
+    $install = $mutations[0]
+    foreach ($argument in @($prefix, '@openai/codex@2.0.0', '--dry-run=false', '--ignore-scripts', '--include=optional', '--engine-strict', '--force=false')) {
+        if ($install -notcontains $argument) { throw "Approved install lost $argument." }
+    }
+    if ((Get-Content -LiteralPath $metadata | ConvertFrom-Json).version -ne '2.0.0') { throw 'The process fixture was not updated.' }
+    Assert-Journal 'Succeeded' $true
+    $beforeRepeated = (Get-FileHash -LiteralPath (Join-Path $prefix 'calls.jsonl')).Hash
+    Assert-Result 'An old successful approval refuses re-execution' (Invoke-Child $shellPath @('-NoProfile', '-NonInteractive', '-Command', ($approval.Command + '; exit $LASTEXITCODE'))) 1 @('changed') @('UPDATE / VERIFIED')
+    if ($beforeRepeated -ne (Get-FileHash -LiteralPath (Join-Path $prefix 'calls.jsonl')).Hash) { throw 'An old approval unexpectedly ran npm.' }
+    New-Package $prefix
 
     Set-Scenario '1.0.0'
     Assert-Result 'Already-current copy needs no install rehearsal' (Invoke-Child $Executable @('update', 'codex', 'updateme', '--plain')) 0 @('ALREADY CURRENT') @('MANUAL UPDATE / CHANGES PACKAGES')
@@ -115,6 +158,14 @@ try {
     Write-Fixture $source "STERT ; update ;; codex`n// keep this explanation`ncommands ; updateme ;;`nƒin."
     $sourceHash = (Get-FileHash -LiteralPath $source).Hash
     Assert-Result 'DERT reaches the same rehearsal with its requesting line' (Invoke-Child $Executable @('run', $source, '--plain')) 0 @('REHEARSED / NOT APPLIED', 'keep this explanation', "FROM ${source}:3")
+    $sourceReview = Invoke-Child $Executable @('run', $source, '--plain')
+    $sourceApproval = Get-Approval $sourceReview
+    if (-not $sourceApproval.Command.Contains(' --from-source ')) { throw 'The source-bound approval lost its originating document.' }
+    $beforeStale = (Get-FileHash -LiteralPath (Join-Path $prefix 'calls.jsonl')).Hash
+    [IO.File]::AppendAllText($source, "`n// A later authored change.")
+    Assert-Result 'An edited source invalidates its saved approval before npm starts' (Invoke-Child $shellPath @('-NoProfile', '-NonInteractive', '-Command', ($sourceApproval.Command + '; exit $LASTEXITCODE'))) 1 @('changed') @('UPDATE / VERIFIED')
+    if ($beforeStale -ne (Get-FileHash -LiteralPath (Join-Path $prefix 'calls.jsonl')).Hash) { throw 'Stale source approval unexpectedly ran npm.' }
+    Write-Fixture $source "STERT ; update ;; codex`n// keep this explanation`ncommands ; updateme ;;`nƒin."
     $beforePreview = (Get-FileHash -LiteralPath (Join-Path $prefix 'calls.jsonl')).Hash
     Assert-Result 'DERT preview interprets update intent without external queries' (Invoke-Child $Executable @('run', $source, '--preview', '--plain')) 0 @('DERT update codex updateme') @('CHECK / npm', 'MANUAL UPDATE / CHANGES PACKAGES')
     if ($beforePreview -ne (Get-FileHash -LiteralPath (Join-Path $prefix 'calls.jsonl')).Hash) { throw 'Source preview unexpectedly ran npm.' }
@@ -139,6 +190,20 @@ try {
     if ($sourceHash -ne (Get-FileHash -LiteralPath $source).Hash -or $originalHash -ne (Get-FileHash -LiteralPath $metadata).Hash) { throw 'Rehearsal changed source or installed metadata.' }
     $script:checks++
     Write-Host 'PASS Source and installed fixture bytes preserved'
+    $script:searchPath = $prefix
+    foreach ($failure in @(@{ Fault = 'install'; Exit = 1; State = 'InstallFailed'; Heading = 'INSTALLFAILED' }, @{ Fault = 'install-cancelled'; Exit = 130; State = 'Interrupted'; Heading = 'INTERRUPTED' })) {
+        New-Package $prefix
+        $review = Invoke-Child $Executable @('update', 'codex', 'updateme', '--plain')
+        Assert-Result 'Rehearsal prepares the failure/interruption fixture' $review 0 @('REHEARSED / NOT APPLIED', ' --apply ')
+        $failureApproval = Get-Approval $review
+        Set-Scenario '2.0.0' $failure.Fault $true
+        $beforeFailure = @(Get-Calls).Count
+        $failed = Invoke-Child $shellPath @('-NoProfile', '-NonInteractive', '-Command', ($failureApproval.Command + '; exit $LASTEXITCODE'))
+        Assert-Result "Update records $($failure.State) without claiming verification" $failed $failure.Exit @("UPDATE / $($failure.Heading)", 'Operation receipt') @('UPDATE / VERIFIED')
+        $failureCalls = @(Get-Calls | Select-Object -Skip $beforeFailure)
+        if (@($failureCalls | Where-Object { $_[1] -eq 'uninstall' }).Count -gt 0) { throw 'A failed update unexpectedly uninstalled the package.' }
+        Assert-Journal $failure.State
+    }
     Write-Host "$checks update executable checks passed. Evidence retained at $proofPath"
 }
 finally {

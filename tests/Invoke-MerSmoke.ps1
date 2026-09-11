@@ -192,6 +192,34 @@ try {
     Assert-Mer 'Active sinkers retain their header and expanded source' (Invoke-Mer @('mer', $notesExample, '--review', '--plain') "at 8`nowner`nstructure`ndetails`n`n") 0 @('Statement / line 6', '; hook / overnight', '3 entries below', 'headphones')
     Assert-Mer 'Search uses literal text and leaves bad choices unchanged' (Invoke-Mer @('mer', $notesExample, '--review', '--plain') "find quiet`nhit 0`nfind [.*]`nstructure`n`n") 0 @('No search hit has that number', 'No literal matches', 'Sinker / line 8')
     if ([Convert]::ToHexString($notesOriginal) -ne [Convert]::ToHexString([IO.File]::ReadAllBytes($notesExample))) { throw 'Notes inspection changed the example.' }
+    $referencePath = Join-Path $proofPath 'references [names].DERT'
+    [IO.File]::WriteAllText($referencePath, "// HOW ; music, missing ;; original //`r`n// music ; weekend ;; other //`n// similarities ; tools ;; music, music //", [Text.UTF8Encoding]::new($true))
+    $referenceHash = (Get-FileHash -LiteralPath $referencePath).Hash
+    Assert-Mer 'Explicit CLI references retain individual occurrences and actual ownership' (Invoke-Mer @('inspect', $referencePath, '--at', '1', '--references', '--plain')) 0 @('NAMED PLACES', 'line 3:35 / listed item', 'belongs to document', 'no operation binding', 'missing / target / No other named place')
+    Assert-Mer 'MER references visit the chosen duplicate and return to their origin' (Invoke-Mer @('mer', $referencePath, '--review', '--plain') "at 1`nrefs`nref 3`ndetails`nref back`n`n") 0 @('References 1-3 of 3', 'Name match / music', 'line 3:35 / listed item', 'Reference origin / line 1')
+    if ((Get-FileHash -LiteralPath $referencePath).Hash -ne $referenceHash) { throw 'Reference navigation changed source bytes.' }
+    $selectionPath = Join-Path $proofPath "context 'choice' [日本語].DERT"
+    [IO.File]::WriteAllText($selectionPath, "// HOW ; music ;; Keep this choice. //`r`n// WHY ; music ;; This note disagrees. //`nSTERT ; update ;; codex`nƒin.", [Text.UTF8Encoding]::new($true))
+    $selectionHash = (Get-FileHash -LiteralPath $selectionPath).Hash
+    $selectionPreview = Invoke-Mer @('context', $selectionPath, '--at', '1', '--include', '2', '--details', '--plain')
+    Assert-Mer 'Explicit context includes selected disagreement and retains source identity' $selectionPreview 0 @('SELECTED CONTEXT', 'Included notes: 2', 'This note disagrees.', 'Omitted ranges', '--include 2', '--from-preview')
+    $exports = [regex]::Matches($selectionPreview.Output, '(?m)^& .+ --output .+ --from-preview [a-f0-9]{64} --plain\r?$')
+    if ($exports.Count -ne 1) { throw 'Expected one complete context export handoff.' }
+    $exportCommand = $exports[0].Value.TrimEnd("`r")
+    $exportPrefix = "& '" + $Executable.Replace("'", "''") + "' context '" + $selectionPath.Replace("'", "''") + "' --at 1 --include 2 --output '" + ($selectionPath + '.context.txt').Replace("'", "''") + "' --from-preview "
+    if (-not $exportCommand.StartsWith($exportPrefix, [StringComparison]::Ordinal)) { throw 'Export handoff did not use the tested executable and selected disposable source.' }
+    $exportOutput = (& ([scriptblock]::Create($exportCommand)) 2>&1 | Out-String)
+    Assert-Mer 'Copied context export command works with literal quotes and Unicode paths' ([pscustomobject] @{ Exit = $LASTEXITCODE; Output = $exportOutput; Error = '' }) 0 @('Export saved / bytes verified')
+    $reviewedText = Invoke-Mer @('context', $selectionPath, '--at', '1', '--include', '2', '--text')
+    Assert-Mer 'Text mode emits the reviewed source packet without terminal framing' $reviewedText 0 @('DERT context selection', 'This note disagrees.', 'Captured UTF-8 SHA-256')
+    $exportPath = $selectionPath + '.context.txt'
+    if ([IO.File]::ReadAllText($exportPath) -cne $reviewedText.Output) { throw 'Export bytes did not carry the exact reviewed text.' }
+    $reviewToken = [regex]::Match($exportCommand, '--from-preview ([a-f0-9]{64})').Groups[1].Value
+    Assert-Mer 'Context export refuses an existing destination' (Invoke-Mer @('context', $selectionPath, '--at', '1', '--include', '2', '--output', $exportPath, '--from-preview', $reviewToken, '--plain')) 2 @('Existing files are never overwritten')
+    Assert-Mer 'Changed note choices refuse the previous review without creating a file' (Invoke-Mer @('context', $selectionPath, '--at', '1', '--output', ($exportPath + '.stale.txt'), '--from-preview', $reviewToken, '--plain')) 2 @('changed', 'No export was written')
+    if (Test-Path -LiteralPath ($exportPath + '.stale.txt')) { throw 'A stale context review created an export.' }
+    Assert-Mer 'MER context choices connect captured notes to reviewed export' (Invoke-Mer @('mer', $selectionPath, '--review', '--plain') "at 1`ncontext`ncontext left`ncontext include 2`ncontext details`ncontext exclude 2`ncontext clear`n`n") 0 @('SELECTED CONTEXT', 'Left out', 'Included notes: 2', '--include 2', 'Context selection left')
+    if ((Get-FileHash -LiteralPath $selectionPath).Hash -ne $selectionHash) { throw 'Context review changed source bytes.' }
     Write-Host "All $checks MER executable checks passed."
 }
 finally {

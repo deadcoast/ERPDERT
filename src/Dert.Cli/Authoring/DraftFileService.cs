@@ -29,6 +29,17 @@ public sealed class DraftFileService(IRepairWriter? writer = null)
         return Capture(file, fullPath);
     }
 
+    public bool IsCurrent(DraftFileSnapshot opened)
+    {
+        ArgumentNullException.ThrowIfNull(opened);
+        try
+        {
+            using var file = new FileStream(opened.Path, FileMode.Open, FileAccess.Read, FileShare.Read);
+            return WindowsFileGuard.Identity(file) == opened.Identity && Read(file).AsSpan().SequenceEqual(opened.Original);
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException) { return false; }
+    }
+
     public DraftFileSnapshot Create(string path, string text, bool hasBom = false)
     {
         var fullPath = System.IO.Path.GetFullPath(path);

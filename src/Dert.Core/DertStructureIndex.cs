@@ -7,6 +7,7 @@ public sealed record SourceHit(int LineNumber, string Text, IReadOnlyList<TextSp
 public sealed class DertStructureIndex
 {
     private readonly Dictionary<int, StructureLocation> byLine = [];
+    private readonly HashSet<DertNode> members = new(ReferenceEqualityComparer.Instance);
     public DertDocument Document { get; }
     public IReadOnlyList<StructureLocation> Locations { get; }
 
@@ -22,6 +23,7 @@ public sealed class DertStructureIndex
             foreach (var node in nodes)
             {
                 var location = new StructureLocation(node, parent);
+                members.Add(node);
                 locations.Add(location);
                 byLine[node.LineNumber] = location;
                 if (Closing(node) is { } closing) byLine[LineOf(closing.Start)] = location;
@@ -31,6 +33,7 @@ public sealed class DertStructureIndex
     }
 
     public StructureLocation? AtLine(int line) => byLine.GetValueOrDefault(line);
+    internal bool Contains(DertNode node) => members.Contains(node);
 
     public int? OwnerLine(int line) => AtLine(line) is { } location
         ? location.Node.LineNumber != line ? location.Node.LineNumber : location.Parent?.LineNumber : null;

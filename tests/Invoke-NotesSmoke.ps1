@@ -108,6 +108,20 @@ function Check-Window([string[]] $CommandArgs, [string] $Caption, [switch] $Thro
             Start-Sleep -Milliseconds 50
         }
         if ($window -eq [IntPtr]::Zero) { throw "The published notes host did not create '$Caption'." }
+        if ($CommandArgs -contains '--result') {
+            $deadline = [DateTime]::UtcNow.AddSeconds(15)
+            $resultWindow = [IntPtr]::Zero
+            while (-not $process.HasExited -and [DateTime]::UtcNow -lt $deadline) {
+                $resultWindow = [NotesWindowProbe]::Find($process.Id, 'Keep result / DERT')
+                if ($resultWindow -ne [IntPtr]::Zero) { break }
+                Start-Sleep -Milliseconds 50
+            }
+            if ($resultWindow -eq [IntPtr]::Zero) { throw 'The published handoff did not open its result insertion review.' }
+            [NotesWindowProbe]::Close($resultWindow)
+            $deadline = [DateTime]::UtcNow.AddSeconds(5)
+            while ([NotesWindowProbe]::Find($process.Id, 'Keep result / DERT') -ne [IntPtr]::Zero -and [DateTime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 50 }
+            $record.Add('PASS published result review opens and closes without Apply')
+        }
         [NotesWindowProbe]::Close($window)
         if (-not $process.WaitForExit(5000)) { throw "The untouched notes window did not close promptly: $Caption; CLI=$ThroughCli" }
         if ($process.ExitCode -ne 0) { throw "The untouched notes window exited $($process.ExitCode): $Caption; CLI=$ThroughCli" }
@@ -195,6 +209,43 @@ say "hello"" // literally,"
     Check-Window @($literalPath, '--still') ([IO.Path]::GetFileName($literalPath) + ' / DERT') -ThroughCli
     if ((Get-FileHash -LiteralPath $literalPath).Hash -ne $literalBefore) { throw 'Literal punctuation opening changed source bytes.' }
     $record.Add('PASS literal paths, quote spans, annotation and final comma retain exact UTF-8 bytes on open')
+    $contextPath = Join-Path $proofPath 'context [names] 日本語.DERT'
+    $contextSource = "// HOW ; names ;; Keep this sentence, intact. //`r`n// similarities ; tools ;; codex, `"ACME, local`", codex //`n// tomorrow maybe ; desk ;; coffee, a clear window //"
+    [IO.File]::WriteAllText($contextPath, $contextSource, [Text.UTF8Encoding]::new($true))
+    $contextBefore = (Get-FileHash -LiteralPath $contextPath).Hash
+    Check-Window @($contextPath, '--still') ([IO.Path]::GetFileName($contextPath) + ' / DERT') -ThroughCli
+    if ((Get-FileHash -LiteralPath $contextPath).Hash -ne $contextBefore) { throw 'Opening structured context changed source bytes.' }
+    $record.Add('PASS HOW, similarities and unknown context retain exact BOM, mixed newlines and source on open')
+    $referencePath = Join-Path $proofPath 'references [names] 日本語.DERT'
+    [IO.File]::WriteAllText($referencePath, "// HOW ; music, missing ;; original //`r`n// music ; weekend ;; other //`n// similarities ; tools ;; music, music //", [Text.UTF8Encoding]::new($true))
+    $referenceBefore = (Get-FileHash -LiteralPath $referencePath).Hash
+    Check-Window @($referencePath, '--still') ([IO.Path]::GetFileName($referencePath) + ' / DERT') -ThroughCli
+    if ((Get-FileHash -LiteralPath $referencePath).Hash -ne $referenceBefore) { throw 'Opening cross-note references changed source bytes.' }
+    $record.Add('PASS cross-note reference source retains exact BOM, mixed newlines and literal path on open')
+
+    $selectionPath = Join-Path $proofPath 'context selection [日本語].DERT'
+    [IO.File]::WriteAllText($selectionPath, "// support ; plans ;;`r`n// uncertainty, // Keep this annotation.`n//`r`n// HOW ; plans ;; A different view. //", [Text.UTF8Encoding]::new($true))
+    $selectionBefore = (Get-FileHash -LiteralPath $selectionPath).Hash
+    Check-Window @($selectionPath, '--still') ([IO.Path]::GetFileName($selectionPath) + ' / DERT') -ThroughCli
+    if ((Get-FileHash -LiteralPath $selectionPath).Hash -ne $selectionBefore) { throw 'Opening author-and-agent context changed source bytes.' }
+    $record.Add('PASS context selection source retains exact BOM, mixed newlines and own annotations on open')
+
+    $resultSource = Join-Path $proofPath "result [日本語]'s.DERT"
+    [IO.File]::WriteAllText($resultSource, "STERT ; update ;; codex`r`n// HOW ; codex ;; Keep this explanation. //`nƒin.`r`n", [Text.UTF8Encoding]::new($true))
+    $resultBefore = (Get-FileHash -LiteralPath $resultSource).Hash
+    $resultRecord = Join-Path $proofPath "result [日本語]'s.json"
+    $start = Start-Info $Executable @('run', $resultSource, '--receipt', $resultRecord, '--plain')
+    $start.RedirectStandardOutput = $true; $start.RedirectStandardError = $true
+    $capture = [Diagnostics.Process]::Start($start)
+    try {
+        $capturedOutput = $capture.StandardOutput.ReadToEndAsync(); $capturedError = $capture.StandardError.ReadToEndAsync()
+        if (-not $capture.WaitForExit(15000)) { $capture.Kill($true); throw 'Result capture exceeded its deadline.' }
+        if ($capture.ExitCode -ne 1 -or -not (Test-Path -LiteralPath $resultRecord)) { throw "Empty-PATH result capture failed: $($capturedOutput.GetAwaiter().GetResult()) $($capturedError.GetAwaiter().GetResult())" }
+    } finally { $capture.Dispose() }
+    Check-Window @($resultSource, '--result', $resultRecord, '--still') ([IO.Path]::GetFileName($resultSource) + ' / DERT') -ThroughCli
+    if ((Get-FileHash -LiteralPath $resultSource).Hash -ne $resultBefore) { throw 'Result handoff changed source bytes without Apply.' }
+    $record.Add('PASS result handoff retains BOM, mixed newlines and source bytes through preview cancellation')
+
     Write-Host ($record -join "`n")
     Write-Host "All $($record.Count) published notes checks passed. Evidence: $proofPath"
 }

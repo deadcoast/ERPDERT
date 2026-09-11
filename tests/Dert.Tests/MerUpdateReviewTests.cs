@@ -118,7 +118,7 @@ public class MerUpdateReviewTests
         Assert.Equal(1, result.Exit);
         Assert.Contains("Source changed", result.Output);
         Assert.DoesNotContain("Rehearsed / not applied", result.Output);
-        Assert.DoesNotContain("MANUAL UPDATE / CHANGES PACKAGES", result.Output);
+        Assert.DoesNotContain("APPLY THIS REVIEWED UPDATE", result.Output);
     }
 
     private sealed class ChangingRunner(UpdateFixture fixture, Action change) : ICommandRunner
@@ -152,7 +152,7 @@ public class MerUpdateReviewTests
             runner: new FailRepeat(fixture));
         var failed = result.Output[result.Output.IndexOf("Rehearsal stopped", StringComparison.Ordinal)..];
         Assert.Equal(1, result.Exit);
-        Assert.DoesNotContain("MANUAL UPDATE / CHANGES PACKAGES", failed);
+        Assert.DoesNotContain("APPLY THIS REVIEWED UPDATE", failed);
         Assert.DoesNotContain("Rehearsed / not applied", failed);
     }
 
@@ -189,7 +189,7 @@ public class MerUpdateReviewTests
             () => File.AppendAllText(file.Path, "\n// Later note")), fixture);
         var stopped = result.Output[result.Output.IndexOf("Recorded source / current file not verified", StringComparison.Ordinal)..];
         Assert.DoesNotContain("Rehearsed / not applied", stopped);
-        Assert.DoesNotContain("MANUAL UPDATE / CHANGES PACKAGES", stopped);
+        Assert.DoesNotContain("APPLY THIS REVIEWED UPDATE", stopped);
         Assert.DoesNotContain("Update rehearsal / complete", stopped);
     }
 
@@ -220,7 +220,7 @@ public class MerUpdateReviewTests
         review.Details();
         var stopped = review.Output[review.Output.IndexOf("Rehearsal stopped", StringComparison.Ordinal)..];
         Assert.Contains("Local discovery stopped", stopped);
-        Assert.DoesNotContain("MANUAL UPDATE / CHANGES PACKAGES", stopped);
+        Assert.DoesNotContain("APPLY THIS REVIEWED UPDATE", stopped);
         Assert.Equal(4, fixture.Calls.Count);
     }
 
@@ -237,7 +237,7 @@ public class MerUpdateReviewTests
         review.Details();
         Assert.Contains("Rehearsal stopped / interrupted", review.Output);
         Assert.Contains("MANAGER INVENTORY", review.Output);
-        Assert.DoesNotContain("MANUAL UPDATE / CHANGES PACKAGES", review.Output);
+        Assert.DoesNotContain("APPLY THIS REVIEWED UPDATE", review.Output);
         Assert.DoesNotContain(fixture.Calls, call => call.Arguments.Contains("install"));
     }
 
@@ -262,7 +262,7 @@ public class MerUpdateReviewTests
             var renderer = Activator.CreateInstance(assembly.GetType("Dert.Cli.DocumentRenderer")!, console, true, null, true);
             type = assembly.GetType("Dert.Cli.Motion.MerReview")!;
             review = Activator.CreateInstance(type, analysis, journal.Snapshot(TimeSpan.Zero), bytes, path, console, renderer,
-                new StringReader(""), true, new DiscoveryEnvironment(fixture.Prefix, ".CMD;.EXE"), null, runner, null)!;
+                new StringReader(""), true, new DiscoveryEnvironment(fixture.Prefix, ".CMD;.EXE"), null, runner, Path.Combine(fixture.Files.Root, "state"))!;
             type.GetField("selected", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(review, 3);
         }
         internal void Command(string command, CancellationToken cancellation = default) =>
@@ -289,7 +289,8 @@ public class MerUpdateReviewTests
         console.Profile.Width = 132; console.Profile.Height = 40;
         string[] args = replay ? ["mer", path, "--review", "--plain", "--replay"] : ["mer", path, "--review", "--plain"];
         return (CliApplication.Run(args, console, merInput: commands, commandRunner: runner ?? fixture,
-            discoveryEnvironment: new DiscoveryEnvironment(searchPath ?? fixture.Prefix, ".CMD;.EXE")), writer.ToString());
+            discoveryEnvironment: new DiscoveryEnvironment(searchPath ?? fixture.Prefix, ".CMD;.EXE"),
+            doctorStateDirectory: Path.Combine(fixture.Files.Root, "state")), writer.ToString());
     }
     private sealed class ChangingInput(string text, int at, Action change) : StringReader(text)
     {

@@ -32,6 +32,10 @@ public sealed record MotionEvidence(string Label, string Text, EvidenceKind Kind
 public sealed record DocumentAnnotation(int SourceLine, IReadOnlyList<InkLine> Lines,
     IReadOnlyList<InkLine>? CompactLines = null)
 {
+    // Keep the complete inspection in Lines while offering a bounded page in
+    // the source window. Wide terminals still have a finite annotation rail.
+    public IReadOnlyList<InkLine>? WindowLines { get; init; }
+    public int CompactRowBudget { get; init; } = 5;
     public DocumentAction? Action { get; init; }
     public DocumentOwnership? Ownership { get; init; }
 }

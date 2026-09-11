@@ -73,7 +73,8 @@ internal static class DocumentWindow
         var textWidth = panelWidth - textX - 3;
         var annotationWidth = wide ? width - panelWidth - 6 : panelWidth - 8;
         var notes = detail.SelectMany(line => Wrap(line, annotationWidth)).ToArray();
-        var annotationRows = wide ? 0 : Math.Min(6, notes.Length + 1);
+        var compactBudget = Math.Clamp(annotation?.CompactRowBudget ?? 5, 5, Math.Max(5, capacity - 10));
+        var annotationRows = wide ? 0 : Math.Min(compactBudget + 1, notes.Length + 1);
         var bodyBudget = Math.Max(2, capacity - 7 - annotationRows);
         var sourceIndex = focus is int targetLine && source is not null
             ? Enumerable.Range(0, source.Lines.Count).FirstOrDefault(index => (source.LineNumbers?[index] ?? index + 1) == targetLine) : 0;
@@ -190,7 +191,7 @@ internal static class DocumentWindow
         }
         for (var i = 0; i < Math.Min(notes.Length, noteBudget); i++)
             canvas.Put(noteX, noteY + i, notes.Length > noteBudget && i == noteBudget - 1
-                ? InkLine.Plain("... full explanation in details", Ink.Muted) : notes[i], annotationWidth);
+                ? InkLine.Plain("More in details", Ink.Muted) : notes[i], annotationWidth);
         canvas.Put(2, height - 1, status + " / " + effect, terminalProblem ? Ink.Bad : Ink.Muted);
         canvas.Put(2, 1, caption, Ink.Muted);
         return new(columns, canvas.Lines(), rows);
@@ -199,7 +200,7 @@ internal static class DocumentWindow
         {
             if (terminalProblem)
                 return [InkLine.Plain("Could not finish", Ink.Bad), InkLine.Plain((failed?.Detail ?? snapshot.Detail).Split("Decoder detail / ", StringSplitOptions.None)[0].Trim())];
-            if (annotation is not null) return width < 108 ? annotation.CompactLines ?? annotation.Lines : annotation.Lines;
+            if (annotation is not null) return width < 108 ? annotation.CompactLines ?? annotation.Lines : annotation.WindowLines ?? annotation.Lines;
             if (chosen.Evidence is { Kind: EvidenceKind.Error } error)
                 return [InkLine.Plain($"Line {error.SourceLine} / needs attention", Ink.Copper), InkLine.Plain(error.Text)];
             if (chosen.Evidence is { Focus: TitleRuleFocus title } proposed)

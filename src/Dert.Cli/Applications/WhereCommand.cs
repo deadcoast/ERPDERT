@@ -18,26 +18,28 @@ internal static class WhereCommand
         using var cancelled = new CancellationTokenSource();
         ConsoleCancelEventHandler stop = (_, args) => { args.Cancel = true; cancelled.Cancel(); };
         Console.CancelKeyPress += stop;
+        Func<DiscoveryEnvironment>? environmentReader = environment is null ? null : () => environment;
         try
         {
             if (request.Approval is not null)
             {
                 if (!request.Application.CanDoctor) { renderer.Failure("This application has no doctor adapter."); return 1; }
-                var saved = DoctorService.LoadProposal(request.Approval, stateDirectory is null ? null : Path.Combine(stateDirectory, "doctor-proposals"));
+                var saved = DoctorService.LoadProposal(request.Approval, stateDirectory is null ? null : Path.Combine(stateDirectory, "doctor-proposals"), environmentReader);
                 if (saved.Proposal is not { } proposal || request.SelectedPath is null ||
                     !SamePath(request.SelectedPath, proposal.SelectedPath) ||
                     !SameOptionalPath(request.SourcePath, proposal.Source?.Path))
                 { renderer.Failure("This approval belongs to a different selected path or source. Use the exact command from its reviewed proposal."); return 1; }
                 renderer.Doctor(saved, request.Application.Id, request.SourcePath);
-                using var activity = new DoctorMotion(runner ?? new SystemCommandRunner(cancelled.Token), console, plain, still, applying: true);
+                using var activity = new NpmTransactionMotion(runner ?? new SystemCommandRunner(cancelled.Token), console, plain, still, applying: true);
                 var applied = DoctorService.Apply(saved, request.Approval, activity,
-                    stateDirectory is null ? null : Path.Combine(stateDirectory, "doctor-receipts"), cancelled.Token);
+                    stateDirectory is null ? null : Path.Combine(stateDirectory, "doctor-receipts"), cancelled.Token, environmentReader);
                 activity.Finish(applied.State == DoctorApplyState.Succeeded, applied.State == DoctorApplyState.Interrupted,
                     applied.State == DoctorApplyState.Succeeded ? "Reinstall verification recorded" : "Repair stopped / inspect the recorded phases");
                 renderer.DoctorResult(applied);
                 return applied.State == DoctorApplyState.Succeeded ? 0 : applied.State == DoctorApplyState.Interrupted ? 130 : 1;
             }
-            var locations = LocationMotion.Scan(request.Application, environment ?? DiscoveryEnvironment.Capture(), console, plain, still, cancelled.Token);
+            var scanEnvironment = environment ?? DiscoveryEnvironment.Capture();
+            var locations = LocationMotion.Scan(request.Application, scanEnvironment, console, plain, still, cancelled.Token);
             if (request.Action != ApplicationAction.Doctor) return new LocationConnection(0, locations).NeedsAttention ? 1 : 0;
             if (!request.Application.CanDoctor)
             { renderer.Failure($"{request.Application.DisplayName} has location evidence but no doctor adapter in this build. No repair is offered."); return 1; }
@@ -46,14 +48,16 @@ internal static class WhereCommand
             if (capturedSource is not null && binding is not null &&
                 binding.Sha256 != Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(capturedSource)))
                 throw new IOException("The source changed after its operation was read. Reopen it before requesting doctor checks.");
-            using var checks = new DoctorMotion(runner ?? new SystemCommandRunner(cancelled.Token), console, plain, still, applying: false);
+            using var checks = new NpmTransactionMotion(runner ?? new SystemCommandRunner(cancelled.Token), console, plain, still, applying: false);
             var doctor = DoctorService.Inspect(locations.Discovery, request.SelectedPath, checks,
-                cancellation: cancelled.Token, source: binding);
+                cancellation: cancelled.Token, source: binding, environment: scanEnvironment, environmentReader: environmentReader);
             checks.Finish(doctor.State == DoctorState.Ready, doctor.State == DoctorState.Interrupted,
-                doctor.State == DoctorState.Ready ? "Manager checks complete / proposal awaits your choice" : "Manager checks stopped / no repair approved");
+                doctor.State == DoctorState.Ready ? "Manager checks complete / proposal awaits your choice" :
+                doctor.State == DoctorState.ChooseCopy ? "Route inspection retained / choose a copy before manager checks" :
+                "Manager checks stopped / no repair approved");
             if (doctor.State == DoctorState.Ready)
             {
-                var stored = DoctorService.SaveProposal(doctor, stateDirectory is null ? null : Path.Combine(stateDirectory, "doctor-proposals"));
+                var stored = DoctorService.SaveProposal(doctor, stateDirectory is null ? null : Path.Combine(stateDirectory, "doctor-proposals"), environmentReader);
                 renderer.DoctorProposalStored(stored);
             }
             renderer.Doctor(doctor, request.Application.Id, source);

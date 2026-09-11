@@ -10,6 +10,11 @@ param(
     [switch] $SourceView,
     [switch] $DocumentWindow,
     [switch] $StructureView,
+    [switch] $ReferencesView,
+    [switch] $ContextView,
+    [string] $ResultRecord,
+    [int[]] $IncludeNotes = @(),
+    [Nullable[int]] $ReferenceNumber,
     [string] $DocumentPath,
     [switch] $ProbeLocal,
     [string] $InspectionPath,
@@ -17,6 +22,8 @@ param(
     [string] $RepairJourney,
     [string] $UpdatePrefix,
     [string] $LocationPrefix,
+    [string] $LocationSearchPath,
+    [switch] $DiagnoseOnly,
     [switch] $NotesJourney,
     [ValidateRange(1, 2147483647)]
     [int] $Copy = 1
@@ -24,11 +31,17 @@ param(
 
 $ErrorActionPreference = 'Stop'
 if ($SourceView -and $null -eq $AtLine) { throw '-SourceView requires -AtLine.' }
+if ($ResultRecord -and (-not $DocumentWindow -or $ContextView -or $ReferencesView -or $StructureView -or $ProbeLocal -or $DemoCase)) { throw '-ResultRecord requires DocumentWindow and no other inspection view.' }
 if ($StructureView -and (-not $DocumentWindow -or $null -eq $AtLine)) { throw '-StructureView requires -DocumentWindow and -AtLine.' }
+if ($ContextView -and (-not $DocumentWindow -or $null -eq $AtLine -or $StructureView -or $ReferencesView -or $ProbeLocal)) { throw '-ContextView requires DocumentWindow, AtLine and no other inspection view.' }
+if ($IncludeNotes.Count -gt 0 -and -not $ContextView) { throw '-IncludeNotes requires ContextView.' }
+if ($ReferencesView -and (-not $DocumentWindow -or $null -eq $AtLine -or $StructureView)) { throw '-ReferencesView requires -DocumentWindow, -AtLine and no StructureView.' }
+if ($null -ne $ReferenceNumber -and (-not $ReferencesView -or $ReferenceNumber -lt 1)) { throw '-ReferenceNumber requires ReferencesView and a positive destination number.' }
 if ($DocumentPath -and $DemoCase) { throw 'Choose DocumentPath or DemoCase for this captured source.' }
 if ($ProbeLocal -and (-not $DocumentWindow -or $null -eq $AtLine)) { throw '-ProbeLocal requires -DocumentWindow and -AtLine.' }
 if ($UpdatePrefix) { $UpdatePrefix = (Resolve-Path -LiteralPath $UpdatePrefix).Path }
 if ($LocationPrefix) { $LocationPrefix = (Resolve-Path -LiteralPath $LocationPrefix).Path }
+if (($LocationSearchPath -or $DiagnoseOnly) -and -not $LocationPrefix) { throw 'LocationSearchPath and DiagnoseOnly require LocationPrefix.' }
 $projectPath = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 if (-not $BuildFolder) { $BuildFolder = Join-Path $projectPath 'src/Dert.Cli/bin/Debug/net10.0' }
 $BuildFolder = (Resolve-Path -LiteralPath $BuildFolder).Path
@@ -53,7 +66,18 @@ if ($DemoCase) {
     $read = $selected.Read
     $label = "demo/$DemoCase.DERT"
 }
-$analysis = $method.Invoke($null, @($read, $label, $true, $null, [Threading.CancellationToken]::None, [Dert.Mer.DocumentSourceState]::Original))
+$sourceState = [Dert.Mer.DocumentSourceState]::Original
+$resultPlan = $null
+if ($ResultRecord) {
+    $resultObservation = [Dert.Cli.Results.ObservationStore]::Read((Resolve-Path -LiteralPath $ResultRecord).Path)
+    $resultPlan = [Dert.Core.ResultNotes]::Plan([Dert.Core.DertParser]::Parse($read.Invoke()), $resultObservation, $sourcePath, $AtLine)
+    if (-not $resultPlan.IsReady) { throw $resultPlan.Explanation }
+    $read = [Func[string]] { $resultPlan.ProposedText }
+    $sourceState = [Dert.Mer.DocumentSourceState]::Proposed
+    $resultText = [Dert.Core.SourceText]::new($resultPlan.ProposedText)
+    $AtLine = ($resultText.Lines | Where-Object { $_.Start -le $resultPlan.AddedSpan.Start -and $_.End -gt $resultPlan.AddedSpan.Start } | Select-Object -First 1).Number
+}
+$analysis = $method.Invoke($null, @($read, $label, $true, $null, [Threading.CancellationToken]::None, $sourceState))
 $score = $analysis.Score
 if ($DemoCase) { $score = [Dert.Mer.MotionScore]::new($selected.Title, $score.Scope, $score.Stages, $score.Source, $true) }
 if ($DocumentWindow) { $score.View = [Dert.Mer.MotionView]::Document }
@@ -152,14 +176,14 @@ try {
         $rendererType = $cliAssembly.GetType('Dert.Cli.DocumentRenderer')
         $renderer = $rendererType.GetConstructors()[0].Invoke(@($reviewConsole, $true, $null, $true))
         $reviewType = $cliAssembly.GetType('Dert.Cli.Motion.MerReview')
-        $updateEnvironment = if ($UpdatePrefix -or $LocationPrefix) { [Dert.Cli.Discovery.DiscoveryEnvironment]::new($(if ($LocationPrefix) { $LocationPrefix } else { $UpdatePrefix }), '.CMD;.EXE') } else { $null }
+        $updateEnvironment = if ($UpdatePrefix -or $LocationPrefix) { [Dert.Cli.Discovery.DiscoveryEnvironment]::new($(if ($LocationSearchPath) { $LocationSearchPath } elseif ($LocationPrefix) { $LocationPrefix } else { $UpdatePrefix }), '.CMD;.EXE') } else { $null }
         $review = $reviewType.GetConstructors()[0].Invoke(@($repairAnalysis, $repairJournal.Snapshot([TimeSpan]::Zero), $repairBytes, [string]$repairPath,
             $reviewConsole, $renderer, [IO.StringReader]::new(''), $true, $updateEnvironment, $null, $null, [string](Join-Path $proofPath 'doctor-state')))
         $flags = [Reflection.BindingFlags]'Instance,NonPublic'
         $reviewType.GetField('selected', $flags).SetValue($review, $(if ($UpdatePrefix -or $LocationPrefix) { [int]6 } else { [int]2 }))
         $handle = $reviewType.GetMethod($(if ($NotesJourney) { 'HandleStructure' } elseif ($LocationPrefix) { 'HandleLocation' } elseif ($UpdatePrefix) { 'HandleUpdate' } else { 'HandleRepair' }), $flags)
         $steps = if ($NotesJourney) { @('find quiet', 'owner', 'hit 2', 'owner', 'structure') }
-            elseif ($LocationPrefix) { @('probe', "copy $Copy", 'doctor') }
+            elseif ($LocationPrefix) { if ($DiagnoseOnly) { @('probe', 'doctor') } else { @('probe', "copy $Copy", 'doctor') } }
             elseif ($UpdatePrefix) { @('rehearse', "copy $Copy", 'check') }
             elseif ($RepairJourney -eq 'title') { @('repair title', 'before', 'after', 'apply', 'undo', 'apply') }
             else { @('repair', 'close 4', 'before', 'after', 'apply', 'undo', 'apply') }
@@ -177,6 +201,13 @@ try {
         if ($UpdatePrefix) { [void]$reviewType.GetMethod('UpdateDetails', $flags).Invoke($review, @()) }
         if ($LocationPrefix) {
             [void]$reviewType.GetMethod('LocationDetails', $flags).Invoke($review, @())
+            $doctorReports = $reviewType.GetField('doctors', $flags).GetValue($review)
+            if ($doctorReports.ContainsKey([int]6)) {
+                $doctorConnectionType = $cliAssembly.GetType('Dert.Cli.Motion.DoctorConnection')
+                $doctorConnection = $doctorConnectionType.GetConstructors()[0].Invoke(@($doctorReports[[int]6]))
+                $doctorLines = $doctorConnectionType.GetMethod('Receipt', $flags).Invoke($doctorConnection, @($Columns))
+                Export-Frame ([pscustomobject]@{ Lines = $doctorLines }) (Join-Path $proofPath 'doctor-evidence.png')
+            }
             $locations = [Dert.Cli.Discovery.ApplicationLocator]::Scan([Dert.Cli.Applications.ApplicationCatalog]::Codex, $updateEnvironment, [Threading.CancellationToken]::None, $null)
             $connectionType = $cliAssembly.GetType('Dert.Cli.Motion.LocationConnection')
             $connection = $connectionType.GetConstructors()[0].Invoke(@([int]6, $locations))
@@ -189,11 +220,38 @@ try {
         $reviewOutput.Dispose()
     }
     $annotation = $null
-    if ($StructureView) {
+    if ($resultPlan) {
+        $resultPresentation = [Dert.Cli.CliApplication].Assembly.GetType('Dert.Cli.Results.ResultPresentation')
+        $annotation = $resultPresentation.GetMethod('Annotation', [Reflection.BindingFlags]'Static,NonPublic').Invoke($null, @($resultPlan, [int]$AtLine))
+    }
+    if ($StructureView -or $ReferencesView) {
         $document = $adapter.GetProperty('Document', [Reflection.BindingFlags]'Instance,NonPublic').GetValue($analysis)
         $structure = [Dert.Core.DertStructureIndex]::new($document)
-        $connection = [Dert.Cli.CliApplication].Assembly.GetType('Dert.Cli.Motion.StructureConnection')
-        $annotation = $connection.GetMethod('Describe', [Reflection.BindingFlags]'Static,NonPublic').Invoke($null, @($structure, [int]$AtLine))
+        if ($ReferencesView) {
+            $connection = [Dert.Cli.CliApplication].Assembly.GetType('Dert.Cli.Motion.ReferenceConnection')
+            $reference = $connection.GetMethod('Read', [Reflection.BindingFlags]'Static,NonPublic').Invoke($null, @($structure, [int]$AtLine))
+            if ($null -eq $reference) { throw 'This source line has no reasoning-note names.' }
+            if ($null -ne $ReferenceNumber) {
+                $choices = $connection.GetProperty('Choices', [Reflection.BindingFlags]'Instance,NonPublic').GetValue($reference)
+                if ($ReferenceNumber -gt $choices.Count) { throw 'No reference has that number.' }
+                $choice = $choices[$ReferenceNumber - 1]
+                $annotation = $connection.GetMethod('Visit', [Reflection.BindingFlags]'Instance,NonPublic').Invoke($reference, @($choice))
+                $AtLine = $choice.Match.LineNumber
+            } else {
+                $annotation = $connection.GetMethod('Describe', [Reflection.BindingFlags]'Instance,NonPublic').Invoke($reference, @([int]1, $false))
+            }
+        } else {
+            $connection = [Dert.Cli.CliApplication].Assembly.GetType('Dert.Cli.Motion.StructureConnection')
+            $annotation = $connection.GetMethod('Describe', [Reflection.BindingFlags]'Static,NonPublic').Invoke($null, @($structure, [int]$AtLine))
+        }
+    }
+    if ($ContextView) {
+        $document = $adapter.GetProperty('Document', [Reflection.BindingFlags]'Instance,NonPublic').GetValue($analysis)
+        $contextSelection = [Dert.Core.ContextSelection]::Capture($document, [int]$AtLine, $sourcePath, [Dert.Core.ContextSourceKind]::FileSnapshot)
+        $packet = $contextSelection.Build($IncludeNotes)
+        $presentation = [Dert.Cli.CliApplication].Assembly.GetType('Dert.Cli.Authoring.ContextPresentation')
+        $annotation = $presentation.GetMethod('Annotation', [Reflection.BindingFlags]'Static,NonPublic').Invoke($null, @($packet))
+        $AtLine = $packet.Selection.Primary.LineNumber
     }
     if ($ProbeLocal) {
         $planType = [Dert.Cli.CliApplication].Assembly.GetType('Dert.Cli.Operations.DertOperationPlan')

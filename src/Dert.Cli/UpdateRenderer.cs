@@ -1,5 +1,6 @@
 using Dert.Core;
 using Dert.Cli.Updates;
+using Dert.Cli.Transactions;
 
 namespace Dert.Cli;
 
@@ -15,7 +16,7 @@ internal sealed partial class DocumentRenderer
 
     public void UpdateProgress(string stage) => Line($"CHECK / {stage}", SemanticRole.Reasoning);
 
-    public void UpdateRehearsal(UpdateReport report, bool embedded = false, bool includeChecks = true)
+    public void UpdateRehearsal(UpdateReport report, bool embedded = false, bool includeChecks = true, string? sourcePath = null)
     {
         if (report.Selected is { } selected)
         {
@@ -41,7 +42,9 @@ internal sealed partial class DocumentRenderer
                 var route = group[0];
                 EvidencePath(route.Path);
                 Line($"  VERSION / {route.Package?.Version ?? "unidentified"}", SemanticRole.Target);
-                CopyCommand($"{Invocation()} update codex updateme --path {PowerShellLiteral(route.Path)}" + (plain ? " --plain" : "") + (still ? " --still" : ""));
+                CopyCommand($"{Invocation()} update codex updateme --path {PowerShellLiteral(route.Path)}" +
+                    (sourcePath is null ? "" : " --from-source " + PowerShellLiteral(sourcePath)) +
+                    (plain ? " --plain" : "") + (still ? " --still" : ""));
             }
         }
         foreach (var issue in report.Discovery.Issues.Concat(report.Selected?.Issues ?? []).Concat(report.Issues))
@@ -60,12 +63,22 @@ internal sealed partial class DocumentRenderer
                     else Line("~ " + change[7..], SemanticRole.Target);
                 }
             }
-            Line("MANUAL UPDATE / CHANGES PACKAGES", SemanticRole.Hook);
-            Line("If you choose to run the command below, npm changes this Codex copy and its dependencies. It may run package scripts. This is not a DERT approval token or an automatic rollback.");
-            CopyCommand("& " + PowerShellLiteral(report.Install!.Program) + " " + string.Join(" ", report.Install.Arguments.Select(PowerShellLiteral)));
-            Line("Rehearse again if the installation, registry settings, or environment changes. A copied npm command does not recheck this snapshot.", SemanticRole.ContextNote);
-            Line("VERIFY AFTERWARD / read the installed result", SemanticRole.Reasoning);
-            CopyCommand($"{Invocation()} update codex" + (plain ? " --plain" : ""));
+            if (report.Proposal is { } proposal && report.ProposalPath is { } stored)
+            {
+                Line("UPDATE PROPOSAL / awaiting your choice", SemanticRole.Title);
+                Line("  |-- Recheck this source, installation and manager", SemanticRole.ContextNote);
+                Line($"  |-- Install @openai/codex {proposal.Version} into this prefix", SemanticRole.Target);
+                Line("  '-- Verify the installed version, launcher and npm inventory", SemanticRole.ContextNote);
+                Line("This updates the selected copy without uninstalling first. Package scripts stay disabled. An interrupted install can leave it partial; no rollback is promised.");
+                if (proposal.Source is { } source) EvidencePath("Source snapshot / " + source.Path);
+                EvidencePath("Reviewed proposal saved locally / " + stored);
+                Line("APPLY THIS REVIEWED UPDATE", SemanticRole.Hook);
+                CopyCommand($"{Invocation()} update codex updateme --path {PowerShellLiteral(proposal.SelectedPath)}" +
+                    (proposal.Source is null ? "" : " --from-source " + PowerShellLiteral(proposal.Source.Path)) +
+                    " --apply " + proposal.Token + (plain ? " --plain" : "") + (still ? " --still" : ""));
+                Line("Changed evidence refuses this approval. DERT records each phase and the verified result in a local operation receipt.", SemanticRole.ContextNote);
+            }
+            else Line("No saved update approval is available. Rehearse again to create a reviewed proposal.", SemanticRole.Hook);
         }
         else if (report.State == UpdateState.Current)
         {
@@ -79,7 +92,40 @@ internal sealed partial class DocumentRenderer
         }
         else if (report.State == UpdateState.Interrupted)
             Line("INTERRUPTED / stopped at your request; the incomplete result was not accepted.", SemanticRole.Hook);
-        Line("The manual update command was not executed.", SemanticRole.ContextNote);
+        Line("The update command was not executed.", SemanticRole.ContextNote);
         if (!embedded) Line("ƒin.", SemanticRole.Boundary);
+    }
+
+    public void UpdateApproval(UpdateReport report)
+    {
+        var proposal = report.Proposal!;
+        Banner("CODEX / UPDATE / APPROVED REQUEST");
+        Line($"@openai/codex / {proposal.InstalledVersion} → {proposal.Version}", SemanticRole.Target);
+        EvidencePath("Selected copy / " + proposal.SelectedPath);
+        EvidencePath("Target folder / " + proposal.Prefix);
+        if (proposal.Source is { } source) EvidencePath("Source snapshot / " + source.Path);
+        Line("Rechecking the saved proposal before changing packages. Install only; scripts disabled. Verification and interruption are recorded.", SemanticRole.ContextNote);
+    }
+
+    public void UpdateResult(NpmApplyResult result)
+    {
+        Line("");
+        var success = result.State == NpmApplyState.Succeeded;
+        Line(success ? "UPDATE / VERIFIED" : "UPDATE / " + result.State.ToString().ToUpperInvariant(), success ? SemanticRole.Line : SemanticRole.Hook);
+        foreach (var phase in result.Phases)
+        {
+            Line("  |-- " + phase.Name + " / " + (phase.Succeeded ? "checked" : "needs attention"),
+                phase.Succeeded ? SemanticRole.ContextNote : SemanticRole.Hook);
+            if (!phase.Succeeded) Line("      " + phase.Detail);
+        }
+        Line("  ';; " + result.Message, success ? SemanticRole.Line : SemanticRole.Hook);
+        if (result.ReceiptPath is { } receipt) EvidencePath("Operation receipt / " + receipt);
+        if (result.Recovery is { } recovery)
+        {
+            Line("RECOVERY REQUEST / changes packages if you run it", SemanticRole.Hook);
+            Line("Inspect the receipt and current installation first. This exact manager request is manual recovery; it does not recheck the saved approval.", SemanticRole.ContextNote);
+            CopyCommand(ManagerCommand(recovery));
+        }
+        Line("ƒin.", SemanticRole.Boundary);
     }
 }

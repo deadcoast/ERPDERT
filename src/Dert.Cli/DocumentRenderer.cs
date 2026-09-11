@@ -21,6 +21,19 @@ internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain,
         Line("    Select an expanded list to Add another item or Finish this list. Exact previews keep annotations and ownership; Apply edits the buffer, Ctrl+Z undoes, Ctrl+S saves.", SemanticRole.ContextNote);
         Line("    A chain-ending fin. appears as ƒin. in Notes; Copy and Save retain typed source. Select its line to show typed spelling or preview writing ƒ into the source.", SemanticRole.ContextNote);
         Line("    Titles keep accents, CJK and emoji. Their rule shares MER's cell count and follows the actual font width in Notes. Tabs and unsupported controls stay unchanged with an explanation.", SemanticRole.ContextNote);
+        Line("    Inspect reasoning / Ctrl+Space reads similarities as written items and HOW as whole prose. Raw fields retains the original words; selecting an item edits that exact occurrence. Try examples/context-notes.DERT.", SemanticRole.ContextNote);
+        Line("    References follows whole names to other reasoning notes in this document. Duplicate destinations stay separate; Escape returns to your starting place across visits. Try examples/referenced-notes.DERT.", SemanticRole.ContextNote);
+        Line("    Context selection opens an exact copy/export review from the reasoning inspector. Include other notes deliberately; Left out shows excluded source. Source words, annotations, ranges and revision stay connected. Try examples/context-selection.DERT.", SemanticRole.ContextNote);
+        Line("");
+        Line("DERT context file.DERT --at <line> [--include <note line>] [--details | --text]", SemanticRole.Sinker);
+        Line("    Preview one reasoning note with its own annotations. Other notes remain explicit choices; --include can be repeated. --details shows the full review; --text emits the exact text for deliberate copying/redirection.", SemanticRole.ContextNote);
+        Line("    Export to a new .txt file with --output <path> --from-preview <review ID>. Changed source or selection refuses the old review. No source edit or agent upload occurs. Portable schemas remain deferred.", SemanticRole.ContextNote);
+        Line("DERT run file.DERT --receipt new.json", SemanticRole.Sinker);
+        Line("    Retain one real Codex discovery observation in a new local record. This capture currently supports one STERT ; update ;; codex request. Source remains unchanged.", SemanticRole.ContextNote);
+        Line("DERT result record.json [--into notes.DERT] [--at N] [--details] [--compare earlier.json]", SemanticRole.Sinker);
+        Line("    Review observed action, time, outcome, evidence and captured/current source. --compare shows differences between two saved observations without running an operation.", SemanticRole.ContextNote);
+        Line("    --write opens the insertion review in Notes. Or use DERT write notes.DERT --result record.json. Apply adds a folded historical note; Undo and Save remain separate choices.", SemanticRole.ContextNote);
+        Line("    In MER, probe then keep <new.json path> retains that already shown observation. Portable schemas and automatic agent delivery remain deferred.", SemanticRole.ContextNote);
         Line("");
         Line("DERT mer", SemanticRole.Sinker);
         Line("    Open the bundled note in MER's ASCII source window, with a short edge trace as recorded connections appear.", SemanticRole.ContextNote);
@@ -28,6 +41,8 @@ internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain,
         Line("    Keep your numbered source beside its explanation. --replay is read-only; --still removes motion. Reading never changes your file.", SemanticRole.ContextNote);
         Line("    After analysis: next/prev follows connections, at <line> inspects source, details opens the full record, repair shows previews, Enter finishes.", SemanticRole.ContextNote);
         Line("    Notes: find <text> searches captured source literally; hit <number> selects a result; hits <page> lists matches. owner follows the actual parent; structure reveals fields and entries.", SemanticRole.ContextNote);
+        Line("    refs shows named places in other notes; refs <page> pages them, ref <number> visits one and ref back returns. Name matches do not bind applications; details retains full names and roles.", SemanticRole.ContextNote);
+        Line("    context reviews the selected reasoning note; context include/exclude <line> changes its note choices. context notes <page> lists choices; context left reads excluded source; context details offers the exact reviewed CLI export; context clear leaves the selection.", SemanticRole.ContextNote);
         Line("    examples/weekend.DERT is ready for notes-only review. Try find quiet, hit 2, then owner. Search and inspection never execute text or change your file.", SemanticRole.ContextNote);
         Line("    repair title previews the title rule. An unfinished note offers close <line|eof>. before/after compares; apply explicitly saves with verified undo storage; cancel leaves. undo previews the saved original.", SemanticRole.ContextNote);
         Line("    At a supported Codex discovery request, probe reads local launchers and package metadata. copy <number> compares recorded installations. No programs are started.", SemanticRole.ContextNote);
@@ -39,7 +54,7 @@ internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain,
         Line("DERT update codex", SemanticRole.Sinker);
         Line("    Discover Windows command routes, package evidence, and competing installations. Read-only.", SemanticRole.ContextNote);
         Line("DERT update codex updateme", SemanticRole.Sinker);
-        Line("    Open an update rehearsal: check this npm's inventory, the latest release, and a dependency dry run. No package update is applied.", SemanticRole.ContextNote);
+        Line("    Rehearse this copy's update and save its exact proposal. No package update is applied. The offered --path and --apply <token> command rechecks the proposal, installs the pinned version, and records verification.", SemanticRole.ContextNote);
         Line("    Multiple copies? Follow an offered --path command to select the exact one.", SemanticRole.ContextNote);
         Line("DERT where <application>", SemanticRole.Sinker);
         Line("DERT where codex --doctor [--path <launcher>]  (-dr also means --doctor)", SemanticRole.Sinker);
@@ -61,6 +76,8 @@ internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain,
         Line("    Inspect an entry, its explanation, and the note it belongs to.", SemanticRole.ContextNote);
         Line("DERT inspect RERDMERR.DERT --expand", SemanticRole.Sinker);
         Line("    Inspect every source line, preserving the written syntax.", SemanticRole.ContextNote);
+        Line("DERT inspect 'my notes.DERT' --at 12 --references", SemanticRole.Sinker);
+        Line("    Show whole written name matches, exact occurrences and actual parents in this document. Case is ignored; quotes remain literal. No operation binding is inferred.", SemanticRole.ContextNote);
         Line("DERT lint RERDMERR.DERT", SemanticRole.Sinker);
         Line("    Find structural problems with source-cited explanations and copyable supported rehearsals.", SemanticRole.ContextNote);
         Line("DERT repair 'my notes.DERT'", SemanticRole.Sinker);
@@ -77,7 +94,7 @@ internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain,
         Line("Lint's --from-lint commands check the same source bytes and open previews without write prompts. They cannot be combined with --apply.", SemanticRole.ContextNote);
         Line("repair and undo wait for confirmation. Redirected output is preview-only unless you supply --apply <token> for a selected edit.", SemanticRole.ContextNote);
         Line("Title repair: shared Unicode width, UTF-8 documents, regular local Windows files. Source repairs never execute application operations.", SemanticRole.ContextNote);
-        Line("updateme rehearses an update; doctor --apply performs its reviewed reinstall and records the result. Both use the same verified npm target. npm queries may write cache/logs.", SemanticRole.ContextNote);
+        Line("updateme rehearses an update; adding its exact --apply approval performs it without uninstalling first. Doctor --apply performs a reinstall. Both recheck the reviewed npm target and record the transaction. npm queries may write cache/logs.", SemanticRole.ContextNote);
         Line("Doctor proposals and receipts live under LocalAppData/DERT (or absolute DERT_STATE_HOME). Existing .erpdert note recovery remains compatible.", SemanticRole.ContextNote);
         Line("ƒin.", SemanticRole.Boundary);
     }
@@ -118,7 +135,13 @@ internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain,
             else
                 SourceLine(document, sourceLine, options.At == sourceLine.Number);
         }
-        if (focused is not null) Ownership(document, focused);
+        if (options.References && options.At is { } referenceLine)
+        {
+            if (Motion.ReferenceConnection.Read(new(document), referenceLine) is { } references)
+                foreach (var line in references.Describe(all: true).Lines) Line(line.Text, SemanticRole.Text);
+            else Line("This line has no reasoning-note names. MER find <text> searches literal source.", SemanticRole.ContextNote);
+        }
+        else if (focused is not null) Ownership(document, focused);
         else if (options.At is not null)
             Line("This line is spacing between structures; it has no entry value.", SemanticRole.ContextNote);
         Line("");
@@ -184,10 +207,12 @@ internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain,
                 break;
             case ReasoningNoteNode note:
                 Fields(note.Header);
+                ContextFields(document, note);
                 Line(note.Closing is null ? "Closure     missing //" : "Closure     // on this line", SemanticRole.Reasoning);
                 break;
             case ReasoningBlockNode block:
                 Fields(block.Header);
+                ContextFields(document, block);
                 Line($"Entries     {block.Entries.Count}", SemanticRole.Sinker);
                 break;
             case StatementNode statement:
@@ -214,6 +239,20 @@ internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain,
         Line($"Content     {header.Head.Text}", SemanticRole.Head);
         if (header.Target is not null) Line($"Target      {header.Target.Text}", SemanticRole.Target);
         if (header.Payload is { Text.Length: > 0 }) Line($"Payload     {header.Payload.Text}", SemanticRole.Sinker);
+    }
+
+    private void ContextFields(DertDocument document, DertNode node)
+    {
+        if (ContextReading.Read(document, node) is not { Reader: not ContextReader.Written } reading) return;
+        Line("READ AS / " + reading.Summary, SemanticRole.Reasoning);
+        foreach (var item in reading.Items)
+        {
+            var column = item.Value.Span.Start - document.Source.Lines[item.LineNumber - 1].Start + 1;
+            Line($"{item.Number:00} / {item.LineNumber}:{column} / " + (item.Value.Text.Length == 0 ? "words not written" : item.Value.Text), SemanticRole.Sinker);
+            if (item.Annotation is { } annotation) Line("     // " + annotation.Text, SemanticRole.ContextNote);
+        }
+        foreach (var issue in reading.Issues.Where(issue => issue.Kind != ContextIssueKind.MissingClosing)) Line(issue.Message, SemanticRole.ContextNote);
+        if (reading.Reader == ContextReader.Similarities) Line("Listed together by this note; named targets remain unresolved.", SemanticRole.ContextNote);
     }
 
     private void Summary(DertDocument document)

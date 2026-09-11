@@ -1,0 +1,15 @@
+// KEEP THE CONTEXT
+// ----------------
+
+// HOW ; codex, claude ;; Keep the explanation, including its commas, exactly as written. //
+// similarities ; tools ;; codex, "ACME, local", codex //
+
+// similarities ; working notes ;;
+// "C:\notes; old", // This path keeps its punctuation.
+// ACME, local // One authored entry, with a comma in its name.
+//
+
+// tomorrow maybe ; my desk ;; coffee, a clear window, enough time //
+
+// Inspect a reasoning line. Raw fields keeps the original words available.
+// Select an item to edit that exact occurrence. Escape returns to your place.

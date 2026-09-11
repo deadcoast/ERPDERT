@@ -54,15 +54,16 @@ internal static class DertRunCommand
                     renderer.UpdateSourceResult(step, path, ++completed);
                     var requestLines = document.Source.Lines.Where(line => line.Number >= step.Source.LineNumber && line.Number <= step.RequestLine)
                         .Select(line => InkLine.Plain($"{line.Number,3}  " + document.Source.Slice(line.ContentSpan))).ToArray();
-                    var rehearsal = renderer.RehearseUpdate(CodexDiscovery.Scan(capturedEnvironment), null, commandRunner, new(path, requestLines));
-                    renderer.UpdateRehearsal(rehearsal, embedded: true, includeChecks: !renderer.UsesMerUpdateReceipt);
-                    if (rehearsal.State == UpdateState.Interrupted) return 130;
-                    if (rehearsal.NeedsAttention) attention++;
+                    var updateExit = UpdateCommand.Run(step.Request, renderer, capturedEnvironment, commandRunner,
+                        console, plain, doctorStateDirectory, still, path, new UTF8Encoding(false, true).GetBytes(document.Source.Text),
+                        new(path, requestLines), embedded: true);
+                    if (updateExit == 130) return 130;
+                    if (updateExit != 0) attention++;
                     break;
                 case ApplicationAction.Where:
                 case ApplicationAction.Doctor:
                     renderer.LocationSourceResult(step, path, ++completed);
-                    var exit = WhereCommand.Run(step.Request, renderer, console ?? AnsiConsole.Console, capturedEnvironment,
+                    var exit = WhereCommand.Run(step.Request, renderer, console ?? AnsiConsole.Console, environment,
                         commandRunner, plain, step.Kind == ApplicationAction.Doctor ? path : null,
                         new UTF8Encoding(false, true).GetBytes(document.Source.Text), doctorStateDirectory, still);
                     if (exit == 130) return 130;

@@ -1,6 +1,6 @@
 # DERT: the work still worth doing
 
-Assessment, 2026-09-09. This is a working development order, not a new language
+Assessment, 2026-09-10. This is a working development order, not a new language
 specification or an exhaustive limit on the product. The user has accepted the
 current MER balance of source window, restrained ASCII composition and theme.
 Preserve that reference while developing the UDL's usefulness beyond operations.
@@ -100,11 +100,38 @@ C01-C13 and T01-T24 with independent fixtures, assertions, observed readings and
 explicit limits. Viewer explanations distinguish captured chain extent from an
 authored closer; historical START, unfinished hooks and DERCS keep their identity.
 
-Recommended next bounded increment: make literal punctuation comfortable.
-Work through authoring Windows paths, quotes, `//`, hooks, lines and trailing
-literal commas with exact source previews and useful feedback. Keep a proposed
-escape grammar distinct from the behavior already implemented, and carry the
-authoring validation gaps above alongside this work.
+Literal punctuation now has source-selection and new-sinker previews. Exact
+quote insertions preserve paths, existing quotes and typed characters; the parser
+checks ownership and annotations before accepting a source convenience edit.
+The [delivery record](docs/superpowers/specs/2026-09-09-literal-authoring-design.md)
+keeps its current quote behavior separate from a portable escape grammar.
+
+Structured context now has a [bounded reading and authoring integration](docs/superpowers/specs/2026-09-09-context-reading-design.md).
+HOW retains its complete explanation; similarities exposes ordered source items.
+Raw fields, unknown note kinds, duplicate occurrences and unfinished words remain
+available. Selecting an item edits its exact range; a named reading never binds
+an application operation.
+
+Cross-note references now connect explicit named occurrences within one document.
+Notes selects exact destination words and keeps an anchored return across visits
+and edits. CLI inspection and MER share the name index; duplicates, no matches
+and unfinished names remain visible. The [delivery record](docs/superpowers/specs/2026-09-09-note-references-design.md)
+distinguishes name matches from structural ownership and application bindings.
+Portable schemas and cross-document identity remain deferred.
+
+Author-and-agent context selection now has a [dedicated copy/export review](docs/superpowers/specs/2026-09-09-context-selection-design.md).
+The primary note and its own annotations start included; other notes and all
+omitted source remain visible choices. Native Copy/Export and CLI/MER share exact
+source excerpts, actual parents, ranges and revision identity. Source changes
+refuse old export reviews. Portable schemas remain deferred.
+
+The update transaction is complete for the supported npm adapter, with exact
+review, rechecks, interruption handling and a verified observed result.
+The first reproduced doctor conflict now connects a broken earlier npm PowerShell
+route, its missing entry point and a later identified copy to guarded correction.
+Recommended next bounded increment: **a usable first launch and durable
+installation**, described below. Rehearsal/doctor result adapters remain further work;
+portable schemas and automatic agent delivery stay deferred.
 
 ## Deepen the language without inventing a dialect
 
@@ -114,19 +141,29 @@ authoring validation gaps above alongside this work.
   and loose fragments have explicit current readings. The [map](docs/ORIGINAL-COVERAGE.md)
   retains canonical grammar, general formatter and receipt-integration limits;
   this completes the accounting, not those deferred features.
-- [ ] **Make literal punctuation comfortable.** Work through authoring `//`,
-  `;`, `;;`, quotes, Windows paths and trailing literal commas. Current quote
-  protection is not a settled escape-language specification. A literal edit
-  should expose the preserved text and boundary meaning before changing it.
-- [ ] **Retain structured context as useful data.** Keep HOW prose intact and
-  distinguish it from an explicitly supported list interpretation such as
-  similarities. Prototype schema-aware inspection while retaining raw fields,
-  spans and unknown note kinds; do not infer typing from comma counts.
-- [ ] **Offer useful cross-note references.** The original names targets;
-  search now locates matching text. Explore showing exact named occurrences
-  alongside actual structural parents, with duplicate names and unresolved
-  references visible. A drawn connector must say whether it means ownership,
-  a name match or a resolved application reference.
+- [x] **Make literal punctuation comfortable — bounded authoring delivered.**
+  Source selection and list composition now preview exact quote insertions for
+  `//`, hooks, lines, paths and literal commas. Existing quotes stay verbatim;
+  no-op, unfinished quote, annotation, ownership, selection and stale-source
+  cases have direct coverage. Apply/Undo/Save and CLI/MER readings stay connected.
+  Portable escapes, decoded values, automatic paste treatment and changing a
+  parsed application's meaning remain separate work, not implied by this check.
+- [x] **Retain structured context as useful data — bounded inspection delivered.**
+  Named HOW/similarities readings preserve raw fields, source ranges, quotes,
+  annotations, duplicates, empty places and unknown kinds. Notes exposes a
+  reading/raw-field switch and exact source selection with Return/Undo/Save.
+  CLI/MER use the shared reading; crowded views retain missing-boundary status.
+  This prototype does not define portable schemas, versioning, decoded values
+  or application relationships. Typing is not inferred from comma counts.
+- [x] **Offer useful cross-note references — bounded navigation delivered.**
+  Explicit content/target/similarities names find other named places in the same
+  document, with each duplicate's exact range and actual structural parent.
+  Notes References supports visits, anchored Return, edits, Undo and Save/reopen;
+  CLI `inspect --at N --references` and MER `refs`/`ref N`/`ref back` use the shared
+  index. Paged results preserve choices; stale and pending actions cannot redirect
+  them. Empty, unfinished and unmatched names stay useful. Name equality does not
+  bind an operation. Cross-document identity, persistent backlinks, rename-all
+  and portable schemas remain separate work.
 
 ## Connect the ecosystem around the author's work
 
@@ -144,30 +181,48 @@ Delivered from the user's 2026-09-09 ecosystem direction:
 
 See the [implementation and evidence](docs/superpowers/specs/2026-09-09-dert-ecosystem-design.md).
 Native Codex launch/auth health, other manager adapters, full-machine application
-indexing and a reproduced conflict diagnosis remain additional work.
+indexing and additional conflict kinds remain additional work.
 
-These are worked next directions or retained ambitions, not shipped integrations.
+The completed context-selection increment and remaining development directions
+are recorded below. Unchecked entries retain their unimplemented scope.
 
-- [ ] **An author-and-agent context selection.** Original use includes notes
-  shared with a development agent. Design selecting one reasoning block and
-  its own annotations for a copy/export preview, carrying file/revision/ranges
-  and unresolved boundaries. Keep excluded material visible as an explicit
-  choice; never upload or silently omit a contradicting note. This is a proposed
-  human-facing handoff, not permission to flatten the whole language into JSON.
-- [ ] **Results return to useful notes.** Develop the operation-receipt journey
-  in experience design: observed action/time/result/provenance and source origin,
-  then explicit insertion preview and later comparison. Imported receipts remain
-  observations, not executable requests or proof that current state is unchanged.
-- [ ] **Complete the update transaction.** Source-bound choice and rehearsal now
-  work. Doctor now provides approval, snapshot rechecks, execution, interruption
-  and verified reinstall receipts for its npm adapter. Extend the shared
-  transaction infrastructure to update-only execution without uninstalling first;
-  the copied updateme command remains outside that contract.
-- [ ] **Doctor actual conflicts.** Turn the original possible_conflicts,
-  conflicts and fixme distinction into observed evidence and a chosen action.
-  Begin with one reproducible Windows conflict. Mere duplicate PATH routes or
-  uncertain ownership are not proof of a conflict; verify manager behavior when
-  implementing each adapter.
+- [x] **An author-and-agent context selection — bounded handoff delivered.**
+  One reasoning note with its own annotations opens an exact source preview.
+  Other notes remain explicit, paged choices; Left out reveals every omitted
+  source range without inferring agreement or contradictions. File/buffer identity,
+  revision, ranges, actual parents and unresolved boundaries travel with the
+  reviewed text. Native Copy/Export and CLI/MER share it; stale source, pending
+  choices, new-file-only export and keyboard clipboard handling are guarded.
+  Exported text is inert context. Portable schemas and remote delivery remain
+  deferred; no whole-document JSON conversion or automatic upload is implied.
+- [x] **Results return to useful notes — bounded discovery history delivered.**
+  Source-bound discovery and MER's existing probe can retain observed action,
+  time, result, effects, evidence and source origin. CLI and Notes review the
+  captured/current source and exact standalone result note. Native Apply, Undo,
+  guarded Save/reopen and explicit comparison of two records are integrated.
+  Imported records remain historical producer reports; they do not execute or
+  verify current state. [Design and evidence](docs/superpowers/specs/2026-09-09-results-to-notes-design.md).
+  Retain follow-on adapters for update rehearsal and doctor journals, including
+  interruption and failed verification; stable origin keys and reconciliation of
+  author-edited receipts also remain work. Portable schemas and automatic agent
+  delivery stay deferred.
+- [x] **Complete the update transaction — supported npm adapter.** CLI, DERT run
+  and MER retain source-bound saved proposals. Exact DERT approval replaces the
+  raw npm handoff. Update and doctor share evidence checks, a canonical-prefix
+  lock, durable journals, interruption handling and final verification. Update
+  installs the pinned version without uninstalling first. Real npm verified a
+  disposable 1.0.0 → 2.0.0 update; 1,191 tests and all eleven executable suites
+  passed, including 29 update checks. [Design and evidence](docs/superpowers/specs/2026-09-09-update-transaction-design.md).
+- [x] **Doctor actual conflicts — first Windows case.** A supported generated
+  npm PowerShell launcher with a missing entry point hides a later identified copy.
+  CLI, DERT run and MER distinguish confirmed evidence, possible overlap and
+  incomplete reads; authored possible_conflicts, conflicts and fixme remain notes.
+  The selected repair binds source, PATH order, launcher slots and later-copy
+  evidence through reinstall and durable verification. Foreign files appearing
+  after uninstall stop installation. Real npm/PowerShell reproduced failure and
+  repair; 1,252 tests and all eleven executable suites passed, including 18
+  location/doctor checks. [Design and evidence](docs/superpowers/specs/2026-09-10-doctor-conflicts-design.md).
+  Other conflict kinds and managers remain work; duplicates alone prove no damage.
 - [ ] **A usable first launch and durable installation.** Publish now bundles
   CLI, authoring host, runtimes, license and examples together. Help, paths with
   spaces and reopening are exercised. Complete normal-user installation,

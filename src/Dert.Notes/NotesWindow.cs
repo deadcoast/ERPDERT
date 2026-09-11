@@ -8,6 +8,7 @@ using System.Windows.Threading;
 using Dert.Core;
 using Dert.Cli.Authoring;
 using Dert.Cli.Repairs;
+using Dert.Cli.Results;
 using ICSharpCode.AvalonEdit;
 using Microsoft.Win32;
 
@@ -27,6 +28,8 @@ public sealed class NotesWindow : Window
     public GoodbyeAuthoringPanel Goodbye { get; }
     public ReasoningPanel ReasoningView { get; }
     public LiteralAuthoringPanel Literals { get; }
+    public ResultReviewWindow? Result { get; private set; }
+    public bool HasOpenedDocument => opened is not null;
     private readonly DraftFileService files;
     private DraftFileSnapshot? opened;
     private TitleRepairPlan? preview;
@@ -41,6 +44,7 @@ public sealed class NotesWindow : Window
     private readonly Button align;
     private readonly Button inspectReasoning;
     private readonly Button literalText;
+    private readonly Button keepResult;
     private readonly StackPanel previewActions = new() { Orientation = Orientation.Horizontal, Visibility = Visibility.Collapsed };
     private readonly Border accent = new() { Background = Palette.Signal, Height = 2, Opacity = 0.45 };
     private readonly bool still;
@@ -125,6 +129,8 @@ public sealed class NotesWindow : Window
         actions.Children.Add(Action("Save _as…", () => Save(true)));
         actions.Children.Add(Action("_Undo", Session.Undo));
         actions.Children.Add(Action("_Redo", Session.Redo));
+        keepResult = Action("Keep result…", ChooseResult);
+        actions.Children.Add(keepResult);
         DockPanel.SetDock(actions, Dock.Top); root.Children.Add(actions);
 
         var bottom = new StackPanel { Margin = new(0, 14, 0, 0) };
@@ -152,7 +158,11 @@ public sealed class NotesWindow : Window
         inspector.Children.Add(align);
         inspectReasoning = Action("Inspect reasoning", () => InspectReasoning());
         inspector.Children.Add(inspectReasoning);
-        ReasoningView = new(Session, () => ReturnToNote());
+        ReasoningView = new(Session, () => ReturnToNote(), () =>
+        {
+            var selection = CreateContextSelection();
+            if (selection is not null) { selection.ShowDialog(); ReasoningView?.FocusReturn(); }
+        });
         inspector.Children.Add(ReasoningView);
         Lists = new(Session, message => { notice.Text = message; notice.Foreground = Palette.Muted; notice.ToolTip = null; },
             () => { if (Lists?.IsReviewing == true) { preview = null; if (Goodbye?.IsReviewing == true) Goodbye.Reset(); } Update(); }, CanLeaveLiteral);
@@ -201,7 +211,7 @@ public sealed class NotesWindow : Window
         Command(LiteralTextCommand, Literals.Begin);
         Editor.TextArea.SelectionChanged += (_, _) => Update();
         CommandBindings.Add(new(ReturnToNoteCommand, (_, e) => { ReturnToNote(); e.Handled = true; },
-            (_, e) => { e.CanExecute = Session.Reasoning.Owner is not null; e.Handled = true; }));
+            (_, e) => { e.CanExecute = Session.Reasoning.CanReturn; e.Handled = true; }));
         Editor.CommandBindings.Add(new(ApplicationCommands.Undo, (_, e) => { Session.Undo(); e.Handled = true; }));
         Editor.CommandBindings.Add(new(ApplicationCommands.Redo, (_, e) => { Session.Redo(); e.Handled = true; }));
         Editor.PreviewKeyDown += (_, e) =>
@@ -225,7 +235,7 @@ public sealed class NotesWindow : Window
                 InspectReasoning(location.Line);
             }
         };
-        Editor.LostKeyboardFocus += (_, _) => Session.CompleteBoundary();
+        Editor.LostKeyboardFocus += (_, e) => { if (!ReferenceEquals(e.NewFocus, keepResult)) Session.CompleteBoundary(); };
         DataObject.AddPastingHandler(Editor, (_, _) => Dispatcher.BeginInvoke(Session.CompleteBoundary, DispatcherPriority.Background));
         Closing += (_, e) => { if (!ConfirmDeparture()) e.Cancel = true; };
         if (path is not null) LoadPath(path);
@@ -234,6 +244,69 @@ public sealed class NotesWindow : Window
 
         void Command(RoutedUICommand command, Action action) => CommandBindings.Add(new(command, (_, e) => { action(); e.Handled = true; }));
     }
+
+    public ResultReviewWindow? CreateResultReview(ResultObservation observation, int? atLine = null)
+    {
+        if (ContextPending() || Result is not null)
+        { notice.Text = "Apply or leave the current proposal before keeping a result."; notice.Foreground = Palette.Copper; return null; }
+        var document = Session.Parsed;
+        var identity = opened;
+        try
+        {
+            var plan = ResultNotes.Plan(document, observation, opened?.Path ?? "Untitled.DERT", atLine, sourceHasBom: opened?.HasBom ?? false);
+            bool Current() => !ContextPending() && ReferenceEquals(document, Session.Parsed) && ReferenceEquals(identity, opened);
+            var review = new ResultReviewWindow(plan, Current, () =>
+            {
+                if (!Current() || identity is not null && !files.IsCurrent(identity) || !Session.ApplyResultPreview(plan)) return false;
+                notice.Text = "Result added to your note. Undo is available; Save keeps it on disk.";
+                notice.Foreground = Palette.Signal; notice.ToolTip = null;
+                return true;
+            }) { Owner = this };
+            Result = review; Session.HoldAutomaticBoundary = true;
+            review.Closed += (_, _) =>
+            {
+                Editor.Focus();
+                if (ReferenceEquals(Result, review)) { Result = null; Session.HoldAutomaticBoundary = false; }
+            };
+            return review;
+        }
+        catch (ArgumentException error)
+        { notice.Text = error.Message; notice.Foreground = Palette.Copper; return null; }
+    }
+
+    private void ChooseResult()
+    {
+        if (ContextPending())
+        { notice.Text = "Apply or leave the current proposal before keeping a result."; notice.Foreground = Palette.Copper; return; }
+        Session.HoldAutomaticBoundary = true;
+        try
+        {
+            var dialog = new OpenFileDialog { Filter = "DERT local observation (*.json)|*.json", Title = "Keep an observed result" };
+            if (dialog.ShowDialog(this) == true) CreateResultReview(ObservationStore.Read(dialog.FileName))?.ShowDialog();
+        }
+        catch (Exception error) when (Expected(error)) { Problem(error); }
+        finally { Editor.Focus(); Session.HoldAutomaticBoundary = false; }
+    }
+
+    public ContextSelectionWindow? CreateContextSelection(Action<string>? copy = null)
+    {
+        if (ContextPending() || Session.Reasoning.Owner is null)
+        { notice.Text = "Finish the current proposal, then inspect a reasoning note to choose its context."; return null; }
+        Session.CompleteBoundary();
+        var document = Session.Parsed;
+        var owner = Session.Reasoning.Owner;
+        if (owner is null) return null;
+        var label = opened?.Path ?? "Untitled.DERT";
+        try
+        {
+            var selection = ContextSelection.Capture(document, owner.LineNumber, label, ContextSourceKind.EditorBuffer);
+            return new(selection, () => !ContextPending() && ReferenceEquals(document, Session.Parsed) &&
+                ReferenceEquals(owner, Session.Reasoning.Owner) && (opened?.Path ?? "Untitled.DERT") == label, copy) { Owner = this };
+        }
+        catch (ArgumentException error) { notice.Text = error.Message; notice.Foreground = Palette.Copper; return null; }
+    }
+
+    private bool ContextPending() => Lists.IsReviewing || Goodbye.IsReviewing || Literals.IsReviewing || preview is not null;
 
     private bool InspectReasoning(int? line = null)
     {
@@ -360,6 +433,7 @@ public sealed class NotesWindow : Window
     private void Update()
     {
         if (align is null || Lists is null || Goodbye is null || Literals is null || literalText is null) return; // Controller can publish while the visual tree is built.
+        Result?.CheckCurrent();
         name.Text = opened is null ? "Untitled.DERT" : Path.GetFileName(opened.Path);
         name.ToolTip = opened?.Path;
         state.Text = needsAttention ? "File needs attention" : Session.IsDirty ? "Unsaved changes" : opened is null ? "New note / not saved" : "Saved source";
@@ -378,7 +452,7 @@ public sealed class NotesWindow : Window
         Session.Reasoning.HoldForPendingEdit(pendingChoice);
         ReasoningView.Refresh(pendingChoice);
         heading.Visibility = ReasoningView.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
-        if (preview is not null || Lists.IsReviewing || Session.Reasoning.Owner is not null && !Goodbye.IsReviewing)
+        if (preview is not null || Lists.IsReviewing || Session.Reasoning.CanReturn && !Goodbye.IsReviewing)
             Goodbye.Visibility = Visibility.Collapsed;
         var goodbyeVisible = Goodbye.Visibility == Visibility.Visible;
         entries.Visibility = Lists.IsReviewing || goodbyeVisible ? Visibility.Collapsed : Visibility.Visible;
@@ -405,9 +479,9 @@ public sealed class NotesWindow : Window
         LayoutProposal();
         if (Lists.IsReviewing) { heading.Text = Lists.OwnerName; return; }
         if (goodbyeVisible) { heading.Text = "A proper goodbye"; return; }
-        if (Session.Reasoning.Owner is { } inspected)
+        if (Session.Reasoning.CanReturn)
         {
-            heading.Text = DertStructureIndex.Label(inspected);
+            heading.Text = Session.Reasoning.Owner is { } inspected ? DertStructureIndex.Label(inspected) : "Return to your note";
             context.Visibility = entries.Visibility = align.Visibility = Lists.Visibility = Visibility.Collapsed;
             return;
         }

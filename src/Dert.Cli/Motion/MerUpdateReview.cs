@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Dert.Cli.Discovery;
 using Dert.Cli.Operations;
 using Dert.Cli.Updates;
+using Dert.Cli.Transactions;
 using Dert.Mer;
 
 namespace Dert.Cli.Motion;
@@ -71,12 +72,31 @@ internal sealed partial class MerReview
         });
         var guarded = new SourceCheckedRunner(commandRunner ?? new SystemCommandRunner(cancellation),
             () => MatchingSource(out var issue) ? null : issue, cancellation);
-        var report = NpmUpdateRehearsal.Create(fresh, route.Path, guarded, activity: motion.Observe);
+        UpdateReport report;
+        try
+        {
+            report = UpdateTransaction.Inspect(fresh, route.Path, guarded, activity: motion.Observe,
+                cancellation: cancellation, source: NpmSource.Capture(path));
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            report = new(fresh);
+            report.Issues.Add(new("DERT5402", path, "The update source could not be captured. " + error.Message));
+        }
         if (cancellation.IsCancellationRequested) report.State = UpdateState.Interrupted;
         else if (!MatchingSource(out problem))
         {
-            report.State = UpdateState.Unavailable; report.Install = null; report.DryRun = null;
+            report.State = UpdateState.Unavailable; report.Install = null; report.DryRun = null; report.Proposal = null;
             report.Issues.Add(new("ERP5210", path, problem));
+        }
+        if (report.State == UpdateState.Ready)
+        {
+            try { UpdateTransaction.SaveProposal(report, UpdateCommand.ProposalDirectory(doctorStateDirectory)); }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException or ArgumentException)
+            {
+                report.State = UpdateState.Unavailable; report.Proposal = null;
+                report.Issues.Add(new("DERT5402", path, "The reviewed update proposal could not be saved. " + error.Message));
+            }
         }
         motion.Finish(report);
         update.Results[previous.Path] = new(journal.Snapshot(timer.Elapsed).Created, report, journal.Snapshot(timer.Elapsed));
@@ -135,7 +155,7 @@ internal sealed partial class MerReview
             foreach (var result in update.Results.Values)
             {
                 Say($"Update rehearsal recorded {result.Created:dd MMM yyyy HH:mm:ss zzz} / source line {update.SourceLine}", Ink.Signal);
-                renderer.UpdateRehearsal(result.Report, embedded: true);
+                renderer.UpdateRehearsal(result.Report, embedded: true, sourcePath: path);
             }
         }
     }

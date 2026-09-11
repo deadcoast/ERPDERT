@@ -41,7 +41,9 @@ internal sealed partial class MerReview(NoteScore analysis, MotionSnapshot snaps
                 (pendingRepair is null && noteChoices is null ? LocationCommands() : "") +
                 (pendingRepair is null && noteChoices is null && Inspection() is { CopyCount: > 1 } found ? $" / copy 1-{found.CopyCount}" : ""), Ink.Muted);
             if (pendingRepair is null && noteChoices is null && structureIndex is not null)
-                Say("Notes / find <text> / structure / owner" + (searchHits.Count > 0 ? $" / hit 1-{searchHits.Count} / hits" : ""), Ink.Muted);
+                Say("Notes / find <text> / structure / owner / refs / context" + (referenceSet?.Choices.Count > 0 ? $" / ref 1-{referenceSet.Choices.Count} / ref back" : "") + (searchHits.Count > 0 ? $" / hit 1-{searchHits.Count} / hits" : ""), Ink.Muted);
+            if (pendingRepair is null && noteChoices is null && Inspection() is not null && !snapshot.Score.Replay)
+                Say("Keep this observation / keep <new.json path>", Ink.Signal);
             var answer = Task.Run(input.ReadLine, cancellation).WaitAsync(cancellation).GetAwaiter().GetResult()?.Trim();
             cancellation.ThrowIfCancellationRequested();
             if (string.IsNullOrEmpty(answer) || answer.Equals("q", StringComparison.OrdinalIgnoreCase)) return repairFailed || UpdateNeedsAttention() || LocationNeedsAttention() ? Math.Max(1, analysis.Exit) : analysis.Exit;
@@ -56,10 +58,15 @@ internal sealed partial class MerReview(NoteScore analysis, MotionSnapshot snaps
                 UpdateDetails();
                 LocationDetails();
                 StructureDetails();
+                ReferenceDetails();
+                if (contextAnnotation is not null && contextPacket is not null) renderer.ContextReview(contextPacket, true);
             }
             else if (HandleRepair(answer, cancellation)) { }
             else if (pendingRepair is not null || noteChoices is not null)
                 Say("Finish this comparison with apply or cancel before navigating. Enter leaves without applying.", Ink.Muted);
+            else if (HandleResult(answer)) { }
+            else if (HandleContext(answer)) { }
+            else if (HandleReferences(answer)) { }
             else if (HandleStructure(answer)) { }
             else if (HandleLocation(answer, cancellation)) { }
             else if (HandleUpdate(answer, cancellation)) { }
@@ -76,6 +83,8 @@ internal sealed partial class MerReview(NoteScore analysis, MotionSnapshot snaps
                 copy = 0;
                 repairAnnotation = null;
                 showStructure = false;
+                referenceAnnotation = null;
+                contextAnnotation = null;
                 Show();
             }
             else if (answer.StartsWith("at ", StringComparison.OrdinalIgnoreCase) && int.TryParse(answer.AsSpan(3), out var line) &&
@@ -101,13 +110,16 @@ internal sealed partial class MerReview(NoteScore analysis, MotionSnapshot snaps
         }
     }
 
-    private void Select(int line, bool structure = false) { selected = line; copy = 0; repairAnnotation = null; showStructure = structure; Show(); }
+    private void Select(int line, bool structure = false, DocumentAnnotation? reference = null, DocumentAnnotation? context = null)
+    { selected = line; copy = 0; repairAnnotation = null; referenceAnnotation = reference; contextAnnotation = context; showStructure = structure; Show(); }
     private PlannedOperation? Operation() => plan?.Steps.FirstOrDefault(step => step.RequestLine == selected || step.Source.LineNumber == selected);
     private LocalInspection? Inspection() => selected is int line ? inspections.GetValueOrDefault(line) : null;
 
     private DocumentAnnotation? Annotation()
     {
         if (repairAnnotation is not null) return repairAnnotation;
+        if (contextAnnotation is not null) return contextAnnotation;
+        if (referenceAnnotation is not null) return referenceAnnotation;
         if (showStructure) return StructureAnnotation();
         if (plan is { CanRun: true } && LocationAnnotation() is { } location) return location;
         if (Update() is { } update) return update.Annotation();

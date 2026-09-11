@@ -248,6 +248,15 @@ operation, the tool can preview a structured reasoning note carrying the
 observed result, time, relation to the originating chain, and available evidence.
 The author's source remains the host; the tool has brought something back.
 
+Implementation update, 2026-09-09: the [first result-return journey](superpowers/specs/2026-09-09-results-to-notes-design.md)
+now retains source-bound read-only discovery, reviews historical/current source,
+and inserts an ordinary annotated reasoning note through native Apply/Undo/Save.
+It also compares two saved observations. The candidate shapes and persistent
+identity proposal below remain recommendations. This first implementation uses
+captured chain text and explicit comparison choices, adds no identity note, and
+does not introduce structured child-header grammar. Rehearsal/doctor adapters,
+stable keys, portable schemas and automatic agent delivery remain separate work.
+
 Candidate receipt shape, with fictional fixture data:
 
 ```dert

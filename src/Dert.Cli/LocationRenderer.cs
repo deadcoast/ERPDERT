@@ -2,6 +2,7 @@ using Dert.Core;
 using Dert.Cli.Applications;
 using Dert.Cli.Discovery;
 using Dert.Cli.Doctoring;
+using Dert.Cli.Transactions;
 using Dert.Cli.Motion;
 using Dert.Mer;
 
@@ -19,6 +20,20 @@ internal sealed partial class DocumentRenderer
     {
         Line("");
         Line("DOCTOR / " + application, SemanticRole.Reasoning);
+        if (report.Diagnosis.State != DoctorDiagnosisState.None)
+        {
+            using var terminal = new InlineTerminal(console.Profile.Out.Writer, () => MerHost.Size(console), MerHost.Colors(console, plain));
+            terminal.Finish(new DoctorConnection(report).Receipt(MerHost.Size(console).Columns));
+        }
+        else if (report.Diagnosis != DoctorDiagnosis.NotInspected)
+            Line(report.Diagnosis.Summary, SemanticRole.ContextNote);
+        if (report.Diagnosis.State == DoctorDiagnosisState.Confirmed && report.Diagnosis.LeadingPath is { } broken &&
+            report.Proposal?.RouteGuard is null)
+        {
+            Line("FIXME / review the broken first copy", SemanticRole.Hook);
+            CopyCommand(DoctorCommand(application, broken, sourcePath));
+            Line("This opens its reinstall review. A separate saved approval is required to change packages.", SemanticRole.ContextNote);
+        }
         if (report.Update is { } update)
             foreach (var check in update.Checks)
             { Line(check.Name, SemanticRole.ContextNote); Line(check.Detail); }
@@ -33,12 +48,17 @@ internal sealed partial class DocumentRenderer
         {
             Line("REINSTALL PROPOSAL / awaiting your choice", SemanticRole.Title);
             EvidencePath(proposal.Prefix);
+            Line("@openai/codex / " + proposal.InstalledVersion + " -> " + proposal.Version, SemanticRole.Target);
             Line("Uninstall @openai/codex from this prefix, then install the reviewed version " + proposal.Version + ".", SemanticRole.Text);
+            if (proposal.RouteGuard is not null)
+                Line("FIXME / restore the first route's missing entry point, then verify the same external PATH relationship.", SemanticRole.Line);
+            else if (report.Diagnosis.State == DoctorDiagnosisState.Confirmed)
+                Line("This selected copy is not the broken first route. Its reinstall does not repair the diagnosed conflict.", SemanticRole.Hook);
             Line("Package scripts are disabled. npm may change this package and its dependencies. Your adjacent settings/data folders are not deletion targets.", SemanticRole.ContextNote);
             Line("This is not atomic: a failed reinstall can leave this copy absent or partial. The operation receipt records the last verified phase.", SemanticRole.ContextNote);
-            Line("EXACT MANAGER REQUESTS", SemanticRole.Reasoning);
-            CopyCommand(ManagerCommand(proposal.Uninstall));
-            CopyCommand(ManagerCommand(proposal.Install));
+            Line("MANAGER EVIDENCE / executed by the approved transaction", SemanticRole.Reasoning);
+            ManagerEvidence(proposal.Uninstall);
+            ManagerEvidence(proposal.Install);
             Line("APPLY THIS REVIEWED REPAIR", SemanticRole.Hook);
             CopyCommand(DoctorCommand(application, proposal.SelectedPath, proposal.Source?.Path ?? sourcePath) + " --apply " + proposal.Token);
         }
@@ -55,6 +75,13 @@ internal sealed partial class DocumentRenderer
             result.State == DoctorApplyState.Succeeded ? SemanticRole.Line : SemanticRole.Hook);
         foreach (var phase in result.Phases)
             Line(phase.Name + " / " + (phase.Succeeded ? "checked" : "needs attention / " + phase.Detail));
+        if (result.State == DoctorApplyState.Succeeded && result.Phases.Any(phase => phase.Name == NpmRouteGuardChecks.VerifiedPhase && phase.Succeeded))
+        {
+            Line("EXTERNAL ROUTE / REPAIR VERIFIED", SemanticRole.Line);
+            Line("The first supported launcher now has its entry point. The inspected later copy and external PATH evidence stayed unchanged.");
+        }
+        else if (result.State != DoctorApplyState.Succeeded)
+            Line("No conflict resolution is claimed. Inspect the recorded phases before choosing another action.", SemanticRole.Hook);
         Line(result.Message);
         if (result.ReceiptPath is { } receipt) EvidencePath("Operation receipt / " + receipt);
         if (result.Recovery is { } recovery)
@@ -65,6 +92,13 @@ internal sealed partial class DocumentRenderer
     }
 
     public void DoctorProposalStored(string path) => EvidencePath("Reviewed proposal saved locally / " + path);
+
+    private void ManagerEvidence(Operations.CommandRequest request)
+    {
+        EvidencePath("  program / " + request.Program);
+        EvidencePath("  entry   / " + request.Arguments[0]);
+        Line("  args    / " + string.Join(" ", request.Arguments.Skip(1).Select(PowerShellLiteral)), SemanticRole.ContextNote);
+    }
 
     private string DoctorCommand(string application, string path, string? source) =>
         $"{Invocation()} where {PowerShellLiteral(application)} --doctor --path {PowerShellLiteral(path)}" +

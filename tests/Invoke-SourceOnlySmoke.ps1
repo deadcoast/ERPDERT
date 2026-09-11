@@ -19,7 +19,7 @@ $sourceRoots = @((Join-Path $projectPath 'src'), (Join-Path $projectPath 'tests'
 foreach ($file in Get-ChildItem -LiteralPath $sourceRoots -Recurse -File) {
     $relative = [IO.Path]::GetRelativePath($projectPath, $file.FullName)
     if ($relative -match '(^|[\\/])(bin|obj|TestResults|\.artifacts)([\\/]|$)') { continue }
-    if ($file.Extension -notin @('.cs', '.csproj', '.props', '.targets', '.json', '.ps1', '.cmd', '.DERT', '.xaml') -and $file.Name -notin @('AVALONEDIT-LICENSE.txt', 'UNICODE-LICENSE.txt')) { continue }
+    if ($file.Extension -notin @('.cs', '.csproj', '.props', '.targets', '.json', '.ps1', '.cmd', '.DERT', '.xaml', '.js', '.mjs') -and $file.Name -notin @('AVALONEDIT-LICENSE.txt', 'UNICODE-LICENSE.txt')) { continue }
     $destination = Join-Path $copyPath $relative
     [void] (New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force)
     Copy-Item -LiteralPath $file.FullName -Destination $destination

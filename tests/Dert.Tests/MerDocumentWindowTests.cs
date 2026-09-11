@@ -175,7 +175,7 @@ public class MerDocumentWindowTests
         var journal = Journal();
         var annotation = new DocumentAnnotation(10001, Enumerable.Repeat(InkLine.Plain("A long explanation that would leave stale words at the right edge"), 30).ToArray());
         var frame = MerCompositor.Document(journal.Snapshot(TimeSpan.FromSeconds(2)), columns, rows, 10001, annotation);
-        var hint = Assert.Single(frame.Lines, line => line.Text.Contains("... full explanation", StringComparison.Ordinal));
+        var hint = Assert.Single(frame.Lines, line => line.Text.Contains("More in details", StringComparison.Ordinal));
         Assert.EndsWith("details", hint.Text);
         Assert.All(frame.Lines, line => Assert.True(TerminalText.Width(line.Text) < columns));
     }

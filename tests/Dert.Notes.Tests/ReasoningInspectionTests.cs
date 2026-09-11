@@ -93,7 +93,7 @@ public class ReasoningInspectionTests
         NotesWindow.InspectReasoningCommand.Execute(null, window.Editor);
         Pump();
         var labels = Descendants<TextBlock>(window.ReasoningView).Select(label => label.Text).ToArray();
-        Assert.Contains("Named target / Saturday", labels);
+        Assert.Contains("Target as written / Saturday", labels);
         Assert.Contains("Bring coffee.", labels);
         Assert.Contains("Bring music.", labels);
         Assert.True(Array.IndexOf(labels, "Bring coffee.") < Array.IndexOf(labels, "Bring music."));

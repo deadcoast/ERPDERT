@@ -1,5 +1,6 @@
 using Dert.Cli.Discovery;
 using Dert.Cli.Operations;
+using Dert.Cli.Transactions;
 
 namespace Dert.Cli.Updates;
 
@@ -20,5 +21,7 @@ internal sealed class UpdateReport(DiscoveryReport discovery)
     public List<DiscoveryIssue> Issues { get; } = [];
     public CommandRequest? Install { get; set; }
     public CommandRequest? DryRun { get; set; }
+    public NpmProposal? Proposal { get; set; }
+    public string? ProposalPath { get; set; }
     public bool NeedsAttention => State is UpdateState.Unavailable or UpdateState.ChooseCopy or UpdateState.Ahead or UpdateState.Interrupted || Issues.Count > 0 || Selected?.Issues.Count > 0;
 }
