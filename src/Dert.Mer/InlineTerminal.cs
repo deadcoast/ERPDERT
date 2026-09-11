@@ -108,17 +108,17 @@ public sealed class InlineTerminal : IDisposable
                 {
                     Ink.Muted => "90",
                     Ink.Copper => "33",
-                    Ink.Signal => "36",
-                    Ink.Good => "32",
+                    Ink.Signal => "95",
+                    Ink.Good => "94",
                     _ => "31"
                 } : run.Ink switch
                 {
-                    // Copper #E6A57E, sea glass #76C9C1, lichen #A5C685,
-                    // vermilion #EF8F82, slate #8C97A3. The terminal owns paper and text.
-                    Ink.Muted => "38;2;140;151;163",
-                    Ink.Copper => "38;2;230;165;126",
-                    Ink.Signal => "38;2;118;201;193",
-                    Ink.Good => "38;2;165;198;133",
+                    // Match MIVIM minimal's amber, violet, blue and quiet type.
+                    // The user's terminal still owns its background and base text.
+                    Ink.Muted => "38;2;144;144;159",
+                    Ink.Copper => "38;2;231;177;125",
+                    Ink.Signal => "38;2;181;167;239",
+                    Ink.Good => "38;2;144;179;235",
                     _ => "38;2;239;143;130"
                 };
                 buffer.Append("\u001b[").Append(color).Append('m');

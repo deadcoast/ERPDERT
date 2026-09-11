@@ -3,6 +3,49 @@
 2026-09-06. This records implemented behavior, not a canonical language release.
 The original language notes and subsequent user decisions retain authority.
 
+## MIVIM minimal, 2026-09-10
+
+The user's correction replaces the default expanded workbench with a compact
+notepad terminal. The initial 640 × 420 DIP window is resizable to a 460 × 320
+minimum. Near-black layers, mono type, violet/amber/blue accents and fine rounded
+corner highlights replace seafoam. Full menus and temporary review panels keep
+the same source buffer, parser, previews, context, results, Save and Undo.
+
+Click opens menus and grants five seconds of chrome visibility. Exact hover
+anchors one menu level; the entire root strip is one target. A child anchor
+fades its parent. Typing and editor hover do not renew visibility. Keyboard
+navigation stays inside the current branch; Escape returns to its opener or
+the document. Windows menu fade defaults on and can be disabled; reduced motion
+uses the same states without the transitions. Document and pending-result
+surfaces remain readable throughout.
+
+Tools runs the real bundled CLI with literal arguments, captured output/exit
+status and the existing approval checks. Unsaved, pending or externally changed
+source refuses a related command, including saved doctor/update handoffs and
+implicit result destinations. Source edits and retained review controls are
+disabled during a command using that source. Shared settings are available in
+the window and through `DERT settings`.
+
+`DERT guide`, Start's DERT Help and Try Help.cmd launch the separate expanded
+syntax/troubleshooting workbench. `DERT write`, direct file opening, Start's
+DERT Notes and Try Notes.cmd open the compact default. The
+[design and verification record](superpowers/specs/2026-09-10-mivim-minimal-design.md)
+distinguishes implementation, native renders and delivery checks from human
+visual acceptance and the still-open clean-account installation proof.
+
+Current verification passed **1,375 tests** (1,168 core/CLI/MER and 207 native).
+Fresh source-only builds passed all eleven executable suites; the final
+published Notes passed 24 checks. Installation passed 91 delivery assertions
+and six native interaction checks. The design record preserves the before/after
+regressions and the later command-status refinements with their final checks.
+
+The subsequent five-screenshot correction removes the detached inner frame,
+matches the corner highlights to the neutral Windows outline, and retains the
+system's own border. All 207 native tests passed afterward; a packaged-window
+probe confirmed the native border, dimensions, resize and normal close. The
+refreshed payload is `.artifacts/win-x64-edge` because the user's earlier
+portable window was still open. The installer now includes this refinement.
+
 ## Per-user Windows installation, 2026-09-10
 
 The workspace setup bundles CLI, Notes, runtimes, licenses and examples. It

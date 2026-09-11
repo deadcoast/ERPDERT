@@ -1,9 +1,10 @@
 # DERT: the work still worth doing
 
 Assessment, 2026-09-10. This is a working development order, not a new language
-specification or an exhaustive limit on the product. The user has accepted the
-current MER balance of source window, restrained ASCII composition and theme.
-Preserve that reference while developing the UDL's usefulness beyond operations.
+specification or an exhaustive limit on the product. The user's latest correction
+requires a compact dark notepad terminal as the default, with the expanded syntax
+workbench moved into separate Help. The earlier seafoam palette is rejected.
+Retain the useful source/ASCII relationships while following that correction.
 
 Authority: [original language notes](docs/archive/original.md),
 [product ambition](docs/WHO-WE-ARE.md), [repository standards](AGENTS.md), and the
@@ -12,6 +13,14 @@ latest user directions. The [syntax lab](docs/SYNTAX-LAB.md) and
 their proposals are not promoted here to user decisions.
 
 ## Assessment of the current gap
+
+The [MIVIM minimal increment](docs/superpowers/specs/2026-09-10-mivim-minimal-design.md)
+implements that correction: a compact rounded native window, dark layered
+palette, precise click/hover/fade menus, shared settings and actual CLI operations.
+Syntax examples and troubleshooting live in independently launched DERT Help.
+The initial 640 × 420 size is an implementation recommendation, not a supplied
+user measurement. The whole language and broader note application remain larger
+than this delivery surface.
 
 The engine, source model and guarded repairs now support considerably more than
 the author's entry experience exposes. Package discovery and update rehearsal
@@ -235,6 +244,13 @@ are recorded below. Unchecked entries retain their unimplemented scope.
   Test on a clean standard Windows account, including downloaded-file trust
   prompts, choosing the default app, a first Save and a second visit. The
   non-elevated development-account checks do not establish that experience.
+- [x] **MIVIM minimal — compact default and separate Help.** Full File/Edit/Note/
+  Tools/Settings/Help menus share the existing buffer, previews, context/result
+  review and CLI operations. Chrome fades five seconds after click; strict
+  hover anchors the actual menu level, with the full root-strip exception.
+  Pending work and command results stay readable. Settings persist and have
+  CLI equivalents. Native input, source safety, rendering and delivery evidence
+  are recorded in the [design](docs/superpowers/specs/2026-09-10-mivim-minimal-design.md).
 - [ ] **Repeated-use polish.** Retain focused selection through safe refresh,
   explain external edits with a source comparison, and preserve concise everyday
   navigation. Measure long notes and large searches, interrupt them, and inspect

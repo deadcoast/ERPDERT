@@ -117,9 +117,21 @@ function Check-Help {
     } finally { $process.Dispose() }
 }
 
+function Assert-WindowSize([IntPtr] $Window, [int] $ProcessId, [double] $Width, [double] $Height, [string] $Name) {
+    $size = [InstallationProbe]::OwnedSize($Window, $ProcessId)
+    $widthDip = $size[0] * 96.0 / $size[2]
+    $heightDip = $size[1] * 96.0 / $size[2]
+    $record.Add("WINDOW $Name; process $ProcessId; HWND $Window; $($size[0]) x $($size[1]) pixels; DPI $($size[2]); $widthDip x $heightDip DIP")
+    # Allow native rounding by two DIP, without accepting the expanded surface
+    # as the default or a compact Help window as the separate workbench.
+    Assert ([Math]::Abs($widthDip - $Width) -le 2 -and [Math]::Abs($heightDip - $Height) -le 2) "$Name opens at $Width x $Height DIP within native rounding tolerance"
+}
+
 [void][IO.Directory]::CreateDirectory($ProofRoot)
 $notesProcess = $null
 $notesWindow = [IntPtr]::Zero
+$helpProcess = $null
+$helpWindow = [IntPtr]::Zero
 $environmentKey = $user.CreateSubKey('Environment')
 try {
     Assert ($null -eq (Read-Value $stateKey 'InstallDirectory') -and $null -eq (Read-Value 'Environment' $pathValue)) 'proof starts with fresh isolated registrations'
@@ -155,6 +167,10 @@ try {
     Assert ($null -ne (Read-Value "Software\Classes\$extension\OpenWithProgids" $progId)) 'DERT is registered as an Open with choice'
     $shortcut = [InstallationProbe]::ReadShortcut((Join-Path $group 'DERT Notes.lnk'))
     Assert ($shortcut[0] -eq (Join-Path $app 'notes/DERT.Notes.exe')) 'Start opens the installed Notes host directly, preserving Unicode'
+    Assert ([string]::IsNullOrEmpty($shortcut[1])) 'the Notes Start entry opens the compact default without guide arguments'
+    $helpShortcut = [InstallationProbe]::ReadShortcut((Join-Path $group 'DERT Help.lnk'))
+    Assert ($helpShortcut[0] -eq $shortcut[0] -and $helpShortcut[1] -ceq '--guide') 'the Help Start entry uses the same installed Notes host with the literal --guide argument'
+    Assert (Test-Path -LiteralPath (Join-Path $app 'Try Help.cmd') -PathType Leaf) 'the installed portable payload includes its Try Help launcher'
     $examplePath = Join-Path $examples 'weekend.DERT'
     Assert (Test-Path -LiteralPath $examplePath) 'the first-launch example lives outside installed binaries'
     $edited = "// MY OWN WORDS`r`n// ------------`r`n// Unfinished ; note ;;`r`n"
@@ -196,12 +212,35 @@ try {
         $notesWindow = [InstallationProbe]::FindWindow([IO.Path]::GetFileName($literalPath) + ' / DERT')
     } while (-not $notesProcess.HasExited -and $notesWindow -eq [IntPtr]::Zero -and [DateTime]::UtcNow -lt $deadline)
     Assert (-not $notesProcess.HasExited -and $notesWindow -ne [IntPtr]::Zero -and [InstallationProbe]::Owner($notesWindow) -eq $notesProcess.Id) 'installed Notes opens a literal filename without an external editor or runtime'
+    Assert-WindowSize $notesWindow $notesProcess.Id 640 420 'installed compact Notes'
+
+    # Launch the already-verified shortcut target/argument while the literal note
+    # stays open. Both processes belong to this isolated proof desktop.
+    $start = [Diagnostics.ProcessStartInfo]::new($helpShortcut[0])
+    $start.UseShellExecute = $false; $start.CreateNoWindow = $true; $start.WindowStyle = 'Hidden'
+    $start.WorkingDirectory = $ProofRoot
+    $start.Environment['PATH'] = ''; $start.Environment['DOTNET_ROOT'] = Join-Path $ProofRoot 'absent runtime'
+    $start.Environment['DOTNET_MULTILEVEL_LOOKUP'] = '0'
+    $start.ArgumentList.Add($helpShortcut[1]); $start.ArgumentList.Add('--still')
+    $helpProcess = [Diagnostics.Process]::Start($start)
+    $deadline = [DateTime]::UtcNow.AddSeconds(20)
+    do {
+        Start-Sleep -Milliseconds 100
+        $helpWindow = [InstallationProbe]::FindWindow('Untitled.DERT / DERT Help')
+    } while (-not $helpProcess.HasExited -and $helpWindow -eq [IntPtr]::Zero -and [DateTime]::UtcNow -lt $deadline)
+    Assert (-not $helpProcess.HasExited -and $helpWindow -ne [IntPtr]::Zero -and [InstallationProbe]::Owner($helpWindow) -eq $helpProcess.Id) 'installed --guide opens its own Help-titled window without an external runtime'
+    Assert ($helpProcess.Id -ne $notesProcess.Id -and $helpWindow -ne $notesWindow -and -not $notesProcess.HasExited) 'Help launches separately while the literal compact note stays open'
+    Assert-WindowSize $helpWindow $helpProcess.Id 1180 780 'installed Help workbench'
     Invoke-Setup @('/TASKS=commandline,fileassociation') -Refused
     Invoke-Removal -Refused
     Assert (-not $notesProcess.HasExited) 'refused setup and removal leave the open Notes process alive'
     Assert ([InstallationProbe]::CloseOwnedWindow($notesWindow, $notesProcess.Id)) 'installed Notes accepts ordinary window close'
     Assert ($notesProcess.WaitForExit(10000) -and $notesProcess.ExitCode -eq 0) 'installed Notes closes normally'
     $notesProcess.Dispose(); $notesProcess = $null
+    Assert (-not $helpProcess.HasExited) 'closing the compact note leaves the separate Help workbench open'
+    Assert ([InstallationProbe]::CloseOwnedWindow($helpWindow, $helpProcess.Id)) 'installed Help accepts ordinary window close'
+    Assert ($helpProcess.WaitForExit(10000) -and $helpProcess.ExitCode -eq 0) 'installed Help closes normally'
+    $helpProcess.Dispose(); $helpProcess = $null
     Assert ([IO.File]::ReadAllText($literalPath) -eq $edited) 'opening the unfinished note leaves its source intact'
 
     $environmentKey.SetValue($pathValue, [string[]]@('changed', 'to another type'), [Microsoft.Win32.RegistryValueKind]::MultiString)
@@ -217,6 +256,7 @@ try {
     Assert ($null -eq (Read-Value "Software\Classes\$progId\shell\open\command")) 'removal withdraws the DERT file-opening command'
     Assert ((Read-Value "Software\Classes\$extension") -eq 'Other.Notes') 'removal preserves another file handler'
     Assert (-not (Test-Path -LiteralPath (Join-Path $group 'DERT Notes.lnk'))) 'removal withdraws its Start entry'
+    Assert (-not (Test-Path -LiteralPath (Join-Path $group 'DERT Help.lnk'))) 'removal withdraws its Help Start entry'
     Assert ($null -eq (Read-Value $uninstallKey 'InstallLocation')) 'removal withdraws its Windows uninstall entry'
 
     # Pre-existing equivalent entries are never claimed for removal.
@@ -291,6 +331,7 @@ catch {
 finally {
     # Never kill an application to make cleanup pass. Retain failed installs for inspection.
     if ($notesProcess) { [void][InstallationProbe]::CloseOwnedWindow($notesWindow, $notesProcess.Id); $notesProcess.Dispose() }
+    if ($helpProcess) { [void][InstallationProbe]::CloseOwnedWindow($helpWindow, $helpProcess.Id); $helpProcess.Dispose() }
     $environmentKey.Dispose()
     [IO.File]::WriteAllText((Join-Path $ProofRoot 'output.txt'), ($record -join "`n"), [Text.UTF8Encoding]::new($false))
 }

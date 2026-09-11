@@ -27,12 +27,12 @@ public sealed class DertColorizer(Func<DertDocument> document) : DocumentColoriz
 
 public static class Palette
 {
-    public static readonly SolidColorBrush Background = Brush("#141A1E");
-    public static readonly SolidColorBrush Panel = Brush("#192126");
-    public static readonly SolidColorBrush Text = Brush("#E9E7DF");
-    public static readonly SolidColorBrush Muted = Brush("#8C97A3");
-    public static readonly SolidColorBrush Signal = Brush("#76C9C1");
-    public static readonly SolidColorBrush Copper = Brush("#E6A57E");
-    public static readonly SolidColorBrush Good = Brush("#A5C685");
+    public static readonly SolidColorBrush Background = Brush("#090A0E");
+    public static readonly SolidColorBrush Panel = Brush("#14151E");
+    public static readonly SolidColorBrush Text = Brush("#E4E2EA");
+    public static readonly SolidColorBrush Muted = Brush("#90909F");
+    public static readonly SolidColorBrush Signal = Brush("#B5A7EF");
+    public static readonly SolidColorBrush Copper = Brush("#E7B17D");
+    public static readonly SolidColorBrush Good = Brush("#90B3EB");
     public static SolidColorBrush Brush(string color) { var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(color)); brush.Freeze(); return brush; }
 }

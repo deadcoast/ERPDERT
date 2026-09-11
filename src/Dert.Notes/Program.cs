@@ -17,14 +17,16 @@ internal static class Program
             using var lifetime = ApplicationLifetime.Track();
             // The CLI and direct host use one validator. Building launch info
             // only normalizes arguments; it does not start another process.
-            var normalized = AuthoringCommand.LaunchInfo(args, AppContext.BaseDirectory).ArgumentList.ToArray();
+            var guide = args.FirstOrDefault() == "--guide";
+            var normalized = AuthoringCommand.LaunchInfo(guide ? args.Skip(1).ToArray() : args, AppContext.BaseDirectory).ArgumentList.ToArray();
             var path = normalized.FirstOrDefault() is { } first && first != "--still" ? first : null;
             var resultIndex = Array.IndexOf(normalized, "--result");
             var atIndex = Array.IndexOf(normalized, "--at");
             var atLine = atIndex < 0 ? (int?)null : int.Parse(normalized[atIndex + 1], System.Globalization.CultureInfo.InvariantCulture);
             ResultObservation? observation = resultIndex < 0 ? null : ObservationStore.Read(normalized[resultIndex + 1]);
             var app = new Application();
-            var window = new NotesWindow(path, normalized.Contains("--still"));
+            var window = new NotesWindow(path, normalized.Contains("--still"), compact: !guide);
+            if (guide) window.EnableHelp();
             if (observation is not null)
             {
                 if (!window.HasOpenedDocument)

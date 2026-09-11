@@ -8,12 +8,36 @@ using System.Text;
 public static class InstallationProbe
 {
     [StructLayout(LayoutKind.Sequential)] private struct Rect { public int Left, Top, Right, Bottom; }
-    [DllImport("user32.dll")] private static extern bool GetWindowRect(IntPtr window, out Rect rect);
+    [DllImport("user32.dll", SetLastError = true)] private static extern bool GetWindowRect(IntPtr window, out Rect rect);
+    [DllImport("user32.dll", SetLastError = true)] private static extern IntPtr SetThreadDpiAwarenessContext(IntPtr context);
+    [DllImport("user32.dll")] private static extern uint GetDpiForWindow(IntPtr window);
     [DllImport("user32.dll")] private static extern bool PrintWindow(IntPtr window, IntPtr dc, uint flags);
     public static int[] Size(IntPtr window)
     {
         GetWindowRect(window, out var rect);
         return new[] { rect.Right - rect.Left, rect.Bottom - rect.Top };
+    }
+
+    // Measure physical pixels independently of the PowerShell host's DPI
+    // virtualization. Return the inspected window's DPI with its full bounds,
+    // so the caller can compare the WPF dimensions in device-independent pixels.
+    public static int[] OwnedSize(IntPtr window, int expectedProcess)
+    {
+        if (window == IntPtr.Zero || !IsWindow(window) || Owner(window) != expectedProcess)
+            throw new InvalidOperationException("Only the inspected proof process's window can be measured.");
+        var previous = SetThreadDpiAwarenessContext(new IntPtr(-4)); // PER_MONITOR_AWARE_V2
+        if (previous == IntPtr.Zero)
+            throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+        try
+        {
+            if (!GetWindowRect(window, out var rect))
+                throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+            var dpi = GetDpiForWindow(window);
+            if (dpi == 0 || Owner(window) != expectedProcess)
+                throw new InvalidOperationException("The inspected proof window changed during measurement.");
+            return new[] { rect.Right - rect.Left, rect.Bottom - rect.Top, (int)dpi };
+        }
+        finally { SetThreadDpiAwarenessContext(previous); }
     }
     public static bool Print(IntPtr window, IntPtr dc) { return PrintWindow(window, dc, 2); }
     private delegate bool Visit(IntPtr window, IntPtr state);

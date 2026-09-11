@@ -15,20 +15,20 @@ public static class CliApplication
     public static int Run(string[] args, IAnsiConsole console, Func<string, bool>? confirmRepair = null,
         string[]? invocation = null, Func<IReadOnlyList<NoteBoundary>, string?>? chooseBoundary = null,
         DiscoveryEnvironment? discoveryEnvironment = null, ICommandRunner? commandRunner = null, TextReader? demoInput = null, TextReader? merInput = null,
-        string? doctorStateDirectory = null)
+        string? doctorStateDirectory = null, string? desktopSettingsPath = null)
     {
         try
         {
             if (args.FirstOrDefault()?.Equals("demo", StringComparison.OrdinalIgnoreCase) == true)
                 return DemoCommand.Run(args, console, demoInput ?? Console.In);
-            return RunCore(args, console, confirmRepair, invocation, chooseBoundary, discoveryEnvironment, commandRunner, merInput, doctorStateDirectory);
+            return RunCore(args, console, confirmRepair, invocation, chooseBoundary, discoveryEnvironment, commandRunner, merInput, doctorStateDirectory, desktopSettingsPath);
         }
         catch (MerOutputException) { return 2; } // The closed output cannot carry another renderer's error report.
     }
 
     private static int RunCore(string[] args, IAnsiConsole console, Func<string, bool>? confirmRepair,
         string[]? invocation, Func<IReadOnlyList<NoteBoundary>, string?>? chooseBoundary,
-        DiscoveryEnvironment? discoveryEnvironment, ICommandRunner? commandRunner, TextReader? merInput, string? doctorStateDirectory)
+        DiscoveryEnvironment? discoveryEnvironment, ICommandRunner? commandRunner, TextReader? merInput, string? doctorStateDirectory, string? desktopSettingsPath)
     {
         var renderer = new DocumentRenderer(console, args.Contains("--plain"), invocation, args.Contains("--still"));
         if (args.Length == 0 || args[0] == "help" || args.Any(a => a is "-help" or "--help"))
@@ -40,6 +40,10 @@ public static class CliApplication
             return MerCommand.Run(args, console, renderer, merInput ?? Console.In, discoveryEnvironment, commandRunner, doctorStateDirectory);
         if (args[0].Equals("write", StringComparison.OrdinalIgnoreCase))
             return Authoring.AuthoringCommand.Run(args.Skip(1).ToArray(), renderer);
+        if (args[0].Equals("guide", StringComparison.OrdinalIgnoreCase))
+            return Authoring.AuthoringCommand.Run(args.Skip(1).ToArray(), renderer, guide: true);
+        if (args[0].Equals("settings", StringComparison.OrdinalIgnoreCase))
+            return Authoring.DesktopSettingsCommand.Run(args, renderer, desktopSettingsPath);
         if (args[0].Equals("context", StringComparison.OrdinalIgnoreCase))
             return Authoring.ContextCommand.Run(args, console, renderer);
         if (args[0].Equals("result", StringComparison.OrdinalIgnoreCase))

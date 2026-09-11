@@ -48,6 +48,24 @@ quality by themselves. Design for first contact and repeated use together.
 
 ## The development loop
 
+The user's 2026-09-10 correction makes the everyday window a compact, dark
+notepad terminal. The expanded syntax/explanation workbench belongs in the
+separately launched Help and troubleshooting hub. Do not restore seafoam or
+make a lesson the default document. Modern corner polish, subtle highlights
+and depth support the mono/ASCII/90s aesthetic; Apple Liquid Glass is not the
+visual target. Exact starting dimensions and palette values remain implementation
+recommendations in the [compact design](docs/superpowers/specs/2026-09-10-mivim-minimal-design.md).
+The user's subsequent screenshot correction retains Windows' thin outer outline
+for contrast with the desktop. Match the corner highlights to that neutral edge;
+do not add an inset perimeter or a detached second rounded contour.
+
+Menus open by click. Window click reveals chrome for five seconds; typing does
+not renew it. Hover anchors only the actual asset, with the entire root strip
+as the explicit exception. Entering a child fades its parent. Keep the document,
+pending choices and real results readable. Windows menu fade is on by default
+and can be turned off. Keyboard and reduced-motion paths preserve the same
+meaning. The compact window and CLI use the same operations and doctoring.
+
 For a substantial design or feature, work through these questions in the
 relevant design or task record. Small edits need proportionate treatment.
 

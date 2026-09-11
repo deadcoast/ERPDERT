@@ -14,7 +14,7 @@ using Microsoft.Win32;
 
 namespace Dert.Notes;
 
-public sealed class NotesWindow : Window
+public sealed partial class NotesWindow : Window
 {
     public static RoutedUICommand LiteralTextCommand { get; } = new("Literal text", nameof(LiteralTextCommand), typeof(NotesWindow),
         new InputGestureCollection { new KeyGesture(Key.L, ModifierKeys.Control | ModifierKeys.Shift) });
@@ -55,8 +55,9 @@ public sealed class NotesWindow : Window
     private readonly ScrollViewer contextScroll;
     private readonly TitleRuleElementGenerator titleRules;
 
-    public NotesWindow(string? path = null, bool still = false, DraftFileService? files = null)
+    public NotesWindow(string? path = null, bool still = false, DraftFileService? files = null, bool compact = false, string? settingsPath = null, string? commandLinePath = null)
     {
+        cliPath = Path.GetFullPath(commandLinePath ?? Path.Combine(AppContext.BaseDirectory, "..", "DERT.exe"));
         this.still = still || !SystemParameters.ClientAreaAnimation ||
             (Environment.GetEnvironmentVariable("DERT_MOTION") ?? Environment.GetEnvironmentVariable("ERPDERT_MOTION")) == "off";
         this.files = files ?? new();
@@ -79,7 +80,7 @@ public sealed class NotesWindow : Window
         // No indentation is introduced by Enter, including when imported text
         // happens to contain whitespace. Source ownership comes from DERT.
         Editor.TextArea.IndentationStrategy = new FlushLeftIndentation();
-        Editor.TextArea.SelectionBrush = Palette.Brush("#31504E");
+        Editor.TextArea.SelectionBrush = Palette.Brush("#39334F");
         System.Windows.Automation.AutomationProperties.SetName(Editor, "DERT document source");
         Session = new(Editor);
         ICSharpCode.AvalonEdit.Folding.FoldingElementGenerator.TextBrush = Palette.Signal;
@@ -148,7 +149,7 @@ public sealed class NotesWindow : Window
         DockPanel.SetDock(tab, Dock.Top); document.Children.Add(tab);
         DockPanel.SetDock(accent, Dock.Top); document.Children.Add(accent);
         document.Children.Add(Editor);
-        writing = new Border { BorderBrush = Palette.Brush("#354148"), BorderThickness = new(1), Child = document };
+        writing = new Border { BorderBrush = Palette.Brush("#403B4D"), BorderThickness = new(1), Child = document };
         body.Children.Add(writing);
         inspector.Children.Add(state);
         inspector.Children.Add(contextBreath);
@@ -195,6 +196,7 @@ public sealed class NotesWindow : Window
         Grid.SetColumn(contextScroll, 1); body.Children.Add(contextScroll);
         SizeChanged += (_, _) =>
         {
+            if (IsCompact) { LayoutProposal(); return; }
             var compact = ActualWidth < 950;
             body.ColumnDefinitions[1].Width = compact ? new(0) : new(292);
             Grid.SetColumn(contextScroll, compact ? 0 : 1);
@@ -208,14 +210,15 @@ public sealed class NotesWindow : Window
         Command(ApplicationCommands.Open, ChooseOpen);
         Command(ApplicationCommands.New, NewDocument);
         Command(InspectReasoningCommand, () => InspectReasoning());
-        Command(LiteralTextCommand, Literals.Begin);
+        Command(LiteralTextCommand, () => { if (!DocumentBusy()) Literals.Begin(); });
         Editor.TextArea.SelectionChanged += (_, _) => Update();
         CommandBindings.Add(new(ReturnToNoteCommand, (_, e) => { ReturnToNote(); e.Handled = true; },
             (_, e) => { e.CanExecute = Session.Reasoning.CanReturn; e.Handled = true; }));
-        Editor.CommandBindings.Add(new(ApplicationCommands.Undo, (_, e) => { Session.Undo(); e.Handled = true; }));
-        Editor.CommandBindings.Add(new(ApplicationCommands.Redo, (_, e) => { Session.Redo(); e.Handled = true; }));
+        Editor.CommandBindings.Add(new(ApplicationCommands.Undo, (_, e) => { if (!DocumentBusy()) Session.Undo(); e.Handled = true; }));
+        Editor.CommandBindings.Add(new(ApplicationCommands.Redo, (_, e) => { if (!DocumentBusy()) Session.Redo(); e.Handled = true; }));
         Editor.PreviewKeyDown += (_, e) =>
         {
+            if (sourceOperationRunning) return;
             if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.None && Session.CompleteTitleLine()) e.Handled = true;
             else if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control) { Lists.BeginAdd(); e.Handled = true; }
             else if (e.Key == Key.Enter && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift)) { Lists.PreviewFinish(); e.Handled = true; }
@@ -239,6 +242,7 @@ public sealed class NotesWindow : Window
         DataObject.AddPastingHandler(Editor, (_, _) => Dispatcher.BeginInvoke(Session.CompleteBoundary, DispatcherPriority.Background));
         Closing += (_, e) => { if (!ConfirmDeparture()) e.Cancel = true; };
         if (path is not null) LoadPath(path);
+        if (compact) ConfigureMinimal(settingsPath);
         Update();
         Loaded += (_, _) => Editor.Focus();
 
@@ -247,6 +251,7 @@ public sealed class NotesWindow : Window
 
     public ResultReviewWindow? CreateResultReview(ResultObservation observation, int? atLine = null)
     {
+        if (DocumentBusy()) return null;
         if (ContextPending() || Result is not null)
         { notice.Text = "Apply or leave the current proposal before keeping a result."; notice.Foreground = Palette.Copper; return null; }
         var document = Session.Parsed;
@@ -261,7 +266,7 @@ public sealed class NotesWindow : Window
                 notice.Text = "Result added to your note. Undo is available; Save keeps it on disk.";
                 notice.Foreground = Palette.Signal; notice.ToolTip = null;
                 return true;
-            }) { Owner = this };
+            }, compact: IsCompact) { Owner = this };
             Result = review; Session.HoldAutomaticBoundary = true;
             review.Closed += (_, _) =>
             {
@@ -290,6 +295,7 @@ public sealed class NotesWindow : Window
 
     public ContextSelectionWindow? CreateContextSelection(Action<string>? copy = null)
     {
+        if (DocumentBusy()) return null;
         if (ContextPending() || Session.Reasoning.Owner is null)
         { notice.Text = "Finish the current proposal, then inspect a reasoning note to choose its context."; return null; }
         Session.CompleteBoundary();
@@ -301,7 +307,7 @@ public sealed class NotesWindow : Window
         {
             var selection = ContextSelection.Capture(document, owner.LineNumber, label, ContextSourceKind.EditorBuffer);
             return new(selection, () => !ContextPending() && ReferenceEquals(document, Session.Parsed) &&
-                ReferenceEquals(owner, Session.Reasoning.Owner) && (opened?.Path ?? "Untitled.DERT") == label, copy) { Owner = this };
+                ReferenceEquals(owner, Session.Reasoning.Owner) && (opened?.Path ?? "Untitled.DERT") == label, copy, compact: IsCompact) { Owner = this };
         }
         catch (ArgumentException error) { notice.Text = error.Message; notice.Foreground = Palette.Copper; return null; }
     }
@@ -310,6 +316,7 @@ public sealed class NotesWindow : Window
 
     private bool InspectReasoning(int? line = null)
     {
+        if (DocumentBusy()) return false;
         if (Lists.IsReviewing || Goodbye.IsReviewing || Literals.IsReviewing || preview is not null)
         {
             notice.Text = "Apply or leave the current proposal before inspecting reasoning.";
@@ -317,6 +324,7 @@ public sealed class NotesWindow : Window
             return false;
         }
         if (!Session.Reasoning.Begin(line)) return false;
+        if (IsCompact) ShowWorkingPanel("Reasoning", contextScroll);
         ReasoningView.FocusReturn();
         return true;
     }
@@ -329,7 +337,9 @@ public sealed class NotesWindow : Window
             notice.Foreground = Palette.Copper;
             return false;
         }
-        return Session.Reasoning.Return();
+        var returned = Session.Reasoning.Return();
+        if (IsCompact && workingPanel is not null) workingPanel.Visibility = Visibility.Collapsed;
+        return returned;
     }
 
     public void LoadPath(string path)
@@ -402,6 +412,7 @@ public sealed class NotesWindow : Window
 
     private bool ConfirmDeparture()
     {
+        if (IsOperationRunning) { ShowOperationNotice("The DERT command is still running. Keep this document open until it finishes."); return false; }
         if (Lists.HasDraft)
         {
             if (MessageBox.Show(this, "Your new list item is still a preview. Discard that proposal and continue leaving this note?\nNo keeps the window open so you can Apply it.",
@@ -415,6 +426,7 @@ public sealed class NotesWindow : Window
 
     public void PreviewTitle()
     {
+        if (DocumentBusy()) return;
         if (!CanLeaveLiteral()) return;
         if (Lists.HasDraft) { ReadyToSave(); return; }
         Lists.Reset();
@@ -438,8 +450,9 @@ public sealed class NotesWindow : Window
         name.ToolTip = opened?.Path;
         state.Text = needsAttention ? "File needs attention" : Session.IsDirty ? "Unsaved changes" : opened is null ? "New note / not saved" : "Saved source";
         state.Foreground = needsAttention || Session.IsDirty || opened is null ? Palette.Copper : Palette.Good;
-        Title = (Session.IsDirty ? "* " : "") + name.Text + " / DERT";
+        Title = (Session.IsDirty ? "* " : "") + name.Text + (isHelpWorkbench ? " / DERT Help" : " / DERT");
         position.Text = $"{Editor.TextArea.Caret.Line}:{Editor.TextArea.Caret.Column}";
+        UpdateMinimalStatus();
         if (preview is not null && preview.Source != Editor.Text) preview = null;
         entries.Children.Clear();
         previewActions.Visibility = preview is null ? Visibility.Collapsed : Visibility.Visible;
@@ -449,6 +462,11 @@ public sealed class NotesWindow : Window
         literalText.Visibility = !Literals.IsReviewing && !Lists.IsReviewing && !Goodbye.IsReviewing && preview is null && Editor.SelectionLength > 0
             ? Visibility.Visible : Visibility.Collapsed;
         var pendingChoice = Lists.IsReviewing || Goodbye.IsReviewing || Literals.IsReviewing || preview is not null;
+        var finishedCompactReview = IsCompact && minimalReviewWasOpen && !pendingChoice;
+        minimalReviewWasOpen = pendingChoice;
+        if (IsCompact && pendingChoice) ShowWorkingPanel("Review the edit", contextScroll);
+        else if (finishedCompactReview && workingPanel is not null && ReferenceEquals(workingContent?.Content, contextScroll))
+        { workingPanel.Visibility = Visibility.Collapsed; Editor.Focus(); }
         Session.Reasoning.HoldForPendingEdit(pendingChoice);
         ReasoningView.Refresh(pendingChoice);
         heading.Visibility = ReasoningView.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
@@ -521,11 +539,13 @@ public sealed class NotesWindow : Window
         notice.Foreground = Palette.Copper;
         notice.Text = error.Message + (error is RepairException { RecoveryPath: { } path } ? "\nSaved original: " + path : "");
         notice.ToolTip = error.ToString();
+        UpdateMinimalStatus();
     }
 
     private static bool Expected(Exception error) => error is IOException or UnauthorizedAccessException or ArgumentException or RepairException;
     private bool ReadyToSave()
     {
+        if (DocumentBusy()) return false;
         if (!CanLeaveLiteral()) return false;
         if (!Lists.HasDraft) return true;
         notice.Text = "The new item is still a preview. Apply it to your note or choose Leave before saving.";
@@ -544,6 +564,13 @@ public sealed class NotesWindow : Window
     private void LayoutProposal()
     {
         if (contextScroll is null) return;
+        if (IsCompact)
+        {
+            ReasoningView.Layout(false);
+            contextBreath.Height = 0;
+            contextScroll.MaxHeight = Math.Max(130, ActualHeight - 100);
+            return;
+        }
         ReasoningView.Layout(ActualWidth < 950);
         var reviewing = Lists.IsReviewing || Literals.IsReviewing || Goodbye.Visibility == Visibility.Visible || ReasoningView.Visibility == Visibility.Visible;
         contextBreath.Height = ActualWidth < 950 && reviewing ? 8 : 24;
@@ -559,7 +586,7 @@ public sealed class NotesWindow : Window
         var button = new Button
         {
             Content = text, Foreground = primary ? Palette.Background : Palette.Text, Background = primary ? Palette.Signal : Palette.Panel,
-            BorderBrush = primary ? Palette.Signal : Palette.Brush("#354148"), BorderThickness = small ? new(0, 0, 0, 1) : new(1),
+            BorderBrush = primary ? Palette.Signal : Palette.Brush("#403B4D"), BorderThickness = small ? new(0, 0, 0, 1) : new(1),
             Padding = small ? new(8, 6, 8, 6) : new(13, 8, 13, 8), Margin = new(0, 0, 8, 8),
             HorizontalContentAlignment = HorizontalAlignment.Left, FontSize = small ? 13 : 14
         };

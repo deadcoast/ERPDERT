@@ -35,7 +35,7 @@ public sealed class ListAuthoringPanel : StackPanel
         Foreground = Palette.Text, Background = Palette.Panel, BorderBrush = Palette.Signal,
         BorderThickness = new(1), FontFamily = new("Consolas"), FontSize = 15,
         Padding = new(8), Margin = new(0, 4, 8, 10), AcceptsReturn = false,
-        TextWrapping = TextWrapping.Wrap, SelectionBrush = Palette.Brush("#31504E")
+        TextWrapping = TextWrapping.Wrap, SelectionBrush = Palette.Brush("#39334F")
     };
     public ListEditPlan? CurrentPlan { get; private set; }
     public bool IsReviewing => action is not null;

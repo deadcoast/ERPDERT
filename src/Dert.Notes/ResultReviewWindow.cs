@@ -20,52 +20,74 @@ public sealed class ResultReviewWindow : Window
     public TextEditor Preview { get; }
     public TextBlock Status { get; } = NotesWindow.Label("", Palette.Muted, 13);
 
-    internal ResultReviewWindow(ResultNotePlan plan, Func<bool> current, Func<bool> apply)
+    internal ResultReviewWindow(ResultNotePlan plan, Func<bool> current, Func<bool> apply, bool compact = false)
     {
         Plan = plan; this.current = current; this.apply = apply;
         Title = "Keep result / DERT"; Width = 1180; Height = 780; MinWidth = 720; MinHeight = 580;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         Background = Palette.Background; Foreground = Palette.Text; FontFamily = new("Segoe UI"); FontSize = 14;
+        if (compact) CompactReviewPresentation.Configure(this);
         Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("/DERT.Notes;component/Theme.xaml", UriKind.Relative) });
-        var frame = new Grid { Margin = new(24) };
+        var frame = new Grid { Margin = new(compact ? 12 : 24) };
         frame.RowDefinitions.Add(new() { Height = GridLength.Auto });
         frame.RowDefinitions.Add(new() { Height = GridLength.Auto });
         frame.RowDefinitions.Add(new() { Height = GridLength.Auto });
         frame.RowDefinitions.Add(new() { Height = new(1, GridUnitType.Star) });
         frame.RowDefinitions.Add(new() { Height = GridLength.Auto });
         var heading = new StackPanel();
-        heading.Children.Add(NotesWindow.Label("DERT / keep this result", Palette.Text, 24));
-        heading.Children.Add(NotesWindow.Label("Bring an observed result back to your words.", Palette.Muted, 14));
-        var summary = NotesWindow.Label($"{plan.Observation.Target.ReplaceLineEndings(" ")} / {plan.Observation.Outcome} / observed {plan.Observation.ObservedAt:yyyy-MM-dd HH:mm:ss zzz}", Palette.Signal, 14);
+        var title = new DockPanel();
+        applyButton = Action("Apply", Apply, true);
+        applyButton.ToolTip = "Append the reviewed note to the editor. Undo is available; Save is separate.";
+        if (compact)
+        {
+            var primaryActions = new StackPanel { Orientation = Orientation.Horizontal };
+            primaryActions.Children.Add(applyButton); primaryActions.Children.Add(Action("Back", Close));
+            DockPanel.SetDock(primaryActions, Dock.Right); title.Children.Add(primaryActions);
+        }
+        title.Children.Add(NotesWindow.Label("DERT / keep this result", Palette.Text, compact ? 16 : 24));
+        heading.Children.Add(title);
+        if (!compact) heading.Children.Add(NotesWindow.Label("Bring an observed result back to your words.", Palette.Muted, 14));
+        var summary = NotesWindow.Label($"{plan.Observation.Target.ReplaceLineEndings(" ")} / {plan.Observation.Outcome} / observed {plan.Observation.ObservedAt:yyyy-MM-dd HH:mm:ss zzz}", Palette.Signal, compact ? 11 : 14);
         summary.TextWrapping = TextWrapping.NoWrap; summary.TextTrimming = TextTrimming.CharacterEllipsis;
+        summary.ToolTip = summary.Text;
         heading.Children.Add(summary);
         frame.Children.Add(heading);
-        var actions = new WrapPanel { Margin = new(0, 12, 0, 0) };
-        applyButton = NotesWindow.Action("Apply", Apply, true);
-        applyButton.ToolTip = "Append the reviewed note to the editor. Undo is available; Save is separate.";
-        actions.Children.Add(applyButton); actions.Children.Add(NotesWindow.Action("Back", Close));
+        var actions = new WrapPanel { Margin = new(0, compact ? 3 : 12, 0, 0) };
+        if (!compact) { actions.Children.Add(applyButton); actions.Children.Add(NotesWindow.Action("Back", Close)); }
         foreach (var name in new[] { "Observation", "Source comparison", "Insertion" })
         {
-            var button = NotesWindow.Action(name, () => ShowReading(name)); views.Add(name, button); actions.Children.Add(button);
+            var button = Action(name, () => ShowReading(name)); views.Add(name, button); actions.Children.Add(button);
         }
         frame.Children.Add(actions); Grid.SetRow(actions, 1);
-        reading.Margin = new(0, 7, 0, 10); frame.Children.Add(reading); Grid.SetRow(reading, 2);
+        if (compact)
+        {
+            reading.FontSize = 11; reading.Margin = new(0);
+            var explanation = new ScrollViewer { Content = reading, MaxHeight = 32, VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Margin = new(0, 3, 0, 6), Focusable = true };
+            AutomationProperties.SetName(explanation, "Current reading explanation");
+            frame.Children.Add(explanation); Grid.SetRow(explanation, 2);
+        }
+        else { reading.Margin = new(0, 7, 0, 10); frame.Children.Add(reading); Grid.SetRow(reading, 2); }
         Preview = new TextEditor
         {
-            IsReadOnly = true, WordWrap = true, FontFamily = new("Consolas"), FontSize = 15,
+            IsReadOnly = true, WordWrap = true, FontFamily = new(compact ? "Cascadia Mono, Consolas" : "Consolas"), FontSize = compact ? 12 : 15,
             Foreground = Palette.Text, Background = Palette.Background,
-            BorderBrush = Palette.Brush("#354148"), BorderThickness = new(1), Padding = new(14),
+            BorderBrush = Palette.Brush("#403B4D"), BorderThickness = new(1), Padding = new(compact ? 9 : 14),
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto
         };
         Preview.Options.EnableHyperlinks = false; Preview.Options.EnableEmailHyperlinks = false;
-        Preview.TextArea.SelectionBrush = Palette.Brush("#31504E");
+        Preview.TextArea.SelectionBrush = Palette.Brush("#39334F");
         colorizer = new(() => DertParser.Parse(Plan.NoteText));
         frame.Children.Add(Preview); Grid.SetRow(Preview, 3);
-        Status.Margin = new(0, 12, 0, 0); frame.Children.Add(Status); Grid.SetRow(Status, 4);
-        Content = frame;
+        if (compact) CompactReviewPresentation.AddStatus(frame, Status, 4);
+        else { Status.Margin = new(0, 12, 0, 0); frame.Children.Add(Status); Grid.SetRow(Status, 4); }
+        Content = compact ? CompactReviewPresentation.Frame(frame) : frame;
         PreviewKeyDown += (_, e) => { if (e.Key == Key.Escape) { Close(); e.Handled = true; } };
         Closed += (_, _) => { finished = true; applyButton.IsEnabled = false; };
         ShowReading("Insertion");
+
+        Button Action(string text, Action click, bool primary = false) => compact
+            ? CompactReviewPresentation.Action(text, click, primary) : NotesWindow.Action(text, click, primary);
     }
 
     private void ShowReading(string name)
@@ -96,7 +118,7 @@ public sealed class ResultReviewWindow : Window
         }
         foreach (var (label, button) in views)
         {
-            button.BorderBrush = label == name ? Palette.Signal : Palette.Brush("#354148");
+            button.BorderBrush = label == name ? Palette.Signal : Palette.Brush("#403B4D");
             AutomationProperties.SetHelpText(button, label == name ? "Current reading" : "Show " + label.ToLowerInvariant());
         }
         AutomationProperties.SetName(Preview, name == "Insertion" ? "Exact result note to append" : name);

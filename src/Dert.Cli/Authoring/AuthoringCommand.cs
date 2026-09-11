@@ -5,7 +5,7 @@ namespace Dert.Cli.Authoring;
 
 public static class AuthoringCommand
 {
-    public static ProcessStartInfo LaunchInfo(string[] arguments, string applicationDirectory)
+    public static ProcessStartInfo LaunchInfo(string[] arguments, string applicationDirectory, bool guide = false)
     {
         string? path = null;
         string? result = null;
@@ -27,6 +27,7 @@ public static class AuthoringCommand
             throw new ArgumentException("A result review needs a destination file; --at is only available with --result.");
         var executable = Path.GetFullPath(Path.Combine(applicationDirectory, "notes", "DERT.Notes.exe"));
         var start = new ProcessStartInfo(executable) { UseShellExecute = false };
+        if (guide) start.ArgumentList.Add("--guide");
         if (path is not null) start.ArgumentList.Add(path);
         if (result is not null) { start.ArgumentList.Add("--result"); start.ArgumentList.Add(result); }
         if (at is not null) { start.ArgumentList.Add("--at"); start.ArgumentList.Add(at.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)); }
@@ -34,12 +35,12 @@ public static class AuthoringCommand
         return start;
     }
 
-    internal static int Run(string[] arguments, DocumentRenderer renderer)
+    internal static int Run(string[] arguments, DocumentRenderer renderer, bool guide = false)
     {
         try
         {
             if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException("The notes authoring window currently requires Windows.");
-            var start = LaunchInfo(arguments, AppContext.BaseDirectory);
+            var start = LaunchInfo(arguments, AppContext.BaseDirectory, guide);
             if (!File.Exists(start.FileName))
             {
                 renderer.Failure("The notes host is missing from this copy. Keep the published notes folder beside DERT.exe. From source, use src/Publish-Windows.ps1 to build both together.");

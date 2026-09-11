@@ -40,10 +40,18 @@ repairs. It recognizes the original example without
 rewriting its syntax, associates each reasoning entry with its own explanation,
 and supplies semantic colors, folds, source locations, and English diagnostics.
 
-`DERT write` opens the bundled Windows notes window. Type a title, press
-Enter, and its matching rule follows as an undoable buffer edit. The same parser
-drives live source colors, reasoning folds and attached explanations. Save and
-reopen keep your exact UTF-8 source; no external editor needs to be installed.
+`DERT write` opens a compact notepad terminal: a resizable 640 × 420 window,
+near-black writing surface, mono text, muted violet/amber accents and fine
+highlights around rounded corners. The document has the space; menus and
+temporary review panels provide the tools. Type a title, press Enter, and its
+matching rule follows as an undoable buffer edit. The same parser drives live
+source colors, reasoning folds and attached explanations. Save and reopen keep
+your exact UTF-8 source; no external editor needs to be installed.
+
+The earlier expanded workbench is now **DERT Help**, launched separately with
+`DERT guide`. Its editable syntax examples and troubleshooting hub are there
+when wanted. An ordinary new note starts empty. This follows the user's
+[MIVIM minimal correction](docs/superpowers/specs/2026-09-10-mivim-minimal-design.md).
 
 The first operational command also works: `DERT update codex` discovers Windows
 PATH command routes, groups launchers that reference the same package, and
@@ -100,7 +108,7 @@ authoring and integration work, including what remains beyond the current CLI.
 
 For a durable installation, open **`.artifacts/installer/DERT-Setup.exe`**.
 It installs the bundled CLI and Notes under `%LOCALAPPDATA%\Programs\DERT`
-without requesting administrator rights. **DERT Notes** appears in Start;
+without requesting administrator rights. **DERT Notes** and **DERT Help** appear in Start;
 **Your DERT example** returns to `Documents\DERT examples\weekend.DERT`.
 Finish can open that editable example immediately. Repeat installation and
 removal preserve the examples, saved notes and recovery copies.
@@ -121,6 +129,7 @@ From this workspace in PowerShell, after publishing:
 ```powershell
 .\.artifacts\win-x64\DERT.exe -help
 .\.artifacts\win-x64\DERT.exe write
+.\.artifacts\win-x64\DERT.exe guide
 .\.artifacts\win-x64\DERT.exe demo
 .\.artifacts\win-x64\DERT.exe mer
 .\.artifacts\win-x64\DERT.exe update codex
@@ -146,6 +155,26 @@ Double-click **`Try Notes.cmd`** in the published folder, or open a file:
 .\.artifacts\win-x64\DERT.exe write 'C:\My notes\weekend.DERT'
 ```
 
+Click the window to reveal its menu; unanchored chrome fades after five seconds.
+Typing leaves that deadline alone. Hover directly over the root strip to keep
+the whole strip visible. Click a menu or submenu to open it; hovering a child
+keeps that child visible while its parent fades. The source stays readable.
+**Settings → Windows menu fade** turns this behavior off. **F10** or **Alt+F**
+enters menus by keyboard; arrows stay within a menu level, and Escape returns.
+
+**Tools → Command…** (Ctrl+Shift+P) runs the bundled CLI and retains its actual
+output and exit status. File operations use the saved document. An edited buffer,
+pending proposal or changed disk file refuses its previous source-bound handoff;
+editing resumes when a running source command finishes. Doctor/update use their
+existing exact approvals. **Help → DERT Help…**, `DERT guide`, or **Try Help.cmd**
+opens the separate workbench for syntax and troubleshooting.
+
+Preferences are shared with the CLI: `DERT settings` shows them, and
+`DERT settings windows-menu-fade off` changes one. Word wrap, line numbers,
+reduced motion and text size are also available. Notes reloads settings when
+activated or when Settings opens; a malformed settings file remains untouched
+and gets an actionable explanation.
+
 Start a new title with `// MY TITLE` and press Enter. Renaming an aligned title
 adjusts its rule when you leave the title line; Enter advances past that rule.
 Undo reverses the automatic edit without immediately reinserting it. Deleting
@@ -162,10 +191,11 @@ A title that wraps keeps its rule and asks for a wider view to compare it.
 The [width policy and inspected evidence](docs/superpowers/specs/2026-09-09-unicode-title-width-design.md)
 record the Unicode data and font-dependent limits.
 
-Use the reasoning gutter, **Inspect reasoning**, or **Ctrl+Space** to read beside
-the folded source. The context connects the named target, ordered entries, each
-entry's own explanation and its actual closing line. Narrow windows place the
-reading controls and entries below the note.
+Use the reasoning gutter, **Note → Inspect this line**, or **Ctrl+Space** to
+open a temporary reading panel within the compact window. The context connects
+the named target, ordered entries, each entry's own explanation and its actual
+closing line. The separate Help workbench retains the expanded source-and-reading
+layout. Context selection and result review also fit the compact footprint.
 
 Choose an entry or **Edit source** to select its original words in the buffer.
 **Return to note** or **Escape** restores your original selection and scroll

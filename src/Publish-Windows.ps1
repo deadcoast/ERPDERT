@@ -10,4 +10,5 @@ foreach ($project in @('Dert.Cli', 'Dert.Notes')) {
     if ($LASTEXITCODE -ne 0) { throw "Publishing $project failed with exit $LASTEXITCODE." }
 }
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Try Notes.cmd') -Destination $destination
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Try Help.cmd') -Destination $destination
 Write-Host "CLI and notes host published together at $destination"

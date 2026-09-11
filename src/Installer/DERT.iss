@@ -72,7 +72,7 @@ WelcomeLabel2=DERT brings expressive notes and its command line to this Windows 
 SelectDirDesc=Choose where DERT's application files will live.
 SelectDirLabel3=Your saved notes and editable examples live separately. Setup manages the application files in the folder below.
 SelectTasksDesc=Choose how you will return to DERT.
-SelectTasksLabel2=Start always includes DERT Notes and your editable example. These additional connections are yours to choose:
+SelectTasksLabel2=Start includes compact DERT Notes, DERT Help and your editable example. These additional connections are yours to choose:
 ReadyLabel1=Ready to make room for DERT.
 FinishedHeadingLabel=DERT is here.
 FinishedLabel=Open your example below, or find DERT Notes in Start.%n%nChoose DERT Notes from a .DERT file's Open with menu to make it your default. Command-line users: open a new terminal for PATH changes.%n%nYour examples stay in Documents\DERT examples. Windows Installed apps can remove DERT while keeping your notes.
@@ -91,6 +91,7 @@ Source: "{#PackageDirectory}\examples\*.DERT"; DestDir: "{#ExamplesDirectory}"; 
 
 [Icons]
 Name: "{userprograms}\{#GroupName}\DERT Notes"; Filename: "{app}\notes\DERT.Notes.exe"; WorkingDir: "{userdocs}"
+Name: "{userprograms}\{#GroupName}\DERT Help"; Filename: "{app}\notes\DERT.Notes.exe"; Parameters: "--guide"; WorkingDir: "{userdocs}"
 Name: "{userprograms}\{#GroupName}\Your DERT example"; Filename: "{app}\notes\DERT.Notes.exe"; Parameters: """{#ExamplesDirectory}\weekend.DERT"""; WorkingDir: "{#ExamplesDirectory}"
 
 [Registry]

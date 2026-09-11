@@ -4,6 +4,8 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
+using System.Windows.Media;
 using Dert.Core;
 using Dert.Cli.Authoring;
 using ICSharpCode.AvalonEdit;
@@ -21,37 +23,54 @@ public sealed class ContextSelectionWindow : Window
     private readonly StackPanel choices = new();
     private readonly ScrollViewer choiceScroll;
     private readonly Button copy, export, toggle;
+    private readonly Button? chooseNotes;
+    private readonly bool compact;
     private readonly TextBlock summary = NotesWindow.Label("", Palette.Signal, 14);
     private int page;
-    private bool leftOut, stale;
+    private bool leftOut, stale, choosing;
     public ContextPacket Packet { get; private set; }
     public TextEditor Preview { get; }
     public TextBlock Status { get; } = NotesWindow.Label("Review the exact text. Copy or export when it carries what you mean.", Palette.Muted, 13);
 
-    internal ContextSelectionWindow(ContextSelection selection, Func<bool> current, Action<string>? copyText = null)
+    internal ContextSelectionWindow(ContextSelection selection, Func<bool> current, Action<string>? copyText = null, bool compact = false)
     {
+        this.compact = compact;
         this.selection = selection; this.current = current; this.copyText = copyText ?? Clipboard.SetText;
         Packet = selection.Build();
         Title = "Context selection / DERT"; Width = 1180; Height = 780; MinWidth = 720; MinHeight = 580;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         Background = Palette.Background; Foreground = Palette.Text; FontFamily = new("Segoe UI"); FontSize = 14;
+        if (compact) CompactReviewPresentation.Configure(this);
         Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("/DERT.Notes;component/Theme.xaml", UriKind.Relative) });
-        var frame = new Grid { Margin = new(24) };
+        var frame = new Grid { Margin = new(compact ? 12 : 24) };
         frame.RowDefinitions.Add(new() { Height = GridLength.Auto });
         frame.RowDefinitions.Add(new() { Height = GridLength.Auto });
         frame.RowDefinitions.Add(new() { Height = new(1, GridUnitType.Star) });
         frame.RowDefinitions.Add(new() { Height = GridLength.Auto });
         var heading = new StackPanel();
-        heading.Children.Add(NotesWindow.Label("DERT / context", Palette.Text, 24));
-        heading.Children.Add(NotesWindow.Label("Choose the notes that travel together.", Palette.Muted, 14));
+        var title = new DockPanel();
+        if (compact)
+        {
+            var back = CompactReviewPresentation.Action("Back to note", Close);
+            DockPanel.SetDock(back, Dock.Right); title.Children.Add(back);
+        }
+        title.Children.Add(NotesWindow.Label("DERT / context", Palette.Text, compact ? 17 : 24));
+        heading.Children.Add(title);
+        if (!compact) heading.Children.Add(NotesWindow.Label("Choose the notes that travel together.", Palette.Muted, 14));
+        else { summary.FontSize = 11; summary.TextWrapping = TextWrapping.NoWrap; summary.TextTrimming = TextTrimming.CharacterEllipsis; }
         heading.Children.Add(summary); frame.Children.Add(heading);
-        var actions = new WrapPanel { Margin = new(0, 12, 0, 12) };
-        copy = NotesWindow.Action("Copy preview", CopyPreview, true);
+        var actions = new WrapPanel { Margin = compact ? new(0, 4, 0, 5) : new(0, 12, 0, 12) };
+        if (compact)
+        {
+            chooseNotes = CompactReviewPresentation.Action("Choose notes", () => ShowChoices(!choosing));
+            actions.Children.Add(chooseNotes);
+        }
+        copy = Action("Copy preview", CopyPreview, true);
         copy.ToolTip = "Ctrl+C / copy the complete reviewed text. Nothing is sent to an agent.";
-        export = NotesWindow.Action("Export…", ChooseExport);
-        toggle = NotesWindow.Action("Left out", () => { leftOut = !leftOut; ShowText(); });
+        export = Action("Export…", ChooseExport);
+        toggle = Action("Left out", () => { leftOut = !leftOut; if (compact) ShowChoices(false); ShowText(); });
         actions.Children.Add(copy); actions.Children.Add(export); actions.Children.Add(toggle);
-        actions.Children.Add(NotesWindow.Action("Back to note", Close));
+        if (!compact) actions.Children.Add(NotesWindow.Action("Back to note", Close));
         frame.Children.Add(actions); Grid.SetRow(actions, 1);
         body.ColumnDefinitions.Add(new() { Width = new(270) }); body.ColumnDefinitions.Add(new() { Width = new(1, GridUnitType.Star) });
         body.RowDefinitions.Add(new() { Height = new(1, GridUnitType.Star) }); body.RowDefinitions.Add(new() { Height = new(0) });
@@ -59,17 +78,18 @@ public sealed class ContextSelectionWindow : Window
         body.Children.Add(choiceScroll);
         Preview = new TextEditor
         {
-            IsReadOnly = true, WordWrap = true, FontFamily = new("Consolas"), FontSize = 14,
-            Foreground = Palette.Text, Background = Palette.Background, BorderBrush = Palette.Brush("#354148"), BorderThickness = new(1),
-            Padding = new(14), VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto
+            IsReadOnly = true, WordWrap = true, FontFamily = new(compact ? "Cascadia Mono, Consolas" : "Consolas"), FontSize = compact ? 12 : 14,
+            Foreground = Palette.Text, Background = Palette.Background, BorderBrush = Palette.Brush("#403B4D"), BorderThickness = new(1),
+            Padding = new(compact ? 9 : 14), VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto
         };
         Preview.Options.EnableHyperlinks = false; Preview.Options.EnableEmailHyperlinks = false;
-        Preview.TextArea.SelectionBrush = Palette.Brush("#31504E");
+        Preview.TextArea.SelectionBrush = Palette.Brush("#39334F");
         AutomationProperties.SetName(Preview, "Exact context preview");
         body.Children.Add(Preview); Grid.SetColumn(Preview, 1);
         frame.Children.Add(body); Grid.SetRow(body, 2);
-        Status.Margin = new(0, 12, 0, 0); frame.Children.Add(Status); Grid.SetRow(Status, 3);
-        Content = frame;
+        if (compact) CompactReviewPresentation.AddStatus(frame, Status, 3);
+        else { Status.Margin = new(0, 12, 0, 0); frame.Children.Add(Status); Grid.SetRow(Status, 3); }
+        Content = compact ? CompactReviewPresentation.Frame(frame) : frame;
         // Intercept before AvalonEdit's focused TextArea handles its own Copy
         // binding. The complete preview uses one guarded clipboard path.
         CommandManager.AddPreviewCanExecuteHandler(Preview, (_, e) =>
@@ -86,10 +106,21 @@ public sealed class ContextSelectionWindow : Window
         PreviewKeyDown += (_, e) => { if (e.Key == Key.Escape) { Close(); e.Handled = true; } };
         SizeChanged += (_, _) => Layout();
         RenderChoices(); ShowText();
+        if (compact) ShowChoices(false);
+
+        Button Action(string text, Action click, bool primary = false) => compact
+            ? CompactReviewPresentation.Action(text, click, primary) : NotesWindow.Action(text, click, primary);
     }
 
     private void Layout()
     {
+        if (compact)
+        {
+            body.ColumnDefinitions[0].Width = new(1, GridUnitType.Star); body.ColumnDefinitions[1].Width = new(0);
+            body.RowDefinitions[0].Height = new(1, GridUnitType.Star); body.RowDefinitions[1].Height = new(0);
+            Grid.SetColumn(Preview, 0); Grid.SetRow(Preview, 0); choiceScroll.Margin = new(0);
+            return;
+        }
         var narrow = ActualWidth < 950;
         body.ColumnDefinitions[0].Width = narrow ? new(1, GridUnitType.Star) : new(270);
         body.ColumnDefinitions[1].Width = narrow ? new(0) : new(1, GridUnitType.Star);
@@ -99,11 +130,24 @@ public sealed class ContextSelectionWindow : Window
         choiceScroll.Margin = narrow ? new(0, 0, 0, 12) : new(0, 0, 18, 0);
     }
 
+    private void ShowChoices(bool show)
+    {
+        choosing = show;
+        choiceScroll.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        Preview.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
+        if (chooseNotes is not null)
+        {
+            chooseNotes.Content = show ? "Show preview" : "Choose notes";
+            AutomationProperties.SetHelpText(chooseNotes, show ? "Return to the exact selected text" : "Choose which notes the preview includes");
+        }
+        Layout();
+    }
+
     private void RenderChoices()
     {
         choices.Children.Clear();
-        choices.Children.Add(NotesWindow.Label("Notes in this document", Palette.Signal, 15));
-        choices.Children.Add(NotesWindow.Label("Other notes stay out until you include them. A name match does not establish agreement.", Palette.Muted, 12));
+        choices.Children.Add(NotesWindow.Label("Notes in this document", Palette.Signal, compact ? 13 : 15));
+        choices.Children.Add(NotesWindow.Label("Other notes stay out until you include them. A name match does not establish agreement.", Palette.Muted, compact ? 11 : 12));
         const int size = 6;
         var pages = Math.Max(1, (selection.Notes.Count + size - 1) / size);
         var navigation = new WrapPanel();
@@ -118,10 +162,10 @@ public sealed class ContextSelectionWindow : Window
         {
             var primary = note.LineNumber == selection.Primary.LineNumber;
             var label = new StackPanel();
-            label.Children.Add(NotesWindow.Label($"{note.LineNumber} / {note.Label}", Palette.Text, 14));
-            label.Children.Add(NotesWindow.Label(primary ? "Starting note / included" : note.IsRelated ? "Name match / your choice" : "Other reasoning / your choice", Palette.Muted, 12));
+            label.Children.Add(NotesWindow.Label($"{note.LineNumber} / {note.Label}", Palette.Text, compact ? 12 : 14));
+            label.Children.Add(NotesWindow.Label(primary ? "Starting note / included" : note.IsRelated ? "Name match / your choice" : "Other reasoning / your choice", Palette.Muted, compact ? 11 : 12));
             if (!note.IsClosed) label.Children.Add(NotesWindow.Label("Closing // missing", Palette.Copper, 12));
-            var box = new CheckBox { Tag = note.LineNumber, Content = label, IsChecked = primary || included.Contains(note.LineNumber), IsEnabled = !primary && !stale, Foreground = Palette.Text, Margin = new(0, 8, 0, 6) };
+            var box = new CheckBox { Tag = note.LineNumber, Content = label, IsChecked = primary || included.Contains(note.LineNumber), IsEnabled = !primary && !stale, Foreground = Palette.Text, Margin = compact ? new(0, 4, 0, 3) : new(0, 8, 0, 6), HorizontalContentAlignment = HorizontalAlignment.Stretch };
             AutomationProperties.SetName(box, $"Include note {note.LineNumber}: {note.Label}");
             box.Checked += (_, _) => Choose(note.LineNumber, true);
             box.Unchecked += (_, _) => Choose(note.LineNumber, false);
@@ -154,6 +198,7 @@ public sealed class ContextSelectionWindow : Window
         AutomationProperties.SetName(Preview, leftOut ? "Source left out of the export" : "Exact context preview");
         copy.IsEnabled = export.IsEnabled = !leftOut && !stale;
         summary.Text = $"{Packet.Included.Count} selected {(Packet.Included.Count == 1 ? "note" : "notes")} / {Packet.Excluded.Count} excluded {(Packet.Excluded.Count == 1 ? "range" : "ranges")} / " + (leftOut ? "left out of export" : "exact text to copy or export");
+        summary.ToolTip = summary.Text;
         if (leftOut) { Status.Text = "This source is left out. Include its note or return to Preview before copying/exporting."; Status.Foreground = Palette.Copper; }
         else { Status.Text = "Ctrl+C copies the complete preview. Source stays in your note; nothing is uploaded."; Status.Foreground = Palette.Muted; }
         if (stale) CheckCurrent();
@@ -205,4 +250,45 @@ public sealed class ContextSelectionWindow : Window
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or ArgumentException)
         { Status.Text = error.Message; Status.Foreground = Palette.Copper; return false; }
     }
+}
+
+internal static class CompactReviewPresentation
+{
+    internal static void Configure(Window window)
+    {
+        window.Width = 640; window.Height = 420; window.MinWidth = 460; window.MinHeight = 320;
+        window.FontFamily = new("Cascadia Mono, Consolas"); window.FontSize = 12;
+        window.SourceInitialized += (_, _) =>
+        {
+            var handle = new WindowInteropHelper(window).Handle;
+            var dark = 1; _ = DwmSetWindowAttribute(handle, 20, ref dark, sizeof(int));
+            var rounded = 2; _ = DwmSetWindowAttribute(handle, 33, ref rounded, sizeof(int));
+            var caption = 0x000E0A09; _ = DwmSetWindowAttribute(handle, 35, ref caption, sizeof(int));
+        };
+    }
+
+    internal static Border Frame(UIElement content) => new()
+    {
+        Background = Palette.Background, BorderThickness = new(1), CornerRadius = new(8),
+        BorderBrush = new LinearGradientBrush(Palette.Brush("#4C485D").Color, Palette.Brush("#24232D").Color, 55), Child = content
+    };
+
+    internal static Button Action(string text, Action click, bool primary = false)
+    {
+        var button = NotesWindow.Action(text, click, primary);
+        button.FontSize = 11; button.Padding = new(8, 5, 8, 5); button.Margin = new(0, 0, 5, 4);
+        return button;
+    }
+
+    internal static void AddStatus(Grid frame, TextBlock status, int row)
+    {
+        status.FontSize = 11; status.Margin = new(0);
+        var scroll = new ScrollViewer { Content = status, MaxHeight = 44, VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Margin = new(0, 7, 0, 0), Focusable = true };
+        AutomationProperties.SetName(scroll, "Review status");
+        frame.Children.Add(scroll); Grid.SetRow(scroll, row);
+    }
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(IntPtr handle, int attribute, ref int value, int size);
 }

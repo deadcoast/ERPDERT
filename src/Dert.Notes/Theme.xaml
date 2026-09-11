@@ -12,10 +12,10 @@
           </Border>
           <ControlTemplate.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-              <Setter TargetName="Edge" Property="BorderBrush" Value="#76C9C1" />
+              <Setter TargetName="Edge" Property="BorderBrush" Value="#B5A7EF" />
             </Trigger>
             <Trigger Property="IsKeyboardFocused" Value="True">
-              <Setter TargetName="Edge" Property="BorderBrush" Value="#E6A57E" />
+              <Setter TargetName="Edge" Property="BorderBrush" Value="#E7B17D" />
             </Trigger>
             <Trigger Property="IsPressed" Value="True">
               <Setter TargetName="Edge" Property="Opacity" Value="0.7" />
@@ -48,7 +48,7 @@
   </Style>
   <Style TargetType="ScrollBar">
     <Setter Property="Width" Value="10" />
-    <Setter Property="Background" Value="#141A1E" />
+    <Setter Property="Background" Value="#090A0E" />
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="ScrollBar">
@@ -56,7 +56,7 @@
             <Track.DecreaseRepeatButton><RepeatButton Style="{StaticResource ScrollPage}" Command="ScrollBar.PageUpCommand" /></Track.DecreaseRepeatButton>
             <Track.Thumb>
               <Thumb>
-                <Thumb.Template><ControlTemplate TargetType="Thumb"><Border Margin="2" Background="#52616A" /></ControlTemplate></Thumb.Template>
+                <Thumb.Template><ControlTemplate TargetType="Thumb"><Border Margin="3,2" CornerRadius="2" Background="#4A485B" /></ControlTemplate></Thumb.Template>
               </Thumb>
             </Track.Thumb>
             <Track.IncreaseRepeatButton><RepeatButton Style="{StaticResource ScrollPage}" Command="ScrollBar.PageDownCommand" /></Track.IncreaseRepeatButton>

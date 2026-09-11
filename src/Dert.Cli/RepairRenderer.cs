@@ -129,7 +129,7 @@ internal sealed partial class DocumentRenderer
         console.Write(grid);
     }
 
-    private Style AddedStyle() => plain ? Spectre.Console.Style.Plain : new(new Color(141, 218, 172));
+    private Style AddedStyle() => plain ? Spectre.Console.Style.Plain : new(new Color(144, 179, 235));
     private Style RemovedStyle() => plain ? Spectre.Console.Style.Plain : new(new Color(245, 146, 157));
     private void CopyCommand(string command)
     {

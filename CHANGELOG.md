@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-09-10 — MIVIM minimal
+
+- Refined the outer edge from five user screenshots: retained the Windows
+  outline, removed the detached inset contour, and matched adjacent corner
+  highlights to its neutral tone. All 207 native tests and the packaged native
+  border/resize/close check passed. Updated setup and a separate
+  `.artifacts/win-x64-edge` payload preserve the user's still-open earlier build.
+- Replaced the default expanded editor with a compact, resizable notepad terminal:
+  near-black layers, mono text, restrained color and subtle rounded-corner highlights.
+  The user's correction explicitly rejects the previous seafoam palette.
+- Added full click-open menus with five-second fading and exact hover anchoring.
+  The root strip anchors as a whole; children fade their parents. Keyboard and
+  reduced-motion paths retain the same status. Pending edits remain visible.
+- Kept the expanded syntax workbench as separately launched DERT Help, with
+  editable examples and troubleshooting. Start and the portable package expose
+  both destinations; ordinary writing opens an empty compact note.
+- Connected Tools to the actual CLI and its saved approvals. Shared persistent
+  settings have CLI equivalents. Current-source checks and a temporary edit lock
+  keep an old handoff from ignoring unsaved words or a changed file.
+- Native context/result reviews retain copy/export, Apply/Undo and stale-source
+  refusal within the same small footprint. All 1,375 current tests passed;
+  source-only builds passed eleven executable suites, the final published Notes
+  passed 24 checks, and installation passed 91 delivery assertions plus six
+  native interaction checks. [Design, verification sequence and limits](docs/superpowers/specs/2026-09-10-mivim-minimal-design.md).
+
 ## 2026-09-10 — install, return to your notes, remove
 
 - Added an unsigned per-user Windows setup for the bundled CLI and Notes host.

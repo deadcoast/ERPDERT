@@ -16,7 +16,7 @@ internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain,
         Line("    --case title|context|unfinished|unicode|failure selects a case; --all runs without prompts; --step pauses at recorded evidence.", SemanticRole.ContextNote);
         Line("");
         Line("DERT write [file.DERT] [--still]", SemanticRole.Sinker);
-        Line("    Write in the bundled Windows notes window. Titles align on Enter; source colors and reasoning folds follow your words. Ctrl+S saves; Ctrl+Z undoes buffer edits.", SemanticRole.ContextNote);
+        Line("    Write in the compact Windows notepad terminal. Titles align on Enter; source colors and reasoning folds follow your words. Ctrl+S saves; Ctrl+Z undoes buffer edits.", SemanticRole.ContextNote);
         Line("    Opened mismatched titles offer a preview. Save retains original encoding/newlines and checks for external changes; Save as creates a new copy.", SemanticRole.ContextNote);
         Line("    Select an expanded list to Add another item or Finish this list. Exact previews keep annotations and ownership; Apply edits the buffer, Ctrl+Z undoes, Ctrl+S saves.", SemanticRole.ContextNote);
         Line("    A chain-ending fin. appears as ƒin. in Notes; Copy and Save retain typed source. Select its line to show typed spelling or preview writing ƒ into the source.", SemanticRole.ContextNote);
@@ -24,6 +24,14 @@ internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain,
         Line("    Inspect reasoning / Ctrl+Space reads similarities as written items and HOW as whole prose. Raw fields retains the original words; selecting an item edits that exact occurrence. Try examples/context-notes.DERT.", SemanticRole.ContextNote);
         Line("    References follows whole names to other reasoning notes in this document. Duplicate destinations stay separate; Escape returns to your starting place across visits. Try examples/referenced-notes.DERT.", SemanticRole.ContextNote);
         Line("    Context selection opens an exact copy/export review from the reasoning inspector. Include other notes deliberately; Left out shows excluded source. Source words, annotations, ranges and revision stay connected. Try examples/context-selection.DERT.", SemanticRole.ContextNote);
+        Line("");
+        Line("DERT guide [file.DERT] [--still]", SemanticRole.Sinker);
+        Line("    Open the separate syntax, Help and troubleshooting workbench. The compact notes window remains available through DERT write.", SemanticRole.ContextNote);
+        Line("");
+        Line("DERT settings", SemanticRole.Sinker);
+        Line("    Read the preferences shared by the Windows window and CLI, with their settings file path.", SemanticRole.ContextNote);
+        Line("DERT settings windows-menu-fade on|off", SemanticRole.Sinker);
+        Line("    Also accepts word-wrap, show-line-numbers and reduced-motion with on|off; font-size accepts 8 to 48. Preferences persist under LocalAppData/DERT/settings.json. Windows reloads them when opened or when its Settings menu is opened.", SemanticRole.ContextNote);
         Line("");
         Line("DERT context file.DERT --at <line> [--include <note line>] [--details | --text]", SemanticRole.Sinker);
         Line("    Preview one reasoning note with its own annotations. Other notes remain explicit choices; --include can be repeated. --details shows the full review; --text emits the exact text for deliberate copying/redirection.", SemanticRole.ContextNote);
@@ -97,6 +105,17 @@ internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain,
         Line("updateme rehearses an update; adding its exact --apply approval performs it without uninstalling first. Doctor --apply performs a reinstall. Both recheck the reviewed npm target and record the transaction. npm queries may write cache/logs.", SemanticRole.ContextNote);
         Line("Doctor proposals and receipts live under LocalAppData/DERT (or absolute DERT_STATE_HOME). Existing .erpdert note recovery remains compatible.", SemanticRole.ContextNote);
         Line("ƒin.", SemanticRole.Boundary);
+    }
+
+    public void DesktopPreferences(Authoring.DesktopSettings settings, string path, bool saved)
+    {
+        Banner(saved ? "SETTINGS / SAVED" : "SETTINGS");
+        Line(path, SemanticRole.ContextNote);
+        Line($"windows-menu-fade: {(settings.WindowsMenuFade ? "on" : "off")}", SemanticRole.Text);
+        Line($"word-wrap: {(settings.WordWrap ? "on" : "off")}", SemanticRole.Text);
+        Line($"show-line-numbers: {(settings.ShowLineNumbers ? "on" : "off")}", SemanticRole.Text);
+        Line($"reduced-motion: {(settings.ReducedMotion ? "on" : "off")}", SemanticRole.Text);
+        Line($"font-size: {settings.FontSize.ToString(CultureInfo.InvariantCulture)}", SemanticRole.Text);
     }
 
     public void Inspect(DertDocument document, CliOptions options)
@@ -289,13 +308,13 @@ internal sealed partial class DocumentRenderer(IAnsiConsole console, bool plain,
         if (plain) return Spectre.Console.Style.Plain;
         var color = role switch
         {
-            SemanticRole.ContextNote or SemanticRole.Rule => new Color(143, 151, 163),
-            SemanticRole.Reasoning or SemanticRole.Head => new Color(202, 158, 255),
-            SemanticRole.Hook => new Color(255, 192, 94),
-            SemanticRole.Line => new Color(111, 211, 245),
+            SemanticRole.ContextNote or SemanticRole.Rule => new Color(144, 144, 159),
+            SemanticRole.Reasoning or SemanticRole.Head => new Color(181, 167, 239),
+            SemanticRole.Hook => new Color(231, 177, 125),
+            SemanticRole.Line => new Color(144, 179, 235),
             SemanticRole.Target => new Color(239, 164, 151),
-            SemanticRole.Boundary or SemanticRole.Title => new Color(247, 221, 164),
-            _ => new Color(226, 231, 237)
+            SemanticRole.Boundary or SemanticRole.Title => new Color(231, 177, 125),
+            _ => new Color(228, 226, 234)
         };
         return new(color, decoration: role is SemanticRole.Title or SemanticRole.Boundary ? Decoration.Bold : Decoration.None);
     }

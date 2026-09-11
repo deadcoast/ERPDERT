@@ -21,6 +21,7 @@ public sealed partial class ReasoningPanel : Grid
     private readonly Button contextSelection;
     private DertNode? rendered;
     private bool rawFields, renderedRaw, pending, showReferences, renderedReferences;
+    public event Action? SourceRequested;
 
     internal ReasoningPanel(AuthoringSession session, Action returnToNote, Action chooseContext)
     {
@@ -35,7 +36,7 @@ public sealed partial class ReasoningPanel : Grid
         back.ToolTip = "Escape / return to your original place. Source edits remain in your note.";
         edit = NotesWindow.Action("Edit source", () =>
         {
-            if (session.Reasoning.Owner is { } owner) session.Reasoning.EditLine(owner.LineNumber);
+            if (session.Reasoning.Owner is { } owner && session.Reasoning.EditLine(owner.LineNumber)) SourceRequested?.Invoke();
         });
         fields = NotesWindow.Action("Raw fields", () =>
         {
@@ -106,7 +107,7 @@ public sealed partial class ReasoningPanel : Grid
         var body = new StackPanel();
         trace.Children.Add(new Border
         {
-            BorderBrush = Palette.Brush("#354148"), BorderThickness = new(1, 0, 0, 0),
+            BorderBrush = Palette.Brush("#403B4D"), BorderThickness = new(1, 0, 0, 0),
             Padding = new(13, 4, 0, 4), Margin = new(2, 8, 0, 10), Child = body
         });
         if (showReferences) { ReferenceBody(session.Parsed, owner, body); return; }
@@ -123,7 +124,7 @@ public sealed partial class ReasoningPanel : Grid
                 new ContextItem(number + 1, entry.Value, entry.Value.Span, null, entry.LineNumber, entry.Annotation)) : reading.Items;
             foreach (var item in items)
             {
-                var button = NotesWindow.Action("", () => session.Reasoning.EditRange(owner, item.Value.Span), small: true);
+                var button = NotesWindow.Action("", () => { if (session.Reasoning.EditRange(owner, item.Value.Span)) SourceRequested?.Invoke(); }, small: true);
                 var column = item.Value.Span.Start - session.Parsed.Source.Lines[item.LineNumber - 1].Start + 1;
                 var label = item.Value.Text.Length == 0 ? "words not written" : item.Value.Text;
                 button.Content = NotesWindow.Label((!rawFields && reading.Reader == ContextReader.Similarities ? $"{item.Number:00}" : $"{item.LineNumber}") + $" / {label}",
@@ -152,7 +153,7 @@ public sealed partial class ReasoningPanel : Grid
         void Field(string label, TextField value)
         {
             body.Children.Add(NotesWindow.Label(label, Palette.Muted, 12));
-            var button = NotesWindow.Action("", () => session.Reasoning.EditRange(owner, value.Span), small: true);
+            var button = NotesWindow.Action("", () => { if (session.Reasoning.EditRange(owner, value.Span)) SourceRequested?.Invoke(); }, small: true);
             button.Content = NotesWindow.Label(value.Text, Palette.Text, 14);
             AutomationProperties.SetName(button, "Edit " + label + ": " + value.Text);
             body.Children.Add(button);
